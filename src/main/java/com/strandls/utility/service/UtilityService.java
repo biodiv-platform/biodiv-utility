@@ -57,6 +57,8 @@ public interface UtilityService {
 
 	public List<Tags> tagsAutoSugguest(String phrase);
 
+	public Language getLanguage(String codeType, String code);
+	
 	public Language getLanguageByTwoLetterCode(String language);
 
 	public HomePageData getHomePageData();
@@ -66,5 +68,6 @@ public interface UtilityService {
 	public List<Habitat> fetchAllHabitat();
 
 	public Boolean insertGallery(GallerySlider gallery);
+
 
 }

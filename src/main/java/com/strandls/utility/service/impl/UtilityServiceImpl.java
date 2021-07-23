@@ -143,6 +143,8 @@ public class UtilityServiceImpl implements UtilityService {
 			FlagCreateData flagCreateData) {
 		if (type.equalsIgnoreCase("observation"))
 			type = "species.participation.Observation";
+		else if (type.equalsIgnoreCase("document"))
+			type = "content.eml.Document";
 
 		FlagIbp flagIbp = flagCreateData.getFlagIbp();
 		Flag flag = flagDao.findByObjectIdUserId(objectId, userId, type);
@@ -150,8 +152,15 @@ public class UtilityServiceImpl implements UtilityService {
 			flag = new Flag(null, 0L, userId, new Date(), flagIbp.getFlag(), flagIbp.getNotes(), objectId, type);
 			flag = flagDao.save(flag);
 			String description = flag.getFlag() + ":" + flag.getNotes();
-			logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
-					"observaiton", flag.getId(), "Flagged", flagCreateData.getMailData());
+
+			if (type.equalsIgnoreCase("species.participation.Observation")) {
+				logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
+						"observaiton", flag.getId(), "Flagged", flagCreateData.getMailData());
+
+			} else if (type.equalsIgnoreCase("content.eml.Document")) {
+				logActivity.LogDocumentActivities(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId,
+						objectId, "document", flag.getId(), "Flagged", flagCreateData.getMailData());
+			}
 
 			List<FlagShow> flagList = fetchByFlagObject(type, objectId);
 			return flagList;
@@ -167,6 +176,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 		if (type.equalsIgnoreCase("observation"))
 			type = "species.participation.Observation";
+		else if (type.equalsIgnoreCase("document"))
+			type = "content.eml.Document";
 		Flag flagged = flagDao.findById(flagId);
 
 		JSONArray userRole = (JSONArray) profile.getAttribute("roles");
@@ -177,8 +188,15 @@ public class UtilityServiceImpl implements UtilityService {
 
 				flagDao.delete(flagged);
 				String description = flagged.getFlag() + ":" + flagged.getNotes();
-				logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
-						"observaiton", flagged.getId(), "Flag removed", mailData);
+
+				if (type.equalsIgnoreCase("species.participation.Observation")) {
+					logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId,
+							objectId, "observaiton", flagged.getId(), "Flag removed", mailData);
+
+				} else if (type.equalsIgnoreCase("content.eml.Document")) {
+					logActivity.LogDocumentActivities(request.getHeader(HttpHeaders.AUTHORIZATION), description,
+							objectId, objectId, "document", flagged.getId(), "Flag removed", mailData);
+				}
 
 				List<FlagShow> flagList = fetchByFlagObject(type, objectId);
 				return flagList;
@@ -243,8 +261,13 @@ public class UtilityServiceImpl implements UtilityService {
 			if (!(errorList.isEmpty()))
 				return errorList;
 			description = description.substring(0, description.length() - 1);
-			logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
-					"observation", objectId, "Observation tag updated", tagsMappingData.getMailData());
+
+			if (objectType.equals("observation"))
+				logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
+						"observation", objectId, "Observation tag updated", tagsMappingData.getMailData());
+			else if (objectType.equals("document"))
+				logActivity.LogDocumentActivities(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId,
+						objectId, "document", objectId, "Document tag updated", tagsMappingData.getMailData());
 			return resultList;
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -411,8 +434,14 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			description = description.substring(0, description.length() - 1);
-			logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
-					"observation", objectId, "Observation tag updated", tagsMappingData.getMailData());
+
+			if (objectType.equals("observation"))
+				logActivity.LogActivity(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId, objectId,
+						"observation", objectId, "Observation tag updated", tagsMappingData.getMailData());
+			else if (objectType.equals("document"))
+				logActivity.LogDocumentActivities(request.getHeader(HttpHeaders.AUTHORIZATION), description, objectId,
+						objectId, "document", objectId, "Document tag updated", tagsMappingData.getMailData());
+
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
@@ -425,6 +454,15 @@ public class UtilityServiceImpl implements UtilityService {
 		return result;
 	}
 
+	@Override
+	public Language getLanguage(String codeType, String code) {
+		Language lang = languageDao.findByPropertyWithCondition(codeType, code, "=");
+		if (lang == null) {
+			return getCurrentLanguage();
+		}
+		return lang;
+	}
+	
 	@Override
 	public Language getLanguageByTwoLetterCode(String language) {
 		Language lang = languageDao.findByPropertyWithCondition("twoLetterCode", language, "=");

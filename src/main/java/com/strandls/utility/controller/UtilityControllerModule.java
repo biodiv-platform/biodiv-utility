@@ -15,6 +15,7 @@ public class UtilityControllerModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		bind(UtilityController.class).in(Scopes.SINGLETON);
+		bind(LanguageController.class).in(Scopes.SINGLETON);
 	}
 
 }

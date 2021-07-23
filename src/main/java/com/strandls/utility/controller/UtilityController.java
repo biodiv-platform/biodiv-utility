@@ -8,6 +8,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -278,14 +279,14 @@ public class UtilityController {
 	}
 
 	@GET
-	@Path(ApiConstants.NAMEPARSER + "/{scientificName}")
+	@Path(ApiConstants.NAMEPARSER)
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.APPLICATION_JSON)
 
 	@ApiOperation(value = "Find the Canonical Form of a Scientific Name", notes = "Returns the Canonical Name of a Scientific Name", response = ParsedName.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "Canonical Name not Found", response = String.class) })
 
-	public Response getNameParsed(@PathParam("scientificName") String name) {
+	public Response getNameParsed(@QueryParam("scientificName") String name) {
 
 		try {
 			ParsedName result = utilityService.findParsedName(name);
@@ -328,6 +329,25 @@ public class UtilityController {
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).build();
+		}
+	}
+
+	@GET
+	@Path(ApiConstants.LANGUAGES + "/{code}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Fetch Language by code type and code(eg. codeType=twoLetterCode, code=en)", notes = "Returns Language by codeType and code default value for the codeType is treeLetterCode", response = Language.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 404, message = "Unable to return the Langauge", response = String.class) })
+
+	public Response getLanguage(@DefaultValue("threeLetterCode") @QueryParam("codeType") String codeType,
+			@PathParam("code") String code) {
+		try {
+			Language result = utilityService.getLanguage(codeType, code);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
 

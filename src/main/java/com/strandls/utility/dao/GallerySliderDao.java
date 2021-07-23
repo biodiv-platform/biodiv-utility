@@ -48,7 +48,7 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<GallerySlider> getAllGallerySliderInfo() {
 		List<GallerySlider> result = null;
-		String qry = "from  GallerySlider where ugId is NULL";
+		String qry = "from  GallerySlider where ugId is NULL order by id asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GallerySlider> query = session.createQuery(qry);
