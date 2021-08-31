@@ -13,20 +13,20 @@ public class LanguageServiceImpl implements LanguageService {
 
 	@Override
 	public Language getLanguage(String codeType, String code) {
-		Language lang = languageDao.getLanguageByProperty(codeType, code, "=");
-		if (lang == null) {
+		Language language = languageDao.getLanguageByProperty(codeType, code, "=");
+		if (language == null) {
 			return getCurrentLanguage();
 		}
-		return lang;
+		return language;
 	}
 
 	@Override
 	public Language getLanguageByTwoLetterCode(String language) {
-		Language lang = languageDao.getLanguageByProperty("twoLetterCode", language, "=");
-		if (lang == null) {
+		Language twoletterCodelang = languageDao.getLanguageByProperty("twoLetterCode", language, "=");
+		if (twoletterCodelang == null) {
 			return getCurrentLanguage();
 		}
-		return lang;
+		return twoletterCodelang;
 	}
 
 	private Language getCurrentLanguage() {

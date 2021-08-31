@@ -398,11 +398,11 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Override
 	public Language getLanguageByTwoLetterCode(String language) {
-		Language lang = languageDao.getLanguageByProperty("twoLetterCode", language, "=");
-		if (lang == null) {
+		Language langTwoLetterCode = languageDao.getLanguageByProperty("twoLetterCode", language, "=");
+		if (langTwoLetterCode == null) {
 			return getCurrentLanguage();
 		}
-		return lang;
+		return langTwoLetterCode;
 	}
 
 	private Language getCurrentLanguage() {
