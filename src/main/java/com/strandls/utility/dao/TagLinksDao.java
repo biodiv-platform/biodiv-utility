@@ -49,7 +49,7 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 
 	@SuppressWarnings("unchecked")
 	public List<TagLinks> findObjectTags(String objectType, Long id) {
-		List<TagLinks> result = new ArrayList<TagLinks>();
+		List<TagLinks> result = new ArrayList<>();
 		Session session = sessionFactory.openSession();
 		String qry = "from TagLinks where type = :type and tagRefer = :id";
 		try {

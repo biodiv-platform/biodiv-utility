@@ -50,7 +50,7 @@ public class HabitatDao extends AbstractDAO<Habitat, Long> {
 	@SuppressWarnings("unchecked")
 	public List<Habitat> findAllHabitat() {
 		String qry = "from Habitat order by habitatOrder";
-		List<Habitat> result = new ArrayList<Habitat>();
+		List<Habitat> result = new ArrayList<>();
 		Session session = sessionFactory.openSession();
 		try {
 			Query<Habitat> query = session.createQuery(qry);

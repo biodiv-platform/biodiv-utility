@@ -154,8 +154,8 @@ public class UtilityController {
 	public Response createFlag(@Context HttpServletRequest request, @PathParam("type") String type,
 			@PathParam("objectId") String objectId, @ApiParam(name = "flagIbp") FlagCreateData flagCreateData) {
 		try {
-			CommonProfile Profile = AuthUtil.getProfileFromRequest(request);
-			Long userId = Long.parseLong(Profile.getId());
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			Long userId = Long.parseLong(profile.getId());
 			Long objId = Long.parseLong(objectId);
 			List<FlagShow> result = utilityService.createFlag(request, type, userId, objId, flagCreateData);
 			if (result.isEmpty())

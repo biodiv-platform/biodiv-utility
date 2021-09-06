@@ -4,6 +4,7 @@
 package com.strandls.utility.pojo;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -21,8 +22,8 @@ public class ParsedName {
 	private String normalized;
 	private CanonicalName CanonicalName;
 	private String authorship;
-	ArrayList<Object> details = new ArrayList<Object>();
-	ArrayList<Object> positions = new ArrayList<Object>();
+	List<Object> details = new ArrayList<>();
+	List<Object> positions = new ArrayList<>();
 	private boolean surrogate;
 	private boolean virus;
 	private boolean hybrid;
@@ -78,19 +79,19 @@ public class ParsedName {
 		this.authorship = authorship;
 	}
 
-	public ArrayList<Object> getDetails() {
+	public List<Object> getDetails() {
 		return details;
 	}
 
-	public void setDetails(ArrayList<Object> details) {
+	public void setDetails(List<Object> details) {
 		this.details = details;
 	}
 
-	public ArrayList<Object> getPositions() {
+	public List<Object> getPositions() {
 		return positions;
 	}
 
-	public void setPositions(ArrayList<Object> positions) {
+	public void setPositions(List<Object> positions) {
 		this.positions = positions;
 	}
 

@@ -6,13 +6,13 @@ package com.strandls.utility.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.util.AbstractDAO;
@@ -70,13 +70,14 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 	@SuppressWarnings("unchecked")
 	public List<Tags> fetchNameByLike(String phrase) {
 		Session session = sessionFactory.openSession();
-		List<Tags> tagsList = new ArrayList<Tags>();
+		List<Tags> tagsList = new ArrayList<>();
 		List<Object[]> result = null;
 
-		String qry = "SELECT id, version, strip_tags(name) FROM public.tags " + "where name like '" + phrase
-				+ "%' order by char_length(name) asc limit 10";
+		String qry = "SELECT id, version, strip_tags(name) FROM public.tags where name "
+				+ "like phrase order by char_length(name) asc limit 10";
 
 		try {
+			qry = qry.replace("phrase", "'"+phrase+"%'");
 			Query<Object[]> query = session.createNativeQuery(qry);
 			result = query.getResultList();
 

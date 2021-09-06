@@ -7,9 +7,14 @@ package com.strandls.utility;
  * @author Abhishek Rudra
  *
  */
+
 public class ApiConstants {
 
-//	<---------------VERSIONING-------------->
+	private ApiConstants() {
+		super();
+	}
+
+	// <---------------VERSIONING-------------->
 	public static final String V1 = "/v1";
 //	<----------CONTROLLER PATHS------------->
 	public static final String SERVICES = "/services";
