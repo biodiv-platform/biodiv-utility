@@ -26,7 +26,7 @@ public class HomePageStatsDao {
 		String docQry = "select count(*) from document";
 		String speciesQry = "SELECT count(*) FROM public.species where is_deleted = false";
 		String discussionQry = "select count(*) from discussion where is_deleted= false";
-		String actUserQry = "select count(*) from suser where account_expired = false and account_locked = false and enabled = true";
+		String actUserQry = "select count(*) from suser where account_expired = false and is_deleted = false and  account_locked = false and enabled = true";
 		try {
 			Query<Object> obvquery = session.createNativeQuery(obvQry);
 			Query<Object> docQuery = session.createNativeQuery(docQry);
