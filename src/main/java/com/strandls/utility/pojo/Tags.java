@@ -29,7 +29,6 @@ public class Tags implements Serializable {
 	 */
 	private static final long serialVersionUID = 3031129954253359964L;
 	private Long id;
-	private Long version;
 	private String name;
 
 	/**
@@ -41,13 +40,11 @@ public class Tags implements Serializable {
 
 	/**
 	 * @param id
-	 * @param version
 	 * @param name
 	 */
-	public Tags(Long id, Long version, String name) {
+	public Tags(Long id, String name) {
 		super();
 		this.id = id;
-		this.version = version;
 		this.name = name;
 	}
 
@@ -60,15 +57,6 @@ public class Tags implements Serializable {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	@Column(name = "version")
-	public Long getVersion() {
-		return version;
-	}
-
-	public void setVersion(Long version) {
-		this.version = version;
 	}
 
 	@Column(name = "name")

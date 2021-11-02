@@ -29,7 +29,6 @@ public class TagLinks implements Serializable {
 	 */
 	private static final long serialVersionUID = -7576446782792031358L;
 	private Long id;
-	private Long version;
 	private Long tagId;
 	private Long tagRefer;
 	private String type;
@@ -43,15 +42,13 @@ public class TagLinks implements Serializable {
 
 	/**
 	 * @param id
-	 * @param version
 	 * @param tagId
 	 * @param tagRefer
 	 * @param type
 	 */
-	public TagLinks(Long id, Long version, Long tagId, Long tagRefer, String type) {
+	public TagLinks(Long id, Long tagId, Long tagRefer, String type) {
 		super();
 		this.id = id;
-		this.version = version;
 		this.tagId = tagId;
 		this.tagRefer = tagRefer;
 		this.type = type;
@@ -66,15 +63,6 @@ public class TagLinks implements Serializable {
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	@Column(name = "version")
-	public Long getVersion() {
-		return version;
-	}
-
-	public void setVersion(Long version) {
-		this.version = version;
 	}
 
 	@Column(name = "tag_id")
