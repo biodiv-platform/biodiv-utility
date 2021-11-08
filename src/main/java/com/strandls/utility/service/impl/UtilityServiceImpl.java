@@ -146,7 +146,7 @@ public class UtilityServiceImpl implements UtilityService {
 		FlagIbp flagIbp = flagCreateData.getFlagIbp();
 		Flag flag = flagDao.findByObjectIdUserId(objectId, userId, type);
 		if (flag == null) {
-			flag = new Flag(null, 0L, userId, new Date(), flagIbp.getFlag(), flagIbp.getNotes(), objectId, type);
+			flag = new Flag(null, userId, new Date(), flagIbp.getFlag(), flagIbp.getNotes(), objectId, type);
 			flag = flagDao.save(flag);
 			String description = flag.getFlag() + ":" + flag.getNotes();
 
@@ -223,8 +223,6 @@ public class UtilityServiceImpl implements UtilityService {
 			List<String> errorList = new ArrayList<String>();
 			String description = "";
 			for (Tags tag : tagsMapping.getTags()) {
-				if (tag.getVersion() == null)
-					tag.setVersion(0L);
 				TagLinks result = null;
 
 				Tags tagsCheck = tagsDao.fetchByName(tag.getName());
@@ -235,9 +233,7 @@ public class UtilityServiceImpl implements UtilityService {
 					Tags insertedTag = tagsDao.save(tag);
 					description = description + insertedTag.getName() + ",";
 					if (insertedTag.getId() != null) {
-						TagLinks tagLink = new TagLinks(null,
-								insertedTag.getVersion() != null ? insertedTag.getVersion() : 0L, insertedTag.getId(),
-								objectId, objectType);
+						TagLinks tagLink = new TagLinks(null, insertedTag.getId(), objectId, objectType);
 						result = tagLinkDao.save(tagLink);
 					}
 				} else {
@@ -247,7 +243,7 @@ public class UtilityServiceImpl implements UtilityService {
 								+ tag.getId());
 					} else {
 						description = description + storedTag.getName() + ",";
-						TagLinks tagLink = new TagLinks(null, tag.getVersion(), tag.getId(), objectId, objectType);
+						TagLinks tagLink = new TagLinks(null, tag.getId(), objectId, objectType);
 						result = tagLinkDao.save(tagLink);
 					}
 
@@ -347,14 +343,12 @@ public class UtilityServiceImpl implements UtilityService {
 				if (tag.getId() != null) {
 					TagLinks result = tagLinkDao.checkIfTagsLinked(objectType, objectId, tag.getId());
 					if (result == null) {
-						TagLinks tagLink = new TagLinks(null, tag.getVersion() != null ? tag.getVersion() : 0L,
-								tag.getId(), objectId, objectType);
+						TagLinks tagLink = new TagLinks(null, tag.getId(), objectId, objectType);
 						tagLinkDao.save(tagLink);
 					}
 				} else {
-					tag.setVersion(0L);
 					tag = tagsDao.save(tag);
-					TagLinks tagLink = new TagLinks(null, tag.getVersion(), tag.getId(), objectId, objectType);
+					TagLinks tagLink = new TagLinks(null, tag.getId(), objectId, objectType);
 					tagLinkDao.save(tagLink);
 				}
 				description = description + tag.getName() + ",";
