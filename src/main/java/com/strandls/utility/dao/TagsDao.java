@@ -52,11 +52,11 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 		Session session = sessionFactory.openSession();
 		Tags tags = null;
 		Object[] result = null;
-		String qry = "SELECT id,version,strip_tags(name) FROM public.tags where strip_tags(name) ='" + phrase + "'";
+		String qry = "SELECT id,strip_tags(name) FROM public.tags where strip_tags(name) ='" + phrase + "'";
 		try {
 			Query<Object[]> query = session.createNativeQuery(qry);
 			result = query.getSingleResult();
-			tags = new Tags(Long.parseLong(result[0].toString()), result[2].toString());
+			tags = new Tags(Long.parseLong(result[0].toString()), result[1].toString());
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
@@ -72,7 +72,7 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 		List<Tags> tagsList = new ArrayList<>();
 		List<Object[]> result = null;
 
-		String qry = "SELECT id, version, strip_tags(name) FROM public.tags where name "
+		String qry = "SELECT id, strip_tags(name) FROM public.tags where name "
 				+ "like phrase order by char_length(name) asc limit 10";
 
 		try {
@@ -81,7 +81,7 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 			result = query.getResultList();
 
 			for (Object[] obj : result) {
-				tagsList.add(new Tags(Long.parseLong(obj[0].toString()), obj[2].toString()));
+				tagsList.add(new Tags(Long.parseLong(obj[0].toString()), obj[1].toString()));
 			}
 
 		} catch (Exception e) {
