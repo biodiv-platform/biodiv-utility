@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.strandls.utility.service;
 
@@ -19,6 +19,7 @@ import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.ParsedName;
+import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 
@@ -56,7 +57,7 @@ public interface UtilityService {
 	public List<Tags> tagsAutoSugguest(String phrase);
 
 	public Language getLanguage(String codeType, String code);
-	
+
 	public Language getLanguageByTwoLetterCode(String language);
 
 	public HomePageData getHomePageData();
@@ -65,7 +66,13 @@ public interface UtilityService {
 
 	public List<Habitat> fetchAllHabitat();
 
-	public Boolean insertGallery(GallerySlider gallery);
+	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
+
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
+
+	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData);
+
+	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage);
 
 
 }

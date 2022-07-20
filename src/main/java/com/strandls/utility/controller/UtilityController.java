@@ -36,6 +36,7 @@ import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.ParsedName;
+import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.service.UtilityService;
@@ -366,17 +367,100 @@ public class UtilityController {
 		}
 	}
 
-	@POST
-	@Path(ApiConstants.INSERT + ApiConstants.HOMEPAGE)
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + "/{galleryId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Delete homepage gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response removeGalleryData(@Context HttpServletRequest request,
+			@PathParam("galleryId") String galleryId) {
+		try {
+			Long gId = Long.parseLong(galleryId);
+			HomePageData result = utilityService.removeHomePage(request, gId);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + "/{galleryId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 
-	public Response insertHomePageData(@ApiParam(name = "galleryData") GallerySlider galleryData) {
+	@ValidateUser
+
+	@ApiOperation(value = "Edit homepage gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editHomePage(@Context HttpServletRequest request,
+			@PathParam("galleryId") String galleryId , @ApiParam(name = "editData") GallerySlider editData) {
 		try {
-			Boolean result = utilityService.insertGallery(galleryData);
-			return Response.status(Status.OK).entity(result).build();
+			Long gId = Long.parseLong(galleryId);
+			HomePageData result = utilityService.editHomePage(request, gId , editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
 		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).build();
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING )
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	public Response reorderingHomePageGallerySlider(@Context HttpServletRequest request,
+			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage) {
+		try {
+			HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+
+	// add list of Home gallery Data
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "update  homepage gallery data", notes = "return  home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+	public Response updateGalleryData(@Context HttpServletRequest request,
+			@ApiParam(name = "editData") HomePageData editData) {
+		try {
+
+			HomePageData result = utilityService.insertHomePage(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
 
