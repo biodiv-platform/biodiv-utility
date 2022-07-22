@@ -23,6 +23,7 @@ public class ReorderHomePage {
 	public ReorderHomePage(Long galleryId, Long displayOrder) {
 		super();
 		this.displayOrder = displayOrder;
+		this.galleryId = galleryId;
 	}
 
 

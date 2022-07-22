@@ -69,7 +69,9 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
-	private static final String roleAdmin = "ROLE_ADMIN";
+	private static final String ROLE_ADMIN = "ROLE_ADMIN";
+	
+	private static final String ROLES ="roles";
 
 	@Inject
 	private LogActivities logActivity;
@@ -181,11 +183,11 @@ public class UtilityServiceImpl implements UtilityService {
 			type = "content.eml.Document";
 		Flag flagged = flagDao.findById(flagId);
 
-		JSONArray userRole = (JSONArray) profile.getAttribute("roles");
+		JSONArray userRole = (JSONArray) profile.getAttribute(ROLES);
 		Long userId = Long.parseLong(profile.getId());
 
 		if (flagged != null) {
-			if (userRole.contains("ROLE_ADMIN") || userId.equals(flagged.getAuthorId())) {
+			if (userRole.contains(ROLE_ADMIN) || userId.equals(flagged.getAuthorId())) {
 
 				flagDao.delete(flagged);
 				String description = flagged.getFlag() + ":" + flagged.getNotes();
@@ -437,9 +439,9 @@ public class UtilityServiceImpl implements UtilityService {
 	public HomePageData removeHomePage(HttpServletRequest request,Long galleryId) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
-			JSONArray roles = (JSONArray) profile.getAttribute("roles");
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(roleAdmin) ) {
+			if (roles.contains(ROLE_ADMIN) ) {
 				GallerySlider entity = gallerySliderDao.findById(galleryId);
 				gallerySliderDao.delete(entity);
 				return getHomePageData();
@@ -456,8 +458,8 @@ public class UtilityServiceImpl implements UtilityService {
 			GallerySlider editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
-			JSONArray roles = (JSONArray) profile.getAttribute("roles");
-			if (roles.contains(roleAdmin)) {
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
 				GallerySlider gallerySliderEntity = gallerySliderDao.findById(galleryId);
 				gallerySliderEntity.setFileName(editData.getFileName());
 				gallerySliderEntity.setTitle(editData.getTitle());
@@ -527,9 +529,9 @@ public class UtilityServiceImpl implements UtilityService {
 			HomePageData editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
-			JSONArray roles = (JSONArray) profile.getAttribute("roles");
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(roleAdmin) ) {
+			if (roles.contains(ROLE_ADMIN) ) {
 				List<GallerySlider> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty())
 					for (GallerySlider gallery : galleryData) {
@@ -549,9 +551,9 @@ public class UtilityServiceImpl implements UtilityService {
 	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage) {
 			try {
 				CommonProfile profile = AuthUtil.getProfileFromRequest(request);
-				JSONArray roles = (JSONArray) profile.getAttribute("roles");
+				JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-				if (roles.contains(roleAdmin)) {
+				if (roles.contains(ROLE_ADMIN)) {
 					for (ReorderHomePage reorder : reorderHomePage) {
 						GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
 						gallery.setDisplayOrder(reorder.getDisplayOrder());
