@@ -8,6 +8,7 @@ import java.util.List;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -367,7 +368,7 @@ public class UtilityController {
 		}
 	}
 
-	@PUT
+	@DELETE
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + "/{galleryId}")
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -438,7 +439,7 @@ public class UtilityController {
 	}
 
 
-	// add list of Home gallery Data
+	// Insert list of New Home gallery Data
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT)
 	@Consumes(MediaType.APPLICATION_JSON)
