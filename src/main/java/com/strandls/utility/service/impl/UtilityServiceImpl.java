@@ -417,9 +417,11 @@ public class UtilityServiceImpl implements UtilityService {
 			List<GallerySlider> galleryData = gallerySliderDao.getAllGallerySliderInfo();
 
 			for (GallerySlider gallery : galleryData) {
+				if (gallery.getAuthorId() != null) {
 				UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
 				gallery.setAuthorImage(userIbp.getProfilePic());
 				gallery.setAuthorName(userIbp.getName());
+				}
 			}
 
 			HomePageStats homePageStats;
