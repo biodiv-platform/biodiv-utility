@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.activity.pojo.MailData;
+import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
 import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
@@ -49,6 +50,7 @@ import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.HomePageStats;
 import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.ParsedName;
+import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.TagLinks;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMapping;
@@ -66,6 +68,10 @@ public class UtilityServiceImpl implements UtilityService {
 	private static final Logger logger = LoggerFactory.getLogger(UtilityServiceImpl.class);
 
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
+
+	private static final String ROLE_ADMIN = "ROLE_ADMIN";
+	
+	private static final String ROLES ="roles";
 
 	@Inject
 	private LogActivities logActivity;
@@ -92,7 +98,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private HomePageStatsDao portalStatusDao;
 
 	@Inject
-	private GallerySliderDao gallerSilderDao;
+	private GallerySliderDao gallerySliderDao;
 
 	@Inject
 	private HabitatDao habitatDao;
@@ -177,11 +183,11 @@ public class UtilityServiceImpl implements UtilityService {
 			type = "content.eml.Document";
 		Flag flagged = flagDao.findById(flagId);
 
-		JSONArray userRole = (JSONArray) profile.getAttribute("roles");
+		JSONArray userRole = (JSONArray) profile.getAttribute(ROLES);
 		Long userId = Long.parseLong(profile.getId());
 
 		if (flagged != null) {
-			if (userRole.contains("ROLE_ADMIN") || userId.equals(flagged.getAuthorId())) {
+			if (userRole.contains(ROLE_ADMIN) || userId.equals(flagged.getAuthorId())) {
 
 				flagDao.delete(flagged);
 				String description = flagged.getFlag() + ":" + flagged.getNotes();
@@ -408,12 +414,14 @@ public class UtilityServiceImpl implements UtilityService {
 		try {
 
 			HomePageData result = null;
-			List<GallerySlider> galleryData = gallerSilderDao.getAllGallerySliderInfo();
+			List<GallerySlider> galleryData = gallerySliderDao.getAllGallerySliderInfo();
 
 			for (GallerySlider gallery : galleryData) {
+				if (gallery.getAuthorId() != null) {
 				UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
 				gallery.setAuthorImage(userIbp.getProfilePic());
 				gallery.setAuthorName(userIbp.getName());
+				}
 			}
 
 			HomePageStats homePageStats;
@@ -428,6 +436,48 @@ public class UtilityServiceImpl implements UtilityService {
 		return null;
 
 	}
+
+	@Override
+	public HomePageData removeHomePage(HttpServletRequest request,Long galleryId) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+
+			if (roles.contains(ROLE_ADMIN) ) {
+				GallerySlider entity = gallerySliderDao.findById(galleryId);
+				gallerySliderDao.delete(entity);
+				return getHomePageData();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId ,
+			GallerySlider editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
+				GallerySlider gallerySliderEntity = gallerySliderDao.findById(galleryId);
+				gallerySliderEntity.setFileName(editData.getFileName());
+				gallerySliderEntity.setTitle(editData.getTitle());
+				gallerySliderEntity.setCustomDescripition(editData.getCustomDescripition());
+				gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+				gallerySliderDao.update(gallerySliderEntity);
+				return getHomePageData();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
+
 
 	@Override
 	public String getYoutubeTitle(String videoId) {
@@ -475,18 +525,49 @@ public class UtilityServiceImpl implements UtilityService {
 		return result;
 	}
 
-	@Override
-	public Boolean insertGallery(GallerySlider gallery) {
-		try {
-			gallery = gallerSilderDao.save(gallery);
-			if (gallery.getId() != null)
-				return true;
 
+	@Override
+	public HomePageData insertHomePage(HttpServletRequest request,
+			HomePageData editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+
+			if (roles.contains(ROLE_ADMIN) ) {
+				List<GallerySlider> galleryData = editData.getGallerySlider();
+				if (galleryData != null && !galleryData.isEmpty())
+					for (GallerySlider gallery : galleryData) {
+						gallerySliderDao.save(gallery);
+					}
+
+				return getHomePageData();
+			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
-
-		return false;
+		return null;
 	}
+
+
+	@Override
+	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage) {
+			try {
+				CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+				JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+
+				if (roles.contains(ROLE_ADMIN)) {
+					for (ReorderHomePage reorder : reorderHomePage) {
+						GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
+						gallery.setDisplayOrder(reorder.getDisplayOrder());
+						gallerySliderDao.update(gallery);
+					}
+
+					return getHomePageData();
+				}
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+			}
+			return null;
+		}
 
 }
