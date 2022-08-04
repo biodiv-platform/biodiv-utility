@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.strandls.utility;
 
@@ -37,4 +37,7 @@ public class ApiConstants {
 	public static final String HABITAT = "/habitat";
 	public static final String ALL = "/all";
 	public static final String INSERT = "/insert";
+	public static final String REMOVE = "/remove";
+	public static final String EDIT = "/edit";
+	public static final String REORDERING = "/reorder";
 }
