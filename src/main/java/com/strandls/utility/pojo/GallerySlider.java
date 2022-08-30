@@ -34,6 +34,7 @@ public class GallerySlider {
 	private String customDescripition;
 	private String moreLinks;
 	private Long displayOrder;
+	private Boolean show;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -134,6 +135,15 @@ public class GallerySlider {
 
 	public void setDisplayOrder(Long displayOrder) {
 		this.displayOrder = displayOrder;
+	}
+
+	@Column(name = "show", nullable = false)
+	public Boolean getShow() {
+		return show;
+	}
+
+	public void setShow(Boolean show) {
+		this.show = show;
 	}
 
 }
