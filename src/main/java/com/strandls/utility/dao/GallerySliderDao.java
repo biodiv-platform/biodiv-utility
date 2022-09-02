@@ -50,7 +50,7 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 		List<GallerySlider> result = null;
 		String qry = isAdminList ?
 				"from  GallerySlider order by id asc" :
-					"from  GallerySlider where show is true order by id asc";
+				"from  GallerySlider where is_truncated is true order by id asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GallerySlider> query = session.createQuery(qry);

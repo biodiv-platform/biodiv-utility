@@ -478,7 +478,7 @@ public class UtilityServiceImpl implements UtilityService {
 				gallerySliderEntity.setCustomDescripition(editData.getCustomDescripition());
 				gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
 				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
-				gallerySliderEntity.setShow(editData.getShow());
+				gallerySliderEntity.setTruncated(editData.getTruncated());
 				gallerySliderDao.update(gallerySliderEntity);
 				return getHomePageData(request ,true);
 			}
