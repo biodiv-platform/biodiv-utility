@@ -418,13 +418,13 @@ public class UtilityServiceImpl implements UtilityService {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 
 			if(profile !=null){
-				JSONArray roles = (JSONArray) profile.getAttribute("roles");
-				isadmin =roles.contains(ROLE_ADMIN) ? true : false;
+				JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+				isadmin =roles.contains(ROLE_ADMIN);
 			}
 
-			List<GallerySlider> galleryData = isadmin &&isadmin!= null && adminList? 
-					gallerySliderDao.getAllGallerySliderInfo(true): 
-					gallerySliderDao.getAllGallerySliderInfo(false);
+			List<GallerySlider> galleryData = isadmin && adminList? 
+					gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE): 
+					gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
 			for (GallerySlider gallery : galleryData) {
 				if (gallery.getAuthorId() != null) {
