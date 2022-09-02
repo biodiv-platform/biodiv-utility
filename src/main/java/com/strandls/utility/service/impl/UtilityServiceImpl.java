@@ -410,11 +410,21 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData getHomePageData() {
+	public HomePageData getHomePageData(HttpServletRequest request ,Boolean adminList) {
 		try {
 
 			HomePageData result = null;
-			List<GallerySlider> galleryData = gallerySliderDao.getAllGallerySliderInfo();
+			Boolean isadmin = false;
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+
+			if(profile !=null){
+				JSONArray roles = (JSONArray) profile.getAttribute("roles");
+				isadmin =roles.contains(ROLE_ADMIN) ? true : false;
+			}
+
+			List<GallerySlider> galleryData = isadmin &&isadmin!= null && adminList? 
+					gallerySliderDao.getAllGallerySliderInfo(true): 
+					gallerySliderDao.getAllGallerySliderInfo(false);
 
 			for (GallerySlider gallery : galleryData) {
 				if (gallery.getAuthorId() != null) {
@@ -446,7 +456,7 @@ public class UtilityServiceImpl implements UtilityService {
 			if (roles.contains(ROLE_ADMIN) ) {
 				GallerySlider entity = gallerySliderDao.findById(galleryId);
 				gallerySliderDao.delete(entity);
-				return getHomePageData();
+				return getHomePageData(request ,true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -470,7 +480,7 @@ public class UtilityServiceImpl implements UtilityService {
 				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
 				gallerySliderEntity.setShow(editData.getShow());
 				gallerySliderDao.update(gallerySliderEntity);
-				return getHomePageData();
+				return getHomePageData(request ,true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -541,7 +551,7 @@ public class UtilityServiceImpl implements UtilityService {
 						gallerySliderDao.save(gallery);
 					}
 
-				return getHomePageData();
+				return getHomePageData(request ,true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -563,7 +573,7 @@ public class UtilityServiceImpl implements UtilityService {
 						gallerySliderDao.update(gallery);
 					}
 
-					return getHomePageData();
+					return getHomePageData(request ,true);
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage());
