@@ -60,7 +60,7 @@ public interface UtilityService {
 
 	public Language getLanguageByTwoLetterCode(String language);
 
-	public HomePageData getHomePageData();
+	public HomePageData getHomePageData(HttpServletRequest request , Boolean adminList);
 
 	public String getYoutubeTitle(String videoId);
 
