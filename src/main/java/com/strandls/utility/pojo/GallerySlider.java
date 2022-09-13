@@ -34,6 +34,7 @@ public class GallerySlider {
 	private String customDescripition;
 	private String moreLinks;
 	private Long displayOrder;
+	private Boolean isTruncated;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -134,6 +135,15 @@ public class GallerySlider {
 
 	public void setDisplayOrder(Long displayOrder) {
 		this.displayOrder = displayOrder;
+	}
+
+	@Column(name = "is_truncated", nullable = false)
+	public Boolean getTruncated() {
+		return isTruncated;
+	}
+
+	public void setTruncated(Boolean isTruncated) {
+		this.isTruncated = isTruncated;
 	}
 
 }
