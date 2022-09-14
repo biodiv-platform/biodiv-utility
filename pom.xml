@@ -219,6 +219,12 @@
 		
 		<dependency>
 		    <groupId>com.strandls.biodiv</groupId>
+		    <artifactId>naksha-client</artifactId>
+		    <version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>com.strandls.biodiv</groupId>
 		    <artifactId>user-client</artifactId>
 		    <version>1.0.0</version>
 		</dependency>
