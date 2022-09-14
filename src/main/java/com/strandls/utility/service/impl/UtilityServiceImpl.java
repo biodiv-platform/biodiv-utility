@@ -290,11 +290,8 @@ public class UtilityServiceImpl implements UtilityService {
 			HttpGet request = new HttpGet(uri);
 
 			try (CloseableHttpResponse response = httpClient.execute(request)) {
-				System.out.println(response.getStatusLine().toString());
 
 				HttpEntity entity = response.getEntity();
-				Header headers = entity.getContentType();
-				System.out.println(headers);
 
 				if (entity != null) {
 					// return it as a String
@@ -503,11 +500,8 @@ public class UtilityServiceImpl implements UtilityService {
 			HttpGet request = new HttpGet(uri);
 
 			try (CloseableHttpResponse response = httpClient.execute(request)) {
-				System.out.println(response.getStatusLine().toString());
 
 				HttpEntity entity = response.getEntity();
-				Header headers = entity.getContentType();
-				System.out.println(headers);
 
 				if (entity != null) {
 					String result = EntityUtils.toString(entity);
