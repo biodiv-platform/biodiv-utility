@@ -1,6 +1,7 @@
 package com.strandls.utility.dao;
 
 import javax.inject.Inject;
+import javax.ws.rs.QueryParam;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -9,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.strandls.utility.pojo.HomePageStats;
-import com.strandls.naksha.controller.LayerServiceApi;
 
 public class HomePageStatsDao {
 
@@ -18,11 +18,8 @@ public class HomePageStatsDao {
 	@Inject
 	private SessionFactory sessionFactory;
 
-	@Inject
-	private LayerServiceApi layerServiceApi;
-
 	@SuppressWarnings("unchecked")
-	public HomePageStats fetchPortalStats() {
+	public HomePageStats fetchPortalStats(Integer layerCount) {
 		HomePageStats stats = new HomePageStats();
 		Session session = sessionFactory.openSession();
 
@@ -31,15 +28,6 @@ public class HomePageStatsDao {
 		String speciesQry = "SELECT count(*) FROM public.species where is_deleted = false";
 		String discussionQry = "select count(*) from discussion where is_deleted= false";
 		String actUserQry = "select count(*) from suser where account_expired = false and is_deleted = false and  enabled = true";
-
-		Long layerCount = 0L;
-		try {
-			// This is written in seprate try block so if somewhere naksha not setup it should still work
-			// and not break other code
-			layerCount = Long.parseLong(layerServiceApi.getLayerCount().toString());
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-		}
 
 		try {
 			Query<Object> obvquery = session.createNativeQuery(obvQry);
@@ -53,7 +41,7 @@ public class HomePageStatsDao {
 			stats.setSpecies(Long.parseLong(speciesQuery.getSingleResult().toString()));
 			stats.setDiscussions(Long.parseLong(disQuery.getSingleResult().toString()));
 			stats.setActiveUser(Long.parseLong(actUserQuery.getSingleResult().toString()));
-			stats.setMaps(layerCount);
+			stats.setMaps(Long.valueOf(layerCount));
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {

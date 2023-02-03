@@ -360,9 +360,10 @@ public class UtilityController {
 	@ApiOperation(value = "Get home page data", notes = "Return home page data", response = HomePageData.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getHomePageData(@Context HttpServletRequest request,
-			 @DefaultValue("false") @QueryParam("adminList") Boolean adminList ) {
+			@DefaultValue("false") @QueryParam("adminList") Boolean adminList,
+			@QueryParam("layerCount") Integer layerCount) {
 		try {
-			HomePageData result = utilityService.getHomePageData(request ,adminList );
+			HomePageData result = utilityService.getHomePageData(request, adminList, layerCount);
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -380,11 +381,11 @@ public class UtilityController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
-	public Response removeGalleryData(@Context HttpServletRequest request,
-			@PathParam("galleryId") String galleryId) {
+	public Response removeGalleryData(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@QueryParam("layerCount") Integer layerCount) {
 		try {
 			Long gId = Long.parseLong(galleryId);
-			HomePageData result = utilityService.removeHomePage(request, gId);
+			HomePageData result = utilityService.removeHomePage(request, gId, layerCount);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -405,11 +406,11 @@ public class UtilityController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
-	public Response editHomePage(@Context HttpServletRequest request,
-			@PathParam("galleryId") String galleryId , @ApiParam(name = "editData") GallerySlider editData) {
+	public Response editHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@ApiParam(name = "editData") GallerySlider editData, @QueryParam("layerCount") Integer layerCount) {
 		try {
 			Long gId = Long.parseLong(galleryId);
-			HomePageData result = utilityService.editHomePage(request, gId , editData);
+			HomePageData result = utilityService.editHomePage(request, gId, editData, layerCount);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -420,16 +421,17 @@ public class UtilityController {
 	}
 
 	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING )
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 
 	@ValidateUser
 
 	public Response reorderingHomePageGallerySlider(@Context HttpServletRequest request,
-			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage) {
+			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage,
+			@QueryParam("layerCount") Integer layerCount) {
 		try {
-			HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage);
+			HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage, layerCount);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -438,7 +440,6 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-
 
 	// Insert list of New Home gallery Data
 	@PUT
@@ -453,10 +454,10 @@ public class UtilityController {
 
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 	public Response updateGalleryData(@Context HttpServletRequest request,
-			@ApiParam(name = "editData") HomePageData editData) {
+			@ApiParam(name = "editData") HomePageData editData, @QueryParam("layerCount") Integer layerCount) {
 		try {
 
-			HomePageData result = utilityService.insertHomePage(request, editData);
+			HomePageData result = utilityService.insertHomePage(request, editData, layerCount);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();

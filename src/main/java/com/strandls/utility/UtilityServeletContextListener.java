@@ -32,7 +32,6 @@ import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
 import com.strandls.activity.controller.ActivitySerivceApi;
 import com.strandls.user.controller.UserServiceApi;
-import com.strandls.naksha.controller.LayerServiceApi;
 import com.strandls.utility.controller.UtilityControllerModule;
 import com.strandls.utility.dao.UtilityDaoModule;
 import com.strandls.utility.service.impl.UtilityServiceModule;
@@ -75,7 +74,6 @@ public class UtilityServeletContextListener extends GuiceServletContextListener 
 
 				bind(SessionFactory.class).toInstance(sessionFactory);
 				bind(ActivitySerivceApi.class).in(Scopes.SINGLETON);
-				bind(LayerServiceApi.class).in(Scopes.SINGLETON);
 				bind(UserServiceApi.class).in(Scopes.SINGLETON);
 				bind(Headers.class).in(Scopes.SINGLETON);
 				bind(ServletContainer.class).in(Scopes.SINGLETON);
