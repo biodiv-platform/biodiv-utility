@@ -60,19 +60,20 @@ public interface UtilityService {
 
 	public Language getLanguageByTwoLetterCode(String language);
 
-	public HomePageData getHomePageData(HttpServletRequest request , Boolean adminList);
+	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList, Integer layerCount);
 
 	public String getYoutubeTitle(String videoId);
 
 	public List<Habitat> fetchAllHabitat();
 
-	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
+	public HomePageData removeHomePage(HttpServletRequest request, Long gId, Integer layerCount);
 
-	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData,
+			Integer layerCount);
 
-	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData);
+	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData, Integer layerCount);
 
-	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage);
-
+	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage,
+			Integer layerCount);
 
 }
