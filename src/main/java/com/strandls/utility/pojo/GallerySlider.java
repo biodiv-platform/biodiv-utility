@@ -35,6 +35,7 @@ public class GallerySlider {
 	private String moreLinks;
 	private Long displayOrder;
 	private Boolean isTruncated;
+	private String readMoreText;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -144,6 +145,15 @@ public class GallerySlider {
 
 	public void setTruncated(Boolean isTruncated) {
 		this.isTruncated = isTruncated;
+	}
+
+	@Column(name = "read_more_text")
+	public String getReadMoreText() {
+		return readMoreText;
+	}
+
+	public void setReadMoreText(String readMoreText) {
+		this.readMoreText = readMoreText;
 	}
 
 }
