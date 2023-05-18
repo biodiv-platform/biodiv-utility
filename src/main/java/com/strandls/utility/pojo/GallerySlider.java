@@ -36,6 +36,7 @@ public class GallerySlider {
 	private Long displayOrder;
 	private Boolean isTruncated;
 	private String readMoreText;
+	private String readMoreUIType;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -154,6 +155,15 @@ public class GallerySlider {
 
 	public void setReadMoreText(String readMoreText) {
 		this.readMoreText = readMoreText;
+	}
+
+	@Column(name = "read_more_ui_type", columnDefinition = "text default 'button'")
+	public String getReadMoreUIType() {
+		return readMoreUIType;
+	}
+
+	public void setReadMoreUIType(String readMoreUIType) {
+		this.readMoreUIType = readMoreUIType;
 	}
 
 }
