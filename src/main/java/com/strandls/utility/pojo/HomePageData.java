@@ -5,20 +5,36 @@ package com.strandls.utility.pojo;
 
 import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * @author Abhishek Rudra
  *
  */
+@Entity
+@Table(name = "home_page_data")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class HomePageData {
 
+	private Long id;
 	private Boolean showGallery;
 	private Boolean showStats;
 	private Boolean showRecentObservation;
 	private Boolean showGridMap;
 	private Boolean showPartners;
+	private Boolean showDesc;
 	private HomePageStats stats;
 	private List<GallerySlider> gallerySlider;
 	private String ugDescription;
+	private String description;
 
 	/**
 	 * 
@@ -37,19 +53,35 @@ public class HomePageData {
 	 * @param gallerySlider
 	 * @param ugDescription
 	 */
-	public HomePageData(Boolean showGallery, Boolean showStats, Boolean showRecentObservation, Boolean showGridMap,
-			Boolean showPartners, HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription) {
+	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
+			Boolean showGridMap, Boolean showPartners, Boolean showDesc, HomePageStats stats,
+			List<GallerySlider> gallerySlider, String ugDescription, String description) {
 		super();
+		this.id = id;
 		this.showGallery = showGallery;
 		this.showStats = showStats;
 		this.showRecentObservation = showRecentObservation;
 		this.showGridMap = showGridMap;
 		this.showPartners = showPartners;
+		this.showDesc = showDesc;
 		this.stats = stats;
 		this.gallerySlider = gallerySlider;
 		this.ugDescription = ugDescription;
+		this.description = description;
 	}
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id")
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	@Column(name = "show_gallery", columnDefinition = "boolean default true")
 	public Boolean getShowGallery() {
 		return showGallery;
 	}
@@ -58,6 +90,7 @@ public class HomePageData {
 		this.showGallery = showGallery;
 	}
 
+	@Column(name = "show_stats", columnDefinition = "boolean default true")
 	public Boolean getShowStats() {
 		return showStats;
 	}
@@ -66,6 +99,7 @@ public class HomePageData {
 		this.showStats = showStats;
 	}
 
+	@Column(name = "show_recent_observations", columnDefinition = "boolean default true")
 	public Boolean getShowRecentObservation() {
 		return showRecentObservation;
 	}
@@ -74,6 +108,7 @@ public class HomePageData {
 		this.showRecentObservation = showRecentObservation;
 	}
 
+	@Column(name = "show_grid_map", columnDefinition = "boolean default true")
 	public Boolean getShowGridMap() {
 		return showGridMap;
 	}
@@ -82,6 +117,7 @@ public class HomePageData {
 		this.showGridMap = showGridMap;
 	}
 
+	@Column(name = "show_partners", columnDefinition = "boolean default true")
 	public Boolean getShowPartners() {
 		return showPartners;
 	}
@@ -90,6 +126,16 @@ public class HomePageData {
 		this.showPartners = showPartners;
 	}
 
+	@Column(name = "show_desc", columnDefinition = "boolean default true")
+	public Boolean getShowDesc() {
+		return showDesc;
+	}
+
+	public void setShowDesc(Boolean showDesc) {
+		this.showDesc = showDesc;
+	}
+
+	@Transient
 	public HomePageStats getStats() {
 		return stats;
 	}
@@ -98,6 +144,7 @@ public class HomePageData {
 		this.stats = stats;
 	}
 
+	@Transient
 	public List<GallerySlider> getGallerySlider() {
 		return gallerySlider;
 	}
@@ -112,6 +159,15 @@ public class HomePageData {
 
 	public void setUgDescription(String ugDescription) {
 		this.ugDescription = ugDescription;
+	}
+
+	@Column(name = "description")
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 }

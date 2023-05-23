@@ -360,9 +360,9 @@ public class UtilityController {
 	@ApiOperation(value = "Get home page data", notes = "Return home page data", response = HomePageData.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getHomePageData(@Context HttpServletRequest request,
-			 @DefaultValue("false") @QueryParam("adminList") Boolean adminList ) {
+			@DefaultValue("false") @QueryParam("adminList") Boolean adminList) {
 		try {
-			HomePageData result = utilityService.getHomePageData(request ,adminList );
+			HomePageData result = utilityService.getHomePageData(request, adminList);
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -380,8 +380,7 @@ public class UtilityController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
-	public Response removeGalleryData(@Context HttpServletRequest request,
-			@PathParam("galleryId") String galleryId) {
+	public Response removeGalleryData(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId) {
 		try {
 			Long gId = Long.parseLong(galleryId);
 			HomePageData result = utilityService.removeHomePage(request, gId);
@@ -405,11 +404,11 @@ public class UtilityController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
-	public Response editHomePage(@Context HttpServletRequest request,
-			@PathParam("galleryId") String galleryId , @ApiParam(name = "editData") GallerySlider editData) {
+	public Response editHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@ApiParam(name = "editData") GallerySlider editData) {
 		try {
 			Long gId = Long.parseLong(galleryId);
-			HomePageData result = utilityService.editHomePage(request, gId , editData);
+			HomePageData result = utilityService.editHomePage(request, gId, editData);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -420,7 +419,31 @@ public class UtilityController {
 	}
 
 	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING )
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit homepage data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editHomePageData(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@ApiParam(name = "editData") HomePageData editData) {
+		try {
+			HomePageData result = utilityService.editHomePageData(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 
@@ -438,7 +461,6 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-
 
 	// Insert list of New Home gallery Data
 	@PUT
