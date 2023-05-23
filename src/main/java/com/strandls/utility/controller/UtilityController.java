@@ -419,30 +419,6 @@ public class UtilityController {
 	}
 
 	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-
-	@ValidateUser
-
-	@ApiOperation(value = "Edit homepage data", notes = "return home page data", response = HomePageData.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
-
-	public Response editHomePageData(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") HomePageData editData) {
-		try {
-			HomePageData result = utilityService.editHomePageData(request, editData);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)

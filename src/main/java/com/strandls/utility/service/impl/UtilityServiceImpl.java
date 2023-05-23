@@ -571,6 +571,7 @@ public class UtilityServiceImpl implements UtilityService {
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
 			if (roles.contains(ROLE_ADMIN)) {
+				editHomePageData(request, editData);
 				List<GallerySlider> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty())
 					for (GallerySlider gallery : galleryData) {
