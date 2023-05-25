@@ -507,6 +507,8 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowStats(editData.getShowStats());
 				homePageDataEntity.setShowRecentObservation(editData.getShowRecentObservation());
 				homePageDataEntity.setShowPartners(editData.getShowPartners());
+				homePageDataEntity.setShowSponsors(editData.getShowSponsors());
+				homePageDataEntity.setShowDonors(editData.getShowDonors());
 				homePageDataEntity.setShowGridMap(editData.getShowGridMap());
 				homePageDataEntity.setShowGallery(editData.getShowGallery());
 				homePageDataEntity.setShowDesc(editData.getShowDesc());

@@ -30,6 +30,8 @@ public class HomePageData {
 	private Boolean showRecentObservation;
 	private Boolean showGridMap;
 	private Boolean showPartners;
+	private Boolean showSponsors;
+	private Boolean showDonors;
 	private Boolean showDesc;
 	private HomePageStats stats;
 	private List<GallerySlider> gallerySlider;
@@ -54,8 +56,8 @@ public class HomePageData {
 	 * @param ugDescription
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
-			Boolean showGridMap, Boolean showPartners, Boolean showDesc, HomePageStats stats,
-			List<GallerySlider> gallerySlider, String ugDescription, String description) {
+			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
+			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -63,6 +65,8 @@ public class HomePageData {
 		this.showRecentObservation = showRecentObservation;
 		this.showGridMap = showGridMap;
 		this.showPartners = showPartners;
+		this.showSponsors = showSponsors;
+		this.showDonors = showDonors;
 		this.showDesc = showDesc;
 		this.stats = stats;
 		this.gallerySlider = gallerySlider;
@@ -124,6 +128,24 @@ public class HomePageData {
 
 	public void setShowPartners(Boolean showPartners) {
 		this.showPartners = showPartners;
+	}
+
+	@Column(name = "show_sponsors", columnDefinition = "boolean default true")
+	public Boolean getShowSponsors() {
+		return showSponsors;
+	}
+
+	public void setShowSponsors(Boolean showSponsors) {
+		this.showSponsors = showSponsors;
+	}
+
+	@Column(name = "show_donors", columnDefinition = "boolean default true")
+	public Boolean getShowDonors() {
+		return showDonors;
+	}
+
+	public void setShowDonors(Boolean showDonors) {
+		this.showDonors = showDonors;
 	}
 
 	@Column(name = "show_desc", columnDefinition = "boolean default true")
