@@ -37,6 +37,7 @@ public class GallerySlider {
 	private Boolean isTruncated;
 	private String readMoreText;
 	private String readMoreUIType;
+	private String gallerySidebar;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -164,6 +165,15 @@ public class GallerySlider {
 
 	public void setReadMoreUIType(String readMoreUIType) {
 		this.readMoreUIType = readMoreUIType;
+	}
+
+	@Column(name = "gallery_sidebar", columnDefinition = "text default 'opaque'")
+	public String getGallerySidebar() {
+		return gallerySidebar;
+	}
+
+	public void setGallerySidebar(String gallerySidebar) {
+		this.gallerySidebar = gallerySidebar;
 	}
 
 }

@@ -486,6 +486,7 @@ public class UtilityServiceImpl implements UtilityService {
 				gallerySliderEntity.setTruncated(editData.getTruncated());
 				gallerySliderEntity.setReadMoreText(editData.getReadMoreText());
 				gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+				gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
 				gallerySliderDao.update(gallerySliderEntity);
 				return getHomePageData(request, true);
 			}
