@@ -36,6 +36,7 @@ import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
 import com.strandls.utility.dao.GallerySliderDao;
 import com.strandls.utility.dao.HabitatDao;
+import com.strandls.utility.dao.HomePageDao;
 import com.strandls.utility.dao.HomePageStatsDao;
 import com.strandls.utility.dao.LanguageDao;
 import com.strandls.utility.dao.TagLinksDao;
@@ -70,8 +71,8 @@ public class UtilityServiceImpl implements UtilityService {
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
 	private static final String ROLE_ADMIN = "ROLE_ADMIN";
-	
-	private static final String ROLES ="roles";
+
+	private static final String ROLES = "roles";
 
 	@Inject
 	private LogActivities logActivity;
@@ -102,6 +103,9 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private HabitatDao habitatDao;
+
+	@Inject
+	private HomePageDao homePageDao;
 
 	@Override
 	public Flag fetchByFlagId(Long id) {
@@ -407,34 +411,37 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData getHomePageData(HttpServletRequest request ,Boolean adminList) {
+	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList) {
 		try {
 
 			HomePageData result = null;
 			Boolean isadmin = false;
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 
-			if(profile !=null){
+			if (profile != null) {
 				JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
-				isadmin =roles.contains(ROLE_ADMIN);
+				isadmin = roles.contains(ROLE_ADMIN);
 			}
 
-			List<GallerySlider> galleryData = isadmin && adminList? 
-					gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE): 
-					gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
+			List<GallerySlider> galleryData = isadmin && adminList
+					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
+					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
 			for (GallerySlider gallery : galleryData) {
 				if (gallery.getAuthorId() != null) {
-				UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
-				gallery.setAuthorImage(userIbp.getProfilePic());
-				gallery.setAuthorName(userIbp.getName());
+					UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
+					gallery.setAuthorImage(userIbp.getProfilePic());
+					gallery.setAuthorName(userIbp.getName());
 				}
 			}
 
 			HomePageStats homePageStats;
 //				IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
-			result = new HomePageData(true, true, true, true, true, homePageStats, galleryData, null);
+
+			result = homePageDao.findById(1L);
+			result.setGallerySlider(galleryData);
+			result.setStats(homePageStats);
 
 			return result;
 		} catch (Exception e) {
@@ -445,15 +452,15 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData removeHomePage(HttpServletRequest request,Long galleryId) {
+	public HomePageData removeHomePage(HttpServletRequest request, Long galleryId) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(ROLE_ADMIN) ) {
+			if (roles.contains(ROLE_ADMIN)) {
 				GallerySlider entity = gallerySliderDao.findById(galleryId);
 				gallerySliderDao.delete(entity);
-				return getHomePageData(request ,true);
+				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -463,8 +470,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData editHomePage(HttpServletRequest request, Long galleryId ,
-			GallerySlider editData) {
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
@@ -477,8 +483,10 @@ public class UtilityServiceImpl implements UtilityService {
 				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
 				gallerySliderEntity.setTruncated(editData.getTruncated());
 				gallerySliderEntity.setReadMoreText(editData.getReadMoreText());
+				gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+				gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
 				gallerySliderDao.update(gallerySliderEntity);
-				return getHomePageData(request ,true);
+				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -487,6 +495,32 @@ public class UtilityServiceImpl implements UtilityService {
 		return null;
 	}
 
+	@Override
+	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
+
+				HomePageData homePageDataEntity = homePageDao.findById(1L);
+				homePageDataEntity.setShowStats(editData.getShowStats());
+				homePageDataEntity.setShowRecentObservation(editData.getShowRecentObservation());
+				homePageDataEntity.setShowPartners(editData.getShowPartners());
+				homePageDataEntity.setShowSponsors(editData.getShowSponsors());
+				homePageDataEntity.setShowDonors(editData.getShowDonors());
+				homePageDataEntity.setShowGridMap(editData.getShowGridMap());
+				homePageDataEntity.setShowGallery(editData.getShowGallery());
+				homePageDataEntity.setShowDesc(editData.getShowDesc());
+				homePageDataEntity.setDescription(editData.getDescription());
+				homePageDao.update(homePageDataEntity);
+				return getHomePageData(request, true);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
 
 	@Override
 	public String getYoutubeTitle(String videoId) {
@@ -531,22 +565,21 @@ public class UtilityServiceImpl implements UtilityService {
 		return result;
 	}
 
-
 	@Override
-	public HomePageData insertHomePage(HttpServletRequest request,
-			HomePageData editData) {
+	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(ROLE_ADMIN) ) {
+			if (roles.contains(ROLE_ADMIN)) {
+				editHomePageData(request, editData);
 				List<GallerySlider> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty())
 					for (GallerySlider gallery : galleryData) {
 						gallerySliderDao.save(gallery);
 					}
 
-				return getHomePageData(request ,true);
+				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -554,26 +587,25 @@ public class UtilityServiceImpl implements UtilityService {
 		return null;
 	}
 
-
 	@Override
 	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage) {
-			try {
-				CommonProfile profile = AuthUtil.getProfileFromRequest(request);
-				JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-				if (roles.contains(ROLE_ADMIN)) {
-					for (ReorderHomePage reorder : reorderHomePage) {
-						GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
-						gallery.setDisplayOrder(reorder.getDisplayOrder());
-						gallerySliderDao.update(gallery);
-					}
-
-					return getHomePageData(request ,true);
+			if (roles.contains(ROLE_ADMIN)) {
+				for (ReorderHomePage reorder : reorderHomePage) {
+					GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
+					gallery.setDisplayOrder(reorder.getDisplayOrder());
+					gallerySliderDao.update(gallery);
 				}
-			} catch (Exception e) {
-				logger.error(e.getMessage());
+
+				return getHomePageData(request, true);
 			}
-			return null;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
 		}
+		return null;
+	}
 
 }
