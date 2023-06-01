@@ -21,6 +21,7 @@ public class UtilityDaoModule extends AbstractModule {
 		bind(HabitatDao.class).in(Scopes.SINGLETON);
 		bind(HomePageStatsDao.class).in(Scopes.SINGLETON);
 		bind(GallerySliderDao.class).in(Scopes.SINGLETON);
+		bind(HomePageDao.class).in(Scopes.SINGLETON);
 	}
 
 }
