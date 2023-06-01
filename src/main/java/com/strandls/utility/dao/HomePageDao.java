@@ -10,7 +10,7 @@ import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.util.AbstractDAO;
 
 public class HomePageDao extends AbstractDAO<HomePageData, Long> {
-	private final Logger logger = LoggerFactory.getLogger(GallerySliderDao.class);
+	private final Logger logger = LoggerFactory.getLogger(HomePageDao.class);
 
 	@Inject
 	protected HomePageDao(SessionFactory sessionFactory) {

@@ -438,8 +438,6 @@ public class UtilityServiceImpl implements UtilityService {
 			HomePageStats homePageStats;
 //				IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
-			// result = new HomePageData(true, true, true, true, true, homePageStats,
-			// galleryData, null);
 
 			result = homePageDao.findById(1L);
 			result.setGallerySlider(galleryData);
