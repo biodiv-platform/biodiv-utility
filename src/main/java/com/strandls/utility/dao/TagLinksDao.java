@@ -92,7 +92,7 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 
 		String qry = "FROM TagLinks WHERE tagId = :id";
 
-		if (objectType != null && !"".equals(objectType)) {
+		if (objectType != null && !objectType.equals("all")) {
 			qry = qry + " AND type = :type";
 		}
 
@@ -100,7 +100,7 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 			Query<TagLinks> query = session.createQuery(qry);
 			query.setParameter("id", id);
 
-			if (objectType != null && !"".equals(objectType)) {
+			if (objectType != null && !objectType.equals("all")) {
 				query.setParameter("type", objectType);
 			}
 

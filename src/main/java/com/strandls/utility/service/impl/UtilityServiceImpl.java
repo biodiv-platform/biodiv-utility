@@ -573,27 +573,21 @@ public class UtilityServiceImpl implements UtilityService {
 	@Override
 	public List<Long> getResourceIds(String phrase, String type) {
 		List<Long> resourceIds = new ArrayList<>();
-		List<String> phraseList = new ArrayList<>();
-		List<String> typeList = new ArrayList<>();
 
-		if (phrase != null && !phrase.isEmpty()) {
-			phraseList = Arrays.asList(phrase.split(","));
-		}
-		if (type != null && !type.isEmpty()) {
-			typeList = Arrays.asList(type.split(","));
-		}
+		List<String> phraseList = Arrays.asList(phrase.split(","));
+		List<String> typeList = Arrays.asList(type.split(","));
 
 		for (String item : phraseList) {
 			Tags tag = tagsDao.fetchTag(item);
 			if (tag != null) {
 				List<TagLinks> taglinks;
-				if (!typeList.isEmpty()) {
+				if (!typeList.isEmpty() && !typeList.contains("all")) {
 					for (String typeItem : typeList) {
 						taglinks = tagLinkDao.findResourceTags(typeItem, tag.getId());
 						resourceIds.addAll(getTagReferList(taglinks));
 					}
 				} else {
-					taglinks = tagLinkDao.findResourceTags("", tag.getId());
+					taglinks = tagLinkDao.findResourceTags("all", tag.getId());
 					resourceIds.addAll(getTagReferList(taglinks));
 				}
 			}
