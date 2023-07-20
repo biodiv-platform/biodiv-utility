@@ -571,11 +571,11 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public List<Long> getResourceIds(String phrase, String type) {
+	public List<Long> getResourceIds(String phrase, String type, String tagRefId) {
 		List<Long> resourceIds = new ArrayList<>();
-
 		List<String> phraseList = Arrays.asList(phrase.split(","));
 		List<String> typeList = Arrays.asList(type.split(","));
+		List<String> tagRefIdList = Arrays.asList(tagRefId.split(","));
 
 		for (String item : phraseList) {
 			Tags tag = tagsDao.fetchTag(item);
@@ -583,11 +583,21 @@ public class UtilityServiceImpl implements UtilityService {
 				List<TagLinks> taglinks;
 				if (!typeList.isEmpty() && !typeList.contains("all")) {
 					for (String typeItem : typeList) {
-						taglinks = tagLinkDao.findResourceTags(typeItem, tag.getId());
+						taglinks = tagLinkDao.findResourceTags(typeItem, tag.getId(), null);
 						resourceIds.addAll(getTagReferList(taglinks));
 					}
-				} else {
-					taglinks = tagLinkDao.findResourceTags("all", tag.getId());
+				}
+
+				else if (!tagRefIdList.isEmpty() && !tagRefIdList.contains("all")) {
+					for (String tagRefIdItem : tagRefIdList) {
+						taglinks = tagLinkDao.findResourceTags(null, tag.getId(), Long.parseLong(tagRefIdItem));
+						resourceIds.addAll(getTagReferList(taglinks));
+					}
+
+				}
+
+				else {
+					taglinks = tagLinkDao.findResourceTags("all", tag.getId(), null);
 					resourceIds.addAll(getTagReferList(taglinks));
 				}
 			}

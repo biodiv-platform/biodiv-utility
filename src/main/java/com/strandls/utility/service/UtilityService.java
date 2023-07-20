@@ -74,6 +74,6 @@ public interface UtilityService {
 
 	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage);
 
-	public List<Long> getResourceIds(String phrase, String type);
+	public List<Long> getResourceIds(String phrase, String type, String tagRefId);
 
 }
