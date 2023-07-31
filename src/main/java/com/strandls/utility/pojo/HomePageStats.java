@@ -6,7 +6,6 @@ public class HomePageStats {
 	private Long observation;
 	private Long maps;
 	private Long documents;
-	private Long discussions;
 	private Long activeUser;
 
 	/**
@@ -24,13 +23,12 @@ public class HomePageStats {
 	 * @param discussions
 	 * @param activeUser
 	 */
-	public HomePageStats(Long species, Long observation, Long maps, Long documents, Long discussions, Long activeUser) {
+	public HomePageStats(Long species, Long observation, Long maps, Long documents, Long activeUser) {
 		super();
 		this.species = species;
 		this.observation = observation;
 		this.maps = maps;
 		this.documents = documents;
-		this.discussions = discussions;
 		this.activeUser = activeUser;
 	}
 
@@ -64,14 +62,6 @@ public class HomePageStats {
 
 	public void setDocuments(Long documents) {
 		this.documents = documents;
-	}
-
-	public Long getDiscussions() {
-		return discussions;
-	}
-
-	public void setDiscussions(Long discussions) {
-		this.discussions = discussions;
 	}
 
 	public Long getActiveUser() {
