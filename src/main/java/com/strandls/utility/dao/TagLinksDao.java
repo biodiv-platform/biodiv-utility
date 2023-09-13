@@ -85,4 +85,41 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<TagLinks> findResourceTags(String objectType, Long id, Long tagRefId) {
+		List<TagLinks> result = new ArrayList<>();
+		Session session = sessionFactory.openSession();
+
+		String qry = "FROM TagLinks WHERE tagId = :id";
+
+		if (objectType != null && !objectType.equals("all")) {
+			qry = qry + " AND type = :type";
+		}
+
+		if (tagRefId != null) {
+			qry = qry + " AND tagRefer = :tagRefer";
+		}
+
+		try {
+			Query<TagLinks> query = session.createQuery(qry);
+			query.setParameter("id", id);
+
+			if (objectType != null && !objectType.equals("all")) {
+				query.setParameter("type", objectType);
+			}
+
+			if (tagRefId != null) {
+				query.setParameter("tagRefer", tagRefId);
+			}
+
+			result = query.getResultList();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+
+		return result;
+	}
+
 }

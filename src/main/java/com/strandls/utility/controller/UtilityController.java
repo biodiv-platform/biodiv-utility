@@ -498,4 +498,23 @@ public class UtilityController {
 		}
 	}
 
+	@GET
+	@Path("/resource")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Find the Sugguestion for tags", notes = "Return list of Top 10 tags matching the phrase", response = Long.class, responseContainer = "List")
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to fetch the tags", response = String.class) })
+
+	public Response getResourceIds(@DefaultValue("all") @QueryParam("phrase") String phrase,
+			@DefaultValue("all") @QueryParam("type") String type,
+			@DefaultValue("all") @QueryParam("tagRefId") String tagRefId) {
+		try {
+			List<Long> result = utilityService.getResourceIds(phrase, type, tagRefId);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 }

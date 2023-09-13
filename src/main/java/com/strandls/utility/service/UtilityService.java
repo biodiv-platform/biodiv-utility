@@ -60,7 +60,7 @@ public interface UtilityService {
 
 	public Language getLanguageByTwoLetterCode(String language);
 
-	public HomePageData getHomePageData(HttpServletRequest request , Boolean adminList);
+	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList);
 
 	public String getYoutubeTitle(String videoId);
 
@@ -69,12 +69,12 @@ public interface UtilityService {
 	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
 
 	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
-	
+
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
 
 	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData);
 
 	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage);
 
-
+	public List<Long> getResourceIds(String phrase, String type, String tagRefId);
 }
