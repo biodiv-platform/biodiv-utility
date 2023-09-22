@@ -86,40 +86,40 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<TagLinks> findResourceTags(String objectType, Long id, Long tagRefId) {
-		List<TagLinks> result = new ArrayList<>();
-		Session session = sessionFactory.openSession();
+	public List<TagLinks> findResourceTags(List<String> objectTypes, Long id, List<String> tagRefIds) {
+	    List<TagLinks> result = new ArrayList<>();
+	    Session session = sessionFactory.openSession();
 
-		String qry = "FROM TagLinks WHERE tagId = :id";
+	    String qry = "FROM TagLinks WHERE tagId = :id";
 
-		if (objectType != null && !objectType.equals("all")) {
-			qry = qry + " AND type = :type";
-		}
+	    if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
+	        qry += " AND type IN :types";
+	    }
 
-		if (tagRefId != null) {
-			qry = qry + " AND tagRefer = :tagRefer";
-		}
+	    if (tagRefIds != null && !tagRefIds.isEmpty()) {
+	        qry += " AND tagRefer IN :tagRefIds";
+	    }
 
-		try {
-			Query<TagLinks> query = session.createQuery(qry);
-			query.setParameter("id", id);
+	    try {
+	        Query<TagLinks> query = session.createQuery(qry);
+	        query.setParameter("id", id);
 
-			if (objectType != null && !objectType.equals("all")) {
-				query.setParameter("type", objectType);
-			}
+	        if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
+	            query.setParameterList("types", objectTypes);
+	        }
 
-			if (tagRefId != null) {
-				query.setParameter("tagRefer", tagRefId);
-			}
+	        if (tagRefIds != null && !tagRefIds.isEmpty()) {
+	            query.setParameterList("tagRefIds", tagRefIds);
+	        }
 
-			result = query.getResultList();
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-		} finally {
-			session.close();
-		}
+	        result = query.getResultList();
+	    } catch (Exception e) {
+	        logger.error(e.getMessage());
+	    } finally {
+	        session.close();
+	    }
 
-		return result;
+	    return result;
 	}
 
 }

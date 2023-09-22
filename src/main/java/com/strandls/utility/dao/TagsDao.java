@@ -95,30 +95,30 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Tags fetchTag(String phrase) {
+	public List<Tags> fetchTag(String phrase) {
 		Session session = sessionFactory.openSession();
-		Tags tags = null;
-		List<Object[]> result = null;
+		List<Tags> tagsList = new ArrayList<>();
 
-		String qry = "SELECT id, name FROM public.tags where name = :phrase";
+		String qry = "SELECT id, name FROM public.tags where name IN :phrase";
 
 		try {
 			Query<Object[]> query = session.createNativeQuery(qry);
 			query.setParameter("phrase", phrase);
-			result = query.getResultList();
+			List<Object[]> results = query.getResultList();
 
-			if (!result.isEmpty()) {
-				Object[] obj = result.get(0);
-				tags = new Tags(Long.parseLong(obj[0].toString()), obj[1].toString());
+			for (Object[] obj : results) {
+				long id = Long.parseLong(obj[0].toString());
+				String name = obj[1].toString();
+				Tags tags = new Tags(id, name);
+				tagsList.add(tags);
 			}
-
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
 
-		return tags;
+		return tagsList;
 	}
 
 }
