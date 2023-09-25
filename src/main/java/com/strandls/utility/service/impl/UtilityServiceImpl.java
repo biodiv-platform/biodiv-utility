@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -613,24 +614,23 @@ public class UtilityServiceImpl implements UtilityService {
 		List<Long> resourceIds = new ArrayList<>();
 		List<Tags> taglist = tagsDao.fetchTag(phrase);
 
+		List<Long> tagIdList = taglist.stream().map(Tags::getId).collect(Collectors.toList());
+
 		List<String> types = Arrays.asList(type.split(","));
 		List<String> tagRefIds = Arrays.asList(tagRefId.split(","));
 
-		for (Tags item : taglist) {
-			if (item != null) {
-				List<TagLinks> taglinks;
-				if (types != null && !types.isEmpty() && !types.contains("all")) {
-					for (String typeItem : types) {
-						taglinks = tagLinkDao.findResourceTags(Collections.singletonList(typeItem), item.getId(), null);
-						resourceIds.addAll(getTagReferList(taglinks));
-					}
-				} else if (tagRefIds != null && !tagRefIds.isEmpty() && !tagRefIds.contains("all")) {
-					taglinks = tagLinkDao.findResourceTags(null, item.getId(), tagRefIds);
-					resourceIds.addAll(getTagReferList(taglinks));
-				} else {
-					taglinks = tagLinkDao.findResourceTags(Collections.singletonList("all"), item.getId(), null);
-					resourceIds.addAll(getTagReferList(taglinks));
-				}
+		if (tagIdList != null && !tagIdList.isEmpty()) {
+			List<TagLinks> taglinks;
+			if (types != null && !types.isEmpty() && !types.contains("all")) {
+				taglinks = tagLinkDao.findResourceTags(types, tagIdList, null);
+				resourceIds.addAll(getTagReferList(taglinks));
+
+			} else if (tagRefIds != null && !tagRefIds.isEmpty() && !tagRefIds.contains("all")) {
+				taglinks = tagLinkDao.findResourceTags(null, tagIdList, tagRefIds);
+				resourceIds.addAll(getTagReferList(taglinks));
+			} else {
+				taglinks = tagLinkDao.findResourceTags(Collections.singletonList("all"), tagIdList, null);
+				resourceIds.addAll(getTagReferList(taglinks));
 			}
 		}
 

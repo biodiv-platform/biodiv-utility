@@ -86,40 +86,40 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<TagLinks> findResourceTags(List<String> objectTypes, Long id, List<String> tagRefIds) {
-	    List<TagLinks> result = new ArrayList<>();
-	    Session session = sessionFactory.openSession();
+	public List<TagLinks> findResourceTags(List<String> objectTypes, List<Long> id, List<String> tagRefIds) {
+		List<TagLinks> result = new ArrayList<>();
+		Session session = sessionFactory.openSession();
 
-	    String qry = "FROM TagLinks WHERE tagId = :id";
+		String qry = "FROM TagLinks WHERE tagId IN :id";
 
-	    if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
-	        qry += " AND type IN :types";
-	    }
+		if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
+			qry += " AND type IN :types";
+		}
 
-	    if (tagRefIds != null && !tagRefIds.isEmpty()) {
-	        qry += " AND tagRefer IN :tagRefIds";
-	    }
+		if (tagRefIds != null && !tagRefIds.isEmpty()) {
+			qry += " AND tagRefer IN :tagRefIds";
+		}
 
-	    try {
-	        Query<TagLinks> query = session.createQuery(qry);
-	        query.setParameter("id", id);
+		try {
+			Query<TagLinks> query = session.createQuery(qry);
+			query.setParameter("id", id);
 
-	        if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
-	            query.setParameterList("types", objectTypes);
-	        }
+			if (objectTypes != null && !objectTypes.isEmpty() && !objectTypes.contains("all")) {
+				query.setParameterList("types", objectTypes);
+			}
 
-	        if (tagRefIds != null && !tagRefIds.isEmpty()) {
-	            query.setParameterList("tagRefIds", tagRefIds);
-	        }
+			if (tagRefIds != null && !tagRefIds.isEmpty()) {
+				query.setParameterList("tagRefIds", tagRefIds);
+			}
 
-	        result = query.getResultList();
-	    } catch (Exception e) {
-	        logger.error(e.getMessage());
-	    } finally {
-	        session.close();
-	    }
+			result = query.getResultList();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
 
-	    return result;
+		return result;
 	}
 
 }
