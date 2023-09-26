@@ -612,12 +612,14 @@ public class UtilityServiceImpl implements UtilityService {
 	@Override
 	public List<Long> getResourceIds(String phrase, String type, String tagRefId) {
 		List<Long> resourceIds = new ArrayList<>();
-		List<Tags> taglist = tagsDao.fetchTag(phrase);
-
-		List<Long> tagIdList = taglist.stream().map(Tags::getId).collect(Collectors.toList());
 
 		List<String> types = Arrays.asList(type.split(","));
 		List<String> tagRefIds = Arrays.asList(tagRefId.split(","));
+		List<String> phraseList = Arrays.asList(phrase.split(","));
+
+		List<Tags> taglist = tagsDao.fetchTag(phraseList);
+
+		List<Long> tagIdList = taglist.stream().map(Tags::getId).collect(Collectors.toList());
 
 		if (tagIdList != null && !tagIdList.isEmpty()) {
 			List<TagLinks> taglinks;

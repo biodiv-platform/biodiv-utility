@@ -95,7 +95,7 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<Tags> fetchTag(String phrase) {
+	public List<Tags> fetchTag(List<String> phrase) {
 		Session session = sessionFactory.openSession();
 		List<Tags> tagsList = new ArrayList<>();
 
