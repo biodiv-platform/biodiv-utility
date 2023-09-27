@@ -7,15 +7,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -606,6 +607,44 @@ public class UtilityServiceImpl implements UtilityService {
 			logger.error(e.getMessage());
 		}
 		return null;
+	}
+
+	@Override
+	public List<Long> getResourceIds(String phrase, String type, String tagRefId) {
+		List<Long> resourceIds = new ArrayList<>();
+
+		List<String> types = Arrays.asList(type.split(","));
+		List<String> tagRefIds = Arrays.asList(tagRefId.split(","));
+		List<String> phraseList = Arrays.asList(phrase.split(","));
+
+		List<Tags> taglist = tagsDao.fetchTag(phraseList);
+
+		List<Long> tagIdList = taglist.stream().map(Tags::getId).collect(Collectors.toList());
+
+		if (tagIdList != null && !tagIdList.isEmpty()) {
+			List<TagLinks> taglinks;
+			if (types != null && !types.isEmpty() && !types.contains("all")) {
+				taglinks = tagLinkDao.findResourceTags(types, tagIdList, null);
+				resourceIds.addAll(getTagReferList(taglinks));
+
+			} else if (tagRefIds != null && !tagRefIds.isEmpty() && !tagRefIds.contains("all")) {
+				taglinks = tagLinkDao.findResourceTags(null, tagIdList, tagRefIds);
+				resourceIds.addAll(getTagReferList(taglinks));
+			} else {
+				taglinks = tagLinkDao.findResourceTags(Collections.singletonList("all"), tagIdList, null);
+				resourceIds.addAll(getTagReferList(taglinks));
+			}
+		}
+
+		return resourceIds;
+	}
+
+	private List<Long> getTagReferList(List<TagLinks> taglinks) {
+		List<Long> tagRefers = new ArrayList<>();
+		for (TagLinks taglink : taglinks) {
+			tagRefers.add(taglink.getTagRefer());
+		}
+		return tagRefers;
 	}
 
 }
