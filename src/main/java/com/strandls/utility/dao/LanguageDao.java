@@ -91,4 +91,24 @@ public class LanguageDao extends AbstractDAO<Language, Long> {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<Language> getLanguagesWithFieldHeaders() {
+		Session session = sessionFactory.openSession();
+		List<Language> languages = new ArrayList<>();
+
+		try {
+			String queryStr = "SELECT DISTINCT language.* FROM language "
+					+ "INNER JOIN field_header ON language.id = field_header.language_id";
+
+			Query<Language> query = session.createNativeQuery(queryStr, Language.class);
+			languages = query.getResultList();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+
+		return languages;
+	}
+
 }

@@ -1,5 +1,7 @@
 package com.strandls.utility.service;
 
+import java.util.List;
+
 import com.strandls.utility.pojo.Language;
 
 /**
@@ -18,4 +20,6 @@ public interface LanguageService {
 	public Language updateName(Long id, String name);
 
 	public Language getLanguageById(Long languageId);
+
+	public List<Language> getLanguagesWithFieldHeaders();
 }

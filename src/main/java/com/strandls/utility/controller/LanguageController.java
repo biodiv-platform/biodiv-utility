@@ -24,6 +24,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import java.util.List;
+
 @Api("Language Service")
 @Path(ApiConstants.V1 + ApiConstants.LANGUAGES)
 public class LanguageController {
@@ -115,6 +117,23 @@ public class LanguageController {
 	public Response update(@QueryParam("languageId") Long languageId, @QueryParam("name") String name) {
 		try {
 			Language result = languageService.updateName(languageId, name);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@GET
+	@Path(ApiConstants.FIELD_HEADER)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Get languages with field headers", notes = "Returns languages that have associated field headers", response = Language.class, responseContainer = "List")
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "Unable to fetch languages with field headers", response = String.class) })
+
+	public Response getLanguagesWithFieldHeaders() {
+		try {
+			List<Language> result = languageService.getLanguagesWithFieldHeaders();
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
