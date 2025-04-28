@@ -41,4 +41,6 @@ public class ApiConstants {
 	public static final String EDIT = "/edit";
 	public static final String REORDERING = "/reorder";
 	public static final String RESOURCE = "/resource";
+	public static final String FIELD_HEADER = "/fieldHeader";
+
 }

@@ -1,5 +1,7 @@
 package com.strandls.utility.service.impl;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import com.strandls.utility.dao.LanguageDao;
@@ -48,6 +50,11 @@ public class LanguageServiceImpl implements LanguageService {
 	@Override
 	public Language getLanguageById(Long languageId) {
 		return languageDao.findById(languageId);
+	}
+	
+	@Override
+	public List<Language> getLanguagesWithFieldHeaders() {
+	    return languageDao.getLanguagesWithFieldHeaders();
 	}
 
 }
