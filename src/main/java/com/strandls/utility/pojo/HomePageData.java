@@ -4,6 +4,7 @@
 package com.strandls.utility.pojo;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,7 +35,7 @@ public class HomePageData {
 	private Boolean showDonors;
 	private Boolean showDesc;
 	private HomePageStats stats;
-	private List<GallerySlider> gallerySlider;
+	private Map<String, Map<Long, List<GallerySlider>>> gallerySlider;
 	private String ugDescription;
 	private String description;
 
@@ -57,7 +58,7 @@ public class HomePageData {
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
-			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description) {
+			HomePageStats stats, Map<String, Map<Long, List<GallerySlider>>> gallerySlider, String ugDescription, String description) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -167,11 +168,11 @@ public class HomePageData {
 	}
 
 	@Transient
-	public List<GallerySlider> getGallerySlider() {
+	public Map<String, Map<Long, List<GallerySlider>>> getGallerySlider() {
 		return gallerySlider;
 	}
 
-	public void setGallerySlider(List<GallerySlider> gallerySlider) {
+	public void setGallerySlider(Map<String, Map<Long, List<GallerySlider>>> gallerySlider) {
 		this.gallerySlider = gallerySlider;
 	}
 

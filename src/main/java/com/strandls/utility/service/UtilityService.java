@@ -4,6 +4,7 @@
 package com.strandls.utility.service;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -68,7 +69,7 @@ public interface UtilityService {
 
 	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
 
-	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, Map<Long, List<GallerySlider>> editData);
 
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
 

@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -428,12 +430,18 @@ public class UtilityServiceImpl implements UtilityService {
 					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
 					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
+			Map<String, Map<Long, List<GallerySlider>>> groupedBySliderId = new HashMap<>();
 			for (GallerySlider gallery : galleryData) {
 				if (gallery.getAuthorId() != null) {
 					UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
 					gallery.setAuthorImage(userIbp.getProfilePic());
 					gallery.setAuthorName(userIbp.getName());
 				}
+				Long sliderId = gallery.getSliderId();
+				Long languageId = gallery.getLanguageId();
+				groupedBySliderId
+						.computeIfAbsent(sliderId.toString() + "|" + gallery.getDisplayOrder(), k -> new HashMap<>())
+						.computeIfAbsent(languageId, k -> new ArrayList<>()).add(gallery);
 			}
 
 			HomePageStats homePageStats;
@@ -441,7 +449,7 @@ public class UtilityServiceImpl implements UtilityService {
 			homePageStats = portalStatusDao.fetchPortalStats();
 
 			result = homePageDao.findById(1L);
-			result.setGallerySlider(galleryData);
+			result.setGallerySlider(groupedBySliderId);
 			result.setStats(homePageStats);
 
 			return result;
@@ -459,8 +467,11 @@ public class UtilityServiceImpl implements UtilityService {
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
 			if (roles.contains(ROLE_ADMIN)) {
-				GallerySlider entity = gallerySliderDao.findById(galleryId);
-				gallerySliderDao.delete(entity);
+				List<GallerySlider> translations = gallerySliderDao.findBySliderId(galleryId);
+				// GallerySlider entity = gallerySliderDao.findById(galleryId);
+				for (GallerySlider translation : translations) {
+					gallerySliderDao.delete(translation);
+				}
 				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
@@ -471,22 +482,37 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData) {
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId,
+			Map<Long, List<GallerySlider>> editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 			if (roles.contains(ROLE_ADMIN)) {
-				GallerySlider gallerySliderEntity = gallerySliderDao.findById(galleryId);
-				gallerySliderEntity.setFileName(editData.getFileName());
-				gallerySliderEntity.setTitle(editData.getTitle());
-				gallerySliderEntity.setCustomDescripition(editData.getCustomDescripition());
-				gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
-				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
-				gallerySliderEntity.setTruncated(editData.getTruncated());
-				gallerySliderEntity.setReadMoreText(editData.getReadMoreText());
-				gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
-				gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
-				gallerySliderDao.update(gallerySliderEntity);
+				for (Entry<Long, List<GallerySlider>> translation : editData.entrySet()) {
+					System.out.println(editData.size());
+					GallerySlider temp = translation.getValue().getFirst();
+					System.out.println(translation.getKey());
+					if (temp.getId() != null) {
+						System.out.println("BYE");
+						GallerySlider gallerySliderEntity = gallerySliderDao.findById(temp.getId());
+						gallerySliderEntity.setFileName(temp.getFileName());
+						gallerySliderEntity.setTitle(temp.getTitle());
+						gallerySliderEntity.setCustomDescripition(temp.getCustomDescripition());
+						gallerySliderEntity.setMoreLinks(temp.getMoreLinks());
+						gallerySliderEntity.setDisplayOrder(temp.getDisplayOrder());
+						gallerySliderEntity.setTruncated(temp.getTruncated());
+						gallerySliderEntity.setReadMoreText(temp.getReadMoreText());
+						gallerySliderEntity.setReadMoreUIType(temp.getReadMoreUIType());
+						gallerySliderEntity.setGallerySidebar(temp.getGallerySidebar());
+						gallerySliderEntity.setLanguageId(translation.getKey());
+						gallerySliderEntity.setSliderId(galleryId);
+
+						gallerySliderDao.update(gallerySliderEntity);
+					} else {
+						System.out.println("HI");
+						gallerySliderDao.save(temp);
+					}
+				}
 				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
@@ -574,10 +600,24 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles.contains(ROLE_ADMIN)) {
 				editHomePageData(request, editData);
-				List<GallerySlider> galleryData = editData.getGallerySlider();
+				Map<String, Map<Long, List<GallerySlider>>> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty())
-					for (GallerySlider gallery : galleryData) {
-						gallerySliderDao.save(gallery);
+					for (Entry<String, Map<Long, List<GallerySlider>>> gallery : galleryData.entrySet()) {
+						Long sliderId = null;
+						for (Entry<Long, List<GallerySlider>> translation : gallery.getValue().entrySet()) {
+							GallerySlider temp = translation.getValue().getFirst();
+							temp.setLanguageId(translation.getKey());
+							if(sliderId!=null) {
+								temp.setSliderId(sliderId);
+							}
+							GallerySlider temptranslation = gallerySliderDao.save(temp);
+							if (sliderId == null) {
+								sliderId = temptranslation.getId();
+								temptranslation.setSliderId(sliderId);
+								gallerySliderDao.update(temptranslation);
+							}
+						}
+						// groupGallerySliderDao.save(gallery);
 					}
 
 				return getHomePageData(request, true);
@@ -596,9 +636,14 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles.contains(ROLE_ADMIN)) {
 				for (ReorderHomePage reorder : reorderHomePage) {
-					GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
+					List<GallerySlider> gallery = gallerySliderDao.findBySliderId(reorder.getGalleryId());
+					for (GallerySlider translation : gallery) {
+						translation.setDisplayOrder(reorder.getDisplayOrder());
+						gallerySliderDao.update(translation);
+					}
+					/*GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
 					gallery.setDisplayOrder(reorder.getDisplayOrder());
-					gallerySliderDao.update(gallery);
+					gallerySliderDao.update(gallery);*/
 				}
 
 				return getHomePageData(request, true);

@@ -4,6 +4,7 @@
 package com.strandls.utility.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
@@ -405,7 +406,7 @@ public class UtilityController {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
 	public Response editHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") GallerySlider editData) {
+			@ApiParam(name = "editData") Map<Long, List<GallerySlider>> editData) {
 		try {
 			Long gId = Long.parseLong(galleryId);
 			HomePageData result = utilityService.editHomePage(request, gId, editData);

@@ -48,9 +48,8 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<GallerySlider> getAllGallerySliderInfo(boolean isAdminList) {
 		List<GallerySlider> result = null;
-		String qry = isAdminList ?
-				"from  GallerySlider order by display_order asc" :
-				"from  GallerySlider where is_truncated is true order by display_order asc";
+		String qry = isAdminList ? "from  GallerySlider order by display_order asc"
+				: "from  GallerySlider where is_truncated is true order by display_order asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GallerySlider> query = session.createQuery(qry);
@@ -61,6 +60,25 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 			session.close();
 		}
 		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<GallerySlider> findBySliderId(Long sId) {
+		String qry = "from GallerySlider where sliderId = :sId";
+		Session session = sessionFactory.openSession();
+		List<GallerySlider> result = null;
+		try {
+			Query<GallerySlider> query = session.createQuery(qry);
+			query.setParameter("sId", sId);
+			result = query.getResultList();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+		return result;
+
 	}
 
 }
