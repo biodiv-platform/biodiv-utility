@@ -490,7 +490,7 @@ public class UtilityServiceImpl implements UtilityService {
 			if (roles.contains(ROLE_ADMIN)) {
 				for (Entry<Long, List<GallerySlider>> translation : editData.entrySet()) {
 					System.out.println(editData.size());
-					GallerySlider temp = translation.getValue().getFirst();
+					GallerySlider temp = translation.getValue().get(0);
 					System.out.println(translation.getKey());
 					if (temp.getId() != null) {
 						System.out.println("BYE");
@@ -605,7 +605,7 @@ public class UtilityServiceImpl implements UtilityService {
 					for (Entry<String, Map<Long, List<GallerySlider>>> gallery : galleryData.entrySet()) {
 						Long sliderId = null;
 						for (Entry<Long, List<GallerySlider>> translation : gallery.getValue().entrySet()) {
-							GallerySlider temp = translation.getValue().getFirst();
+							GallerySlider temp = translation.getValue().get(0);
 							temp.setLanguageId(translation.getKey());
 							if(sliderId!=null) {
 								temp.setSliderId(sliderId);
