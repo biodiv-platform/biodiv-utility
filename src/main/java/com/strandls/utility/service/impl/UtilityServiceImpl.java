@@ -37,6 +37,7 @@ import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
 import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
+import com.strandls.utility.dao.GalleryConfigDao;
 import com.strandls.utility.dao.GallerySliderDao;
 import com.strandls.utility.dao.HabitatDao;
 import com.strandls.utility.dao.HomePageDao;
@@ -103,6 +104,9 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private GallerySliderDao gallerySliderDao;
+	
+	@Inject
+	private GalleryConfigDao galleryConfigDao;
 
 	@Inject
 	private HabitatDao habitatDao;
@@ -450,6 +454,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 			result = homePageDao.findById(1L);
 			result.setGallerySlider(groupedBySliderId);
+			result.setMiniGallery(galleryConfigDao.findAll());
 			result.setStats(homePageStats);
 
 			return result;

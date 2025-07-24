@@ -36,6 +36,7 @@ public class HomePageData {
 	private Boolean showDesc;
 	private HomePageStats stats;
 	private Map<String, Map<Long, List<GallerySlider>>> gallerySlider;
+	private List<GalleryConfig> miniGallery;
 	private String ugDescription;
 	private String description;
 
@@ -58,7 +59,8 @@ public class HomePageData {
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
-			HomePageStats stats, Map<String, Map<Long, List<GallerySlider>>> gallerySlider, String ugDescription, String description) {
+			HomePageStats stats, Map<String, Map<Long, List<GallerySlider>>> gallerySlider, String ugDescription,
+			String description, List<GalleryConfig> miniGallery) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -71,6 +73,7 @@ public class HomePageData {
 		this.showDesc = showDesc;
 		this.stats = stats;
 		this.gallerySlider = gallerySlider;
+		this.miniGallery = miniGallery;
 		this.ugDescription = ugDescription;
 		this.description = description;
 	}
@@ -174,6 +177,15 @@ public class HomePageData {
 
 	public void setGallerySlider(Map<String, Map<Long, List<GallerySlider>>> gallerySlider) {
 		this.gallerySlider = gallerySlider;
+	}
+
+	@Transient
+	public List<GalleryConfig> getMiniGallery() {
+		return miniGallery;
+	}
+
+	public void setMiniGallery(List<GalleryConfig> miniGallery) {
+		this.miniGallery = miniGallery;
 	}
 
 	public String getUgDescription() {
