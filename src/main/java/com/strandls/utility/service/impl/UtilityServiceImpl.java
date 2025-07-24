@@ -49,6 +49,7 @@ import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
 import com.strandls.utility.pojo.FlagShow;
+import com.strandls.utility.pojo.GalleryConfig;
 import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
@@ -454,7 +455,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 			result = homePageDao.findById(1L);
 			result.setGallerySlider(groupedBySliderId);
-			result.setMiniGallery(galleryConfigDao.findAll());
+			result.setMiniGallery(isadmin && adminList?galleryConfigDao.getAllMiniSlider(true):galleryConfigDao.getAllMiniSlider(false));
 			result.setStats(homePageStats);
 
 			return result;
@@ -484,6 +485,47 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 
 		return null;
+	}
+	
+	@Override
+	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData) {
+		try {
+			miniGalleryData.setIsActive(true);
+			miniGalleryData.setId(null);
+			GalleryConfig miniGallery = galleryConfigDao.save(miniGalleryData);
+			return miniGallery;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return null;
+	}
+	
+	@Override
+	public GalleryConfig editMiniGallery(HttpServletRequest request, Long galleryId ,GalleryConfig miniGalleryData) {
+		try {
+			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
+			miniGallery.setTitle(miniGalleryData.getTitle());
+			miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
+			miniGallery.setIsVertical(miniGalleryData.getIsVertical());
+			miniGallery.setIsActive(miniGalleryData.getIsActive());
+			galleryConfigDao.update(miniGallery);
+			return miniGallery;
+		}catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return null;
+	}
+	
+	@Override
+	public Boolean removeMiniGallery(HttpServletRequest request, Long galleryId) {
+		try {
+			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
+			galleryConfigDao.delete(miniGallery);
+			return true;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return false;
 	}
 
 	@Override

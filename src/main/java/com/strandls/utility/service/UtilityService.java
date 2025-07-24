@@ -15,6 +15,7 @@ import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
 import com.strandls.utility.pojo.FlagShow;
+import com.strandls.utility.pojo.GalleryConfig;
 import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
@@ -78,4 +79,10 @@ public interface UtilityService {
 	public HomePageData reorderHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage);
 
 	public List<Long> getResourceIds(String phrase, String type, String tagRefId);
+
+	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData);
+
+	public GalleryConfig editMiniGallery(HttpServletRequest request, Long gId, GalleryConfig editData);
+
+	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 }

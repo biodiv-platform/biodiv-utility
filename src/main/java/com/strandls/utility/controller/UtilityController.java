@@ -33,6 +33,7 @@ import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
 import com.strandls.utility.pojo.FlagShow;
+import com.strandls.utility.pojo.GalleryConfig;
 import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
@@ -365,6 +366,77 @@ public class UtilityController {
 		try {
 			HomePageData result = utilityService.getHomePageData(request, adminList);
 			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@POST
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY +ApiConstants.CREATE )
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+
+	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = GalleryConfig.class)
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class)})
+
+	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
+		try {
+			GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
+			if (result!=null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY +ApiConstants.EDIT + "/{galleryId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit mini gallery data", notes = "return mini gallery data", response = GalleryConfig.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@ApiParam(name = "editData") GalleryConfig editData) {
+		try {
+			Long gId = Long.parseLong(galleryId);
+			GalleryConfig result = utilityService.editMiniGallery(request, gId, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@DELETE
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.REMOVE + "/{galleryId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Delete mini gallery data", notes = "returns null", response = Void.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
+
+	public Response removeMiniGalleryData(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId) {
+		try {
+			Long gId = Long.parseLong(galleryId);
+			System.out.println(gId.toString());
+			Boolean result = utilityService.removeMiniGallery(request, gId);
+			if (result != false)
+				return Response.status(Status.OK).build();
+			return Response.status(Status.NOT_FOUND).build();
+
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
