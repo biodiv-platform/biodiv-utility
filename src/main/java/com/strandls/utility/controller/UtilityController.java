@@ -38,6 +38,7 @@ import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.Language;
+import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.Tags;
@@ -490,6 +491,55 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+	
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER +"/{galleryId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editMiniHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
+			@ApiParam(name = "editData") Map<Long, List<MiniGallerySlider>> editData) {
+		try {
+			Long gId = Long.parseLong(galleryId);
+			HomePageData result = utilityService.editMiniHomePage(request ,gId, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@DELETE
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + ApiConstants.MINI_SLIDER + "/{galleryId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Delete homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response removeMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId) {
+		try {
+			Long gId = Long.parseLong(galleryId);
+			HomePageData result = utilityService.removeMiniHomePage(request, gId);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
 
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
@@ -502,6 +552,26 @@ public class UtilityController {
 			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage) {
 		try {
 			HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_SLIDER +ApiConstants.REORDERING)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	public Response reorderingMiniHomePageGallerySlider(@Context HttpServletRequest request,
+			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage) {
+		try {
+			HomePageData result = utilityService.reorderMiniHomePageSlider(request, reorderingHomePage);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();

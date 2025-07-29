@@ -39,6 +39,8 @@ public class MiniGallerySlider {
 	private Long galleryId;
 	private Long languageId;
 	private String color;
+	private String bgColor;
+	private Long sliderId;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -167,6 +169,15 @@ public class MiniGallerySlider {
 	public void setGalleryId(Long galleryId) {
 		this.galleryId = galleryId;
 	}
+	
+	@Column(name = "slider_id", columnDefinition = "BIGINT")
+	public Long getSliderId() {
+		return sliderId;
+	}
+
+	public void setSliderId(Long sliderId) {
+		this.sliderId = sliderId;
+	}
 
 	@Column(name = "language_id", columnDefinition = "BIGINT")
 	public Long getLanguageId() {
@@ -184,5 +195,14 @@ public class MiniGallerySlider {
 
 	public void setColor(String color) {
 		this.color = color;
+	}
+	
+	@Column(name = "bg_color")
+	public String getBgColor() {
+		return bgColor;
+	}
+
+	public void setBgColor(String bgColor) {
+		this.bgColor = bgColor;
 	}
 }

@@ -20,6 +20,7 @@ import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.Language;
+import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.Tags;
@@ -85,4 +86,11 @@ public interface UtilityService {
 	public GalleryConfig editMiniGallery(HttpServletRequest request, Long gId, GalleryConfig editData);
 
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
+
+	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId,
+			Map<Long, List<MiniGallerySlider>> editData);
+
+	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
+
+	public HomePageData reorderMiniHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderingHomePage);
 }

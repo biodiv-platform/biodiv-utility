@@ -5,7 +5,7 @@ package com.strandls.utility.pojo;
 
 
 import java.util.List;
-
+import java.util.Map;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,7 +35,9 @@ public class GalleryConfig {
    private Long slidesPerView;
    private String title;
    private Boolean isVertical;
-   private List<MiniGallerySlider> gallerySlider;
+   private Map<String, Map<Long, List<MiniGallerySlider>>> gallerySlider;
+   private Long languageId;
+   private Long galleryId;
   
 
 
@@ -90,14 +92,32 @@ public class GalleryConfig {
    public void setTitle(String title) {
        this.title = title;
    }
+   
+   @Column(name = "language_id", columnDefinition = "BIGINT")
+   public Long getLanguageId() {
+       return languageId;
+   }
+  
+   public void setLanguageId(Long languageId) {
+       this.languageId = languageId;
+   }
+   
+   @Column(name = "gallery_id", columnDefinition = "BIGINT")
+   public Long getGalleryId() {
+       return galleryId;
+   }
+  
+   public void setGalleryId(Long galleryId) {
+       this.galleryId = galleryId;
+   }
   
    @Transient
-   public List<MiniGallerySlider> getGallerySlider() {
+   public Map<String, Map<Long, List<MiniGallerySlider>>> getGallerySlider() {
        return gallerySlider;
    }
 
 
-   public void setGallerySlider(List<MiniGallerySlider> gallerySlider) {
+   public void setGallerySlider(Map<String, Map<Long, List<MiniGallerySlider>>> gallerySlider) {
        this.gallerySlider = gallerySlider;
    }
 }

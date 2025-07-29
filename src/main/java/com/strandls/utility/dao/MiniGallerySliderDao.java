@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.util.AbstractDAO;
 
@@ -62,6 +63,25 @@ public class MiniGallerySliderDao extends AbstractDAO<MiniGallerySlider, Long> {
 			session.close();
 		}
 		return result;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public List<MiniGallerySlider> findBySliderId(Long sId) {
+		String qry = "from MiniGallerySlider where sliderId = :sId";
+		Session session = sessionFactory.openSession();
+		List<MiniGallerySlider> result = null;
+		try {
+			Query<MiniGallerySlider> query = session.createQuery(qry);
+			query.setParameter("sId", sId);
+			result = query.getResultList();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+		return result;
+
 	}
 
 }
