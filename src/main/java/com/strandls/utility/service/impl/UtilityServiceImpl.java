@@ -107,10 +107,10 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private GallerySliderDao gallerySliderDao;
-	
+
 	@Inject
-	private MiniGallerySliderDao miniGallerySliderDao; 
-	
+	private MiniGallerySliderDao miniGallerySliderDao;
+
 	@Inject
 	private GalleryConfigDao galleryConfigDao;
 
@@ -440,39 +440,15 @@ public class UtilityServiceImpl implements UtilityService {
 					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
 					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
-			Map<String, Map<Long, List<GallerySlider>>> groupedBySliderId = new HashMap<>();
-			for (GallerySlider gallery : galleryData) {
-				if (gallery.getAuthorId() != null) {
-					UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
-					gallery.setAuthorImage(userIbp.getProfilePic());
-					gallery.setAuthorName(userIbp.getName());
-				}
-				Long sliderId = gallery.getSliderId();
-				Long languageId = gallery.getLanguageId();
-				groupedBySliderId
-						.computeIfAbsent(sliderId.toString() + "|" + gallery.getDisplayOrder(), k -> new HashMap<>())
-						.computeIfAbsent(languageId, k -> new ArrayList<>()).add(gallery);
-			}
-			
-			List<GalleryConfig> miniGalleryData = isadmin && adminList?galleryConfigDao.getAllMiniSlider(true):galleryConfigDao.getAllMiniSlider(false);
-			for (GalleryConfig miniGallery: miniGalleryData) {
-				List<MiniGallerySlider> gallerySliderData = isadmin && adminList
+			Map<String, Map<Long, List<GallerySlider>>> groupedBySliderId = groupGallerySliders(galleryData);
+
+			List<GalleryConfig> miniGalleryData = isadmin && adminList ? galleryConfigDao.getAllMiniSlider(true)
+					: galleryConfigDao.getAllMiniSlider(false);
+			for (GalleryConfig miniGallery : miniGalleryData) {
+				List<MiniGallerySlider> miniSliders = isadmin && adminList
 						? miniGallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE, miniGallery.getId())
 						: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, miniGallery.getId());
-				Map<String, Map<Long, List<MiniGallerySlider>>> groupedByMiniSliderId = new HashMap<>();
-				for (MiniGallerySlider gallery : gallerySliderData) {
-					if (gallery.getAuthorId() != null) {
-						UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
-						gallery.setAuthorImage(userIbp.getProfilePic());
-						gallery.setAuthorName(userIbp.getName());
-					}
-					Long sliderId = gallery.getSliderId();
-					Long languageId = gallery.getLanguageId();
-					groupedByMiniSliderId
-							.computeIfAbsent(sliderId.toString() + "|" + gallery.getDisplayOrder(), k -> new HashMap<>())
-							.computeIfAbsent(languageId, k -> new ArrayList<>()).add(gallery);
-				}
-				miniGallery.setGallerySlider(groupedByMiniSliderId);
+				miniGallery.setGallerySlider(groupMiniGallerySliders(miniSliders));
 			}
 
 			HomePageStats homePageStats;
@@ -492,6 +468,52 @@ public class UtilityServiceImpl implements UtilityService {
 
 	}
 
+	private Map<String, Map<Long, List<GallerySlider>>> groupGallerySliders(List<GallerySlider> galleryData) {
+		Map<String, Map<Long, List<GallerySlider>>> grouped = new HashMap<>();
+		try {
+			for (GallerySlider gallery : galleryData) {
+				if (gallery.getAuthorId() != null) {
+					try {
+						UserIbp user = userService.getUserIbp(gallery.getAuthorId().toString());
+						gallery.setAuthorImage(user.getProfilePic());
+						gallery.setAuthorName(user.getName());
+					} catch (Exception e) {
+						logger.error("Failed to fetch author details for ID: " + gallery.getAuthorId(), e);
+					}
+				}
+				String key = gallery.getSliderId() + "|" + gallery.getDisplayOrder();
+				grouped.computeIfAbsent(key, k -> new HashMap<>())
+						.computeIfAbsent(gallery.getLanguageId(), k -> new ArrayList<>()).add(gallery);
+			}
+		} catch (Exception e) {
+			logger.error("Error while grouping gallery sliders", e);
+		}
+		return grouped;
+	}
+
+	private Map<String, Map<Long, List<MiniGallerySlider>>> groupMiniGallerySliders(List<MiniGallerySlider> sliders) {
+		Map<String, Map<Long, List<MiniGallerySlider>>> grouped = new HashMap<>();
+		try {
+			for (MiniGallerySlider gallery : sliders) {
+				if (gallery.getAuthorId() != null) {
+					try {
+						UserIbp user = userService.getUserIbp(gallery.getAuthorId().toString());
+						gallery.setAuthorImage(user.getProfilePic());
+						gallery.setAuthorName(user.getName());
+					} catch (Exception e) {
+						logger.error("Failed to fetch author details for ID: " + gallery.getAuthorId(), e);
+					}
+				}
+				String key = gallery.getSliderId() + "|" + gallery.getDisplayOrder();
+				grouped.computeIfAbsent(key, k -> new HashMap<>())
+						.computeIfAbsent(gallery.getLanguageId(), k -> new ArrayList<>()).add(gallery);
+			}
+		} catch (Exception e) {
+			logger.error("Error while grouping mini gallery sliders", e);
+		}
+		return grouped;
+	}
+
 	@Override
 	public HomePageData removeHomePage(HttpServletRequest request, Long galleryId) {
 		try {
@@ -500,7 +522,6 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles.contains(ROLE_ADMIN)) {
 				List<GallerySlider> translations = gallerySliderDao.findBySliderId(galleryId);
-				// GallerySlider entity = gallerySliderDao.findById(galleryId);
 				for (GallerySlider translation : translations) {
 					gallerySliderDao.delete(translation);
 				}
@@ -512,46 +533,57 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
-	
+
 	@Override
 	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData) {
 		try {
 			miniGalleryData.setIsActive(true);
-			miniGalleryData.setId(null);
-			GalleryConfig miniGallery = galleryConfigDao.save(miniGalleryData);
-			return miniGallery;
+			miniGalleryData.setId(null); // Ensure it's treated as a new entity
+			return galleryConfigDao.save(miniGalleryData);
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Failed to create mini gallery: {}", e.getMessage(), e);
+			return null;
 		}
-		return null;
 	}
-	
+
 	@Override
-	public GalleryConfig editMiniGallery(HttpServletRequest request, Long galleryId ,GalleryConfig miniGalleryData) {
+	public GalleryConfig editMiniGallery(HttpServletRequest request, Long galleryId, GalleryConfig miniGalleryData) {
 		try {
 			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
+
+			if (miniGallery == null) {
+				logger.warn("Mini gallery with ID {} not found.", galleryId);
+				return null;
+			}
+
 			miniGallery.setTitle(miniGalleryData.getTitle());
 			miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
 			miniGallery.setIsVertical(miniGalleryData.getIsVertical());
 			miniGallery.setIsActive(miniGalleryData.getIsActive());
+
 			galleryConfigDao.update(miniGallery);
 			return miniGallery;
-		}catch (Exception e) {
-			logger.error(e.getMessage());
+		} catch (Exception e) {
+			logger.error("Failed to edit mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
+			return null;
 		}
-		return null;
 	}
-	
+
 	@Override
 	public Boolean removeMiniGallery(HttpServletRequest request, Long galleryId) {
 		try {
 			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
+			if (miniGallery == null) {
+				logger.warn("Mini gallery with ID {} not found for deletion.", galleryId);
+				return false;
+			}
+
 			galleryConfigDao.delete(miniGallery);
 			return true;
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Error while deleting mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
+			return false;
 		}
-		return false;
 	}
 
 	@Override
@@ -590,7 +622,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
-	
+
 	@Override
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long galleryId,
 			Map<Long, List<MiniGallerySlider>> editData) {
@@ -628,7 +660,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
-	
+
 	@Override
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long galleryId) {
 		try {
@@ -637,7 +669,6 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles.contains(ROLE_ADMIN)) {
 				List<MiniGallerySlider> translations = miniGallerySliderDao.findBySliderId(galleryId);
-				// GallerySlider entity = gallerySliderDao.findById(galleryId);
 				for (MiniGallerySlider translation : translations) {
 					miniGallerySliderDao.delete(translation);
 				}
@@ -726,56 +757,70 @@ public class UtilityServiceImpl implements UtilityService {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(ROLE_ADMIN)) {
+			if (roles != null && roles.contains(ROLE_ADMIN)) {
 				editHomePageData(request, editData);
+
+				// Save GallerySlider
 				Map<String, Map<Long, List<GallerySlider>>> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty()) {
-					for (Entry<String, Map<Long, List<GallerySlider>>> gallery : galleryData.entrySet()) {
-						Long sliderId = null;
-						for (Entry<Long, List<GallerySlider>> translation : gallery.getValue().entrySet()) {
-							GallerySlider temp = translation.getValue().get(0);
-							temp.setLanguageId(translation.getKey());
-							if(sliderId!=null) {
-								temp.setSliderId(sliderId);
-							}
-							GallerySlider temptranslation = gallerySliderDao.save(temp);
-							if (sliderId == null) {
-								sliderId = temptranslation.getId();
-								temptranslation.setSliderId(sliderId);
-								gallerySliderDao.update(temptranslation);
-							}
-						}
-						// groupGallerySliderDao.save(gallery);
-					}
+					galleryData.values().forEach(languageMap -> saveGallerySliderTranslations(languageMap));
 				}
-				for (GalleryConfig miniGallery:editData.getMiniGallery()) {
+
+				// Save MiniGallerySlider
+				for (GalleryConfig miniGallery : editData.getMiniGallery()) {
 					Map<String, Map<Long, List<MiniGallerySlider>>> miniGalleryData = miniGallery.getGallerySlider();
-					if (miniGalleryData!=null && !miniGalleryData.isEmpty()) {
-						for (Entry<String, Map<Long, List<MiniGallerySlider>>> gallery : miniGalleryData.entrySet()) {
-							Long sliderId = null;
-							for (Entry<Long, List<MiniGallerySlider>> translation : gallery.getValue().entrySet()) {
-								MiniGallerySlider temp = translation.getValue().get(0);
-								temp.setLanguageId(translation.getKey());
-								if (sliderId!=null) {
-									temp.setSliderId(sliderId);
-								}
-								MiniGallerySlider temptranslation = miniGallerySliderDao.save(temp);
-								if (sliderId == null) {
-									sliderId = temptranslation.getId();
-									temptranslation.setSliderId(sliderId);
-									miniGallerySliderDao.update(temptranslation);
-								}
-							}
-						}
+					if (miniGalleryData != null && !miniGalleryData.isEmpty()) {
+						miniGalleryData.values().forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
 					}
 				}
 
 				return getHomePageData(request, true);
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Error inserting homepage: ", e);
 		}
+
 		return null;
+	}
+
+	private void saveGallerySliderTranslations(Map<Long, List<GallerySlider>> translations) {
+		Long sliderId = null;
+		for (Map.Entry<Long, List<GallerySlider>> entry : translations.entrySet()) {
+			GallerySlider temp = entry.getValue().get(0);
+			temp.setLanguageId(entry.getKey());
+
+			if (sliderId != null) {
+				temp.setSliderId(sliderId);
+			}
+
+			GallerySlider saved = gallerySliderDao.save(temp);
+
+			if (sliderId == null) {
+				sliderId = saved.getId();
+				saved.setSliderId(sliderId);
+				gallerySliderDao.update(saved);
+			}
+		}
+	}
+
+	private void saveMiniGallerySliderTranslations(Map<Long, List<MiniGallerySlider>> translations) {
+		Long sliderId = null;
+		for (Map.Entry<Long, List<MiniGallerySlider>> entry : translations.entrySet()) {
+			MiniGallerySlider temp = entry.getValue().get(0);
+			temp.setLanguageId(entry.getKey());
+
+			if (sliderId != null) {
+				temp.setSliderId(sliderId);
+			}
+
+			MiniGallerySlider saved = miniGallerySliderDao.save(temp);
+
+			if (sliderId == null) {
+				sliderId = saved.getId();
+				saved.setSliderId(sliderId);
+				miniGallerySliderDao.update(saved);
+			}
+		}
 	}
 
 	@Override
@@ -791,9 +836,6 @@ public class UtilityServiceImpl implements UtilityService {
 						translation.setDisplayOrder(reorder.getDisplayOrder());
 						gallerySliderDao.update(translation);
 					}
-					/*GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
-					gallery.setDisplayOrder(reorder.getDisplayOrder());
-					gallerySliderDao.update(gallery);*/
 				}
 
 				return getHomePageData(request, true);
@@ -803,7 +845,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 		return null;
 	}
-	
+
 	@Override
 	public HomePageData reorderMiniHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage) {
 		try {
@@ -817,9 +859,6 @@ public class UtilityServiceImpl implements UtilityService {
 						translation.setDisplayOrder(reorder.getDisplayOrder());
 						miniGallerySliderDao.update(translation);
 					}
-					/*GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
-					gallery.setDisplayOrder(reorder.getDisplayOrder());
-					gallerySliderDao.update(gallery);*/
 				}
 
 				return getHomePageData(request, true);
@@ -829,7 +868,6 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 		return null;
 	}
-
 
 	@Override
 	public List<Long> getResourceIds(String phrase, String type, String tagRefId) {
