@@ -577,8 +577,11 @@ public class UtilityServiceImpl implements UtilityService {
 				logger.warn("Mini gallery with ID {} not found for deletion.", galleryId);
 				return false;
 			}
-
 			galleryConfigDao.delete(miniGallery);
+			List<MiniGallerySlider> miniGallerySlides = miniGallerySliderDao.getAllGallerySliderInfo(true, galleryId);
+			for (MiniGallerySlider slide: miniGallerySlides) {
+				miniGallerySliderDao.delete(slide);
+			}
 			return true;
 		} catch (Exception e) {
 			logger.error("Error while deleting mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
