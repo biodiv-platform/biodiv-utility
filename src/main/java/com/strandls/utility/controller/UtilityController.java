@@ -378,15 +378,13 @@ public class UtilityController {
 	@Produces(MediaType.APPLICATION_JSON)
 	@ValidateUser
 
-	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = GalleryConfig.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class) })
+	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = Map.class)
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class)})
 
-	public Response createMiniGallery(@Context HttpServletRequest request,
-			@ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
+	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") Map<Long, List<GalleryConfig>> miniGalleryData) {
 		try {
-			GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
-			if (result != null)
+			Map<String, Map<Long, List<GalleryConfig>>> result = utilityService.createMiniGallery(request, miniGalleryData);
+			if (result!=null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
 
@@ -402,18 +400,18 @@ public class UtilityController {
 
 	@ValidateUser
 
-	@ApiOperation(value = "Edit mini gallery data", notes = "return mini gallery data", response = GalleryConfig.class)
+	@ApiOperation(value = "Edit mini gallery data", notes = "return mini gallery data", response = Map.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
 	public Response editMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") GalleryConfig editData) {
+			@ApiParam(name = "editData") Map<Long, List<GalleryConfig>> editData) {
 		try {
 			if (galleryId == null) {
 				return Response.status(Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
 			}
 			Long gId = Long.parseLong(galleryId);
-			GalleryConfig result = utilityService.editMiniGallery(request, gId, editData);
+			Map<String, Map<Long, List<GalleryConfig>>> result = utilityService.editMiniGallery(request, gId, editData);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();

@@ -81,9 +81,9 @@ public interface UtilityService {
 
 	public List<Long> getResourceIds(String phrase, String type, String tagRefId);
 
-	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData);
+	public Map<String, Map<Long, List<GalleryConfig>>> createMiniGallery(HttpServletRequest request, Map<Long, List<GalleryConfig>> miniGalleryData);
 
-	public GalleryConfig editMiniGallery(HttpServletRequest request, Long gId, GalleryConfig editData);
+	public Map<String, Map<Long, List<GalleryConfig>>> editMiniGallery(HttpServletRequest request, Long gId, Map<Long, List<GalleryConfig>> editData);
 
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 

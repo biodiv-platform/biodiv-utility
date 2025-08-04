@@ -444,12 +444,29 @@ public class UtilityServiceImpl implements UtilityService {
 
 			List<GalleryConfig> miniGalleryData = isadmin && adminList ? galleryConfigDao.getAllMiniSlider(true)
 					: galleryConfigDao.getAllMiniSlider(false);
+			List<Long> miniGalleryIds = new ArrayList<>();
+			Map<String, Map<Long, List<GalleryConfig>>> groupedByGalleryId = new HashMap<>();
 			for (GalleryConfig miniGallery : miniGalleryData) {
+				Long galleryId = miniGallery.getGalleryId();
+				if (!miniGalleryIds.contains(galleryId)) {
+					miniGalleryIds.add(galleryId);
+				}
+				Long languageId = miniGallery.getLanguageId();
 				List<MiniGallerySlider> miniSliders = isadmin && adminList
 						? miniGallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE, miniGallery.getId())
 						: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, miniGallery.getId());
 				miniGallery.setGallerySlider(groupMiniGallerySliders(miniSliders));
+				groupedByGalleryId.computeIfAbsent(galleryId.toString(), k -> new HashMap<>())
+						.computeIfAbsent(languageId, k -> new ArrayList<>()).add(miniGallery);
 			}
+			List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider = new ArrayList<>();
+			for (Long miniGalleryId : miniGalleryIds) {
+				List<MiniGallerySlider> miniSliders = isadmin && adminList
+						? miniGallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE, miniGalleryId)
+						: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, miniGalleryId);
+				miniGallerySlider.add(groupMiniGallerySliders(miniSliders));
+			}
+	}
 
 			HomePageStats homePageStats;
 //				IBP home page DATA
@@ -457,7 +474,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 			result = homePageDao.findById(1L);
 			result.setGallerySlider(groupedBySliderId);
-			result.setMiniGallery(miniGalleryData);
+			result.setMiniGallery(groupedByGalleryId);
+			result.setMiniGallerySlider(miniGallerySlider);
 			result.setStats(homePageStats);
 
 			return result;
@@ -535,11 +553,34 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData) {
+	public Map<String, Map<Long, List<GalleryConfig>>> createMiniGallery(HttpServletRequest request,
+			Map<Long, List<GalleryConfig>> miniGalleryData) {
 		try {
-			miniGalleryData.setIsActive(true);
-			miniGalleryData.setId(null); // Ensure it's treated as a new entity
-			return galleryConfigDao.save(miniGalleryData);
+			Map<String, Map<Long, List<GalleryConfig>>> groupedByGalleryId = new HashMap<>();
+			Map<Long, List<GalleryConfig>> groupedByLanguageId = new HashMap<>();
+			Long galleryId = null;
+			for (Entry<Long, List<GalleryConfig>> translation : miniGalleryData.entrySet()) {
+				GalleryConfig temp = translation.getValue().get(0);
+				temp.setIsActive(true);
+				temp.setId(null);
+
+				// First save without galleryId to get the generated one
+				if (galleryId == null) {
+					temp.setGalleryId(null);
+					temp = galleryConfigDao.save(temp);
+					galleryId = temp.getId();
+					System.out.println(galleryId);
+					temp.setGalleryId(galleryId);
+					temp = galleryConfigDao.update(temp);
+				} else {
+					temp.setGalleryId(galleryId);
+					temp = galleryConfigDao.save(temp); // just one save now
+				}
+
+				groupedByGalleryId.computeIfAbsent(galleryId.toString(), k -> new HashMap<>())
+						.computeIfAbsent(translation.getKey(), k -> new ArrayList<>()).add(temp);
+			}
+			return groupedByGalleryId;
 		} catch (Exception e) {
 			logger.error("Failed to create mini gallery: {}", e.getMessage(), e);
 			return null;
@@ -547,22 +588,27 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public GalleryConfig editMiniGallery(HttpServletRequest request, Long galleryId, GalleryConfig miniGalleryData) {
+	public Map<String, Map<Long, List<GalleryConfig>>> editMiniGallery(HttpServletRequest request, Long galleryId,
+			Map<Long, List<GalleryConfig>> miniGalleryData) {
 		try {
-			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
-
-			if (miniGallery == null) {
-				logger.warn("Mini gallery with ID {} not found.", galleryId);
-				return null;
+			Map<String, Map<Long, List<GalleryConfig>>> groupedByGalleryId = new HashMap<>();
+			for (Entry<Long, List<GalleryConfig>> translation : miniGalleryData.entrySet()) {
+				GalleryConfig temp = translation.getValue().get(0);
+				if (temp.getId() != null) {
+					GalleryConfig miniGallery = galleryConfigDao.findById(temp.getId());
+					miniGallery.setTitle(temp.getTitle());
+					miniGallery.setSlidesPerView(temp.getSlidesPerView());
+					miniGallery.setIsVertical(temp.getIsVertical());
+					miniGallery.setIsActive(temp.getIsActive());
+					temp = galleryConfigDao.update(miniGallery);
+				} else {
+					temp = galleryConfigDao.save(temp);
+				}
+				groupedByGalleryId.computeIfAbsent(galleryId.toString(), k -> new HashMap<>())
+						.computeIfAbsent(translation.getKey(), k -> new ArrayList<>()).add(temp);
 			}
 
-			miniGallery.setTitle(miniGalleryData.getTitle());
-			miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
-			miniGallery.setIsVertical(miniGalleryData.getIsVertical());
-			miniGallery.setIsActive(miniGalleryData.getIsActive());
-
-			galleryConfigDao.update(miniGallery);
-			return miniGallery;
+			return groupedByGalleryId;
 		} catch (Exception e) {
 			logger.error("Failed to edit mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
 			return null;
@@ -572,14 +618,16 @@ public class UtilityServiceImpl implements UtilityService {
 	@Override
 	public Boolean removeMiniGallery(HttpServletRequest request, Long galleryId) {
 		try {
-			GalleryConfig miniGallery = galleryConfigDao.findById(galleryId);
+			List<GalleryConfig> miniGallery = galleryConfigDao.getByGalleryId(galleryId);
 			if (miniGallery == null) {
 				logger.warn("Mini gallery with ID {} not found for deletion.", galleryId);
 				return false;
 			}
-			galleryConfigDao.delete(miniGallery);
+			for (GalleryConfig translation : miniGallery) {
+				galleryConfigDao.delete(translation);
+			}
 			List<MiniGallerySlider> miniGallerySlides = miniGallerySliderDao.getAllGallerySliderInfo(true, galleryId);
-			for (MiniGallerySlider slide: miniGallerySlides) {
+			for (MiniGallerySlider slide : miniGallerySlides) {
 				miniGallerySliderDao.delete(slide);
 			}
 			return true;
@@ -770,10 +818,9 @@ public class UtilityServiceImpl implements UtilityService {
 				}
 
 				// Save MiniGallerySlider
-				for (GalleryConfig miniGallery : editData.getMiniGallery()) {
-					Map<String, Map<Long, List<MiniGallerySlider>>> miniGalleryData = miniGallery.getGallerySlider();
-					if (miniGalleryData != null && !miniGalleryData.isEmpty()) {
-						miniGalleryData.values().forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
+				for (Map<String, Map<Long, List<MiniGallerySlider>>> miniGallerySlider : editData.getMiniGallerySlider()) {
+					if (miniGallerySlider != null && !miniGallerySlider.isEmpty()) {
+						miniGallerySlider.values().forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
 					}
 				}
 

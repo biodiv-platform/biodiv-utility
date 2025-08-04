@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.strandls.utility.pojo.GalleryConfig;
+import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.util.AbstractDAO;
 
 
@@ -58,6 +59,24 @@ public class GalleryConfigDao extends AbstractDAO<GalleryConfig, Long> {
            session.close();
        }
        return result;
+   }
+   
+   @SuppressWarnings("unchecked")
+   public List<GalleryConfig> getByGalleryId(Long galleryId) {
+	   String qry = "from GalleryConfig where gallery_id = :galleryId";
+		Session session = sessionFactory.openSession();
+		List<GalleryConfig> result = null;
+		try {
+			Query<GalleryConfig> query = session.createQuery(qry);
+			query.setParameter("galleryId", galleryId);
+			result = query.getResultList();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+		return result;
    }
 
 
