@@ -466,7 +466,6 @@ public class UtilityServiceImpl implements UtilityService {
 						: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, miniGalleryId);
 				miniGallerySlider.add(groupMiniGallerySliders(miniSliders));
 			}
-	}
 
 			HomePageStats homePageStats;
 //				IBP home page DATA
