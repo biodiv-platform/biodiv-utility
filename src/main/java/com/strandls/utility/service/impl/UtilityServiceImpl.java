@@ -2,6 +2,7 @@
  * 
  */
 package com.strandls.utility.service.impl;
+import java.util.function.Function;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -35,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
+import com.strandls.user.pojo.User;
 import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
 import com.strandls.utility.dao.GalleryConfigDao;
@@ -487,13 +491,23 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private Map<String, Map<Long, List<GallerySlider>>> groupGallerySliders(List<GallerySlider> galleryData) {
 		Map<String, Map<Long, List<GallerySlider>>> grouped = new HashMap<>();
+		List<Long> uniqueAuthorIds = galleryData.stream()
+			    .map(GallerySlider::getAuthorId)
+			    .filter(Objects::nonNull)
+			    .distinct()
+			    .collect(Collectors.toList());
 		try {
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
+			Map<String, User> userMap = users.stream()
+				    .collect(Collectors.toMap(
+				        user -> user.getId().toString(),
+				        Function.identity()
+				    ));
 			for (GallerySlider gallery : galleryData) {
 				if (gallery.getAuthorId() != null) {
 					try {
-						UserIbp user = userService.getUserIbp(gallery.getAuthorId().toString());
-						gallery.setAuthorImage(user.getProfilePic());
-						gallery.setAuthorName(user.getName());
+						gallery.setAuthorImage(userMap.get(gallery.getAuthorId().toString()).getProfilePic());
+						gallery.setAuthorName(userMap.get(gallery.getAuthorId().toString()).getName());
 					} catch (Exception e) {
 						logger.error("Failed to fetch author details for ID: " + gallery.getAuthorId(), e);
 					}
@@ -510,13 +524,23 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private Map<String, Map<Long, List<MiniGallerySlider>>> groupMiniGallerySliders(List<MiniGallerySlider> sliders) {
 		Map<String, Map<Long, List<MiniGallerySlider>>> grouped = new HashMap<>();
+		List<Long> uniqueAuthorIds = sliders.stream()
+			    .map(MiniGallerySlider::getAuthorId)
+			    .filter(Objects::nonNull)
+			    .distinct()
+			    .collect(Collectors.toList());
 		try {
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
+			Map<String, User> userMap = users.stream()
+				    .collect(Collectors.toMap(
+				        user -> user.getId().toString(),
+				        Function.identity()
+				    ));
 			for (MiniGallerySlider gallery : sliders) {
 				if (gallery.getAuthorId() != null) {
 					try {
-						UserIbp user = userService.getUserIbp(gallery.getAuthorId().toString());
-						gallery.setAuthorImage(user.getProfilePic());
-						gallery.setAuthorName(user.getName());
+						gallery.setAuthorImage(userMap.get(gallery.getAuthorId().toString()).getProfilePic());
+						gallery.setAuthorName(userMap.get(gallery.getAuthorId().toString()).getName());
 					} catch (Exception e) {
 						logger.error("Failed to fetch author details for ID: " + gallery.getAuthorId(), e);
 					}
