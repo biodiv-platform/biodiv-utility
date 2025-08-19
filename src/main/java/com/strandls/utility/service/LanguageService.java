@@ -5,9 +5,7 @@ import java.util.List;
 import com.strandls.utility.pojo.Language;
 
 /**
- * 
  * @author vilay
- *
  */
 public interface LanguageService {
 

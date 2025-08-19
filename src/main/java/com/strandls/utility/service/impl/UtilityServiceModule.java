@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.service.impl;
 
 import com.google.inject.AbstractModule;
@@ -10,7 +8,6 @@ import com.strandls.utility.service.UtilityService;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class UtilityServiceModule extends AbstractModule {
 

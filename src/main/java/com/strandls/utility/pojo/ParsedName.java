@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.pojo;
 
 import java.util.ArrayList;
@@ -10,9 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * @author Abhishek Rudra
- *
  */
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ParsedName {
 
@@ -151,7 +147,6 @@ public class ParsedName {
 				+ hybrid + ", bacteria=" + bacteria + ", nameStringId=" + nameStringId + ", parserVersion="
 				+ parserVersion + "]";
 	}
-
 }
 
 class CanonicalName {

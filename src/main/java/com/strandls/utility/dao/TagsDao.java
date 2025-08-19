@@ -1,12 +1,8 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.inject.Inject;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -17,9 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.util.AbstractDAO;
 
+import jakarta.inject.Inject;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public class TagsDao extends AbstractDAO<Tags, Long> {
 
@@ -63,7 +60,6 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 			session.close();
 		}
 		return tags;
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -91,7 +87,6 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 		}
 
 		return tagsList;
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -120,5 +115,4 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 
 		return tagsList;
 	}
-
 }

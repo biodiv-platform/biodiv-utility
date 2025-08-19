@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import com.google.inject.AbstractModule;
@@ -8,7 +6,6 @@ import com.google.inject.Scopes;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class UtilityDaoModule extends AbstractModule {
 
@@ -23,5 +20,4 @@ public class UtilityDaoModule extends AbstractModule {
 		bind(GallerySliderDao.class).in(Scopes.SINGLETON);
 		bind(HomePageDao.class).in(Scopes.SINGLETON);
 	}
-
 }

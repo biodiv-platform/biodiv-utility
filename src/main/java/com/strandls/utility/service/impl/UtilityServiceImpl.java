@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.service.impl;
 
 import java.net.URI;
@@ -12,10 +10,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.HttpHeaders;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -59,11 +53,13 @@ import com.strandls.utility.pojo.TagsMapping;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.service.UtilityService;
 
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.HttpHeaders;
 import net.minidev.json.JSONArray;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class UtilityServiceImpl implements UtilityService {
 
@@ -172,10 +168,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 			List<FlagShow> flagList = fetchByFlagObject(type, objectId);
 			return flagList;
-
 		}
 		return null;
-
 	}
 
 	@Override
@@ -257,7 +251,6 @@ public class UtilityServiceImpl implements UtilityService {
 						TagLinks tagLink = new TagLinks(null, tag.getId(), objectId, objectType);
 						result = tagLinkDao.save(tagLink);
 					}
-
 				}
 
 				if (result != null && result.getId() != null)
@@ -278,7 +271,6 @@ public class UtilityServiceImpl implements UtilityService {
 			logger.error(e.getMessage());
 		}
 		return null;
-
 	}
 
 	@Override
@@ -338,14 +330,14 @@ public class UtilityServiceImpl implements UtilityService {
 			Long objectId = tagsMapping.getObjectId();
 			List<TagLinks> previousTags = tagLinkDao.findObjectTags(objectType, objectId);
 			List<Tags> newTags = tagsMapping.getTags();
-//			DELETE THE TAGS THAT ARE REMOVED
+			// DELETE THE TAGS THAT ARE REMOVED
 			for (TagLinks tagLinks : previousTags) {
 				Tags tag = tagsDao.findById(tagLinks.getTagId());
 				if (!(newTags.contains(tag))) {
 					tagLinkDao.delete(tagLinks);
 				}
 			}
-//			ADD OR CREATE THE NEW TAGS ADDED
+			// ADD OR CREATE THE NEW TAGS ADDED
 			for (Tags tag : newTags) {
 
 				if (tag.getId() != null) {
@@ -360,7 +352,6 @@ public class UtilityServiceImpl implements UtilityService {
 					tagLinkDao.save(tagLink);
 				}
 				description = description + tag.getName() + ",";
-
 			}
 
 			List<TagLinks> presentTags = tagLinkDao.findObjectTags(objectType, objectId);
@@ -437,7 +428,7 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			HomePageStats homePageStats;
-//				IBP home page DATA
+			// IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
 
 			result = homePageDao.findById(1L);
@@ -449,7 +440,6 @@ public class UtilityServiceImpl implements UtilityService {
 			logger.error(e.getMessage());
 		}
 		return null;
-
 	}
 
 	@Override
@@ -646,5 +636,4 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 		return tagRefers;
 	}
-
 }

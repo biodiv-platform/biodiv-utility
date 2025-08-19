@@ -1,32 +1,26 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.pojo;
 
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 /**
  * @author Abhishek Rudra
- *
  */
-
 @Entity
 @Table(name = "flag")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Flag implements Serializable {
 
-	/**
-	 * 
-	 */
+	/** */
 	private static final long serialVersionUID = -5614378769650481194L;
 
 	private Long id;
@@ -37,9 +31,7 @@ public class Flag implements Serializable {
 	private Long objectId;
 	private String objectType;
 
-	/**
-	 * 
-	 */
+	/** */
 	public Flag() {
 		super();
 	}
@@ -128,5 +120,4 @@ public class Flag implements Serializable {
 	public void setObjectType(String objectType) {
 		this.objectType = objectType;
 	}
-
 }

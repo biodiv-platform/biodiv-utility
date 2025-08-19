@@ -2,11 +2,11 @@ package com.strandls.utility.service.impl;
 
 import java.util.List;
 
-import javax.inject.Inject;
-
 import com.strandls.utility.dao.LanguageDao;
 import com.strandls.utility.pojo.Language;
 import com.strandls.utility.service.LanguageService;
+
+import jakarta.inject.Inject;
 
 public class LanguageServiceImpl implements LanguageService {
 
@@ -51,10 +51,9 @@ public class LanguageServiceImpl implements LanguageService {
 	public Language getLanguageById(Long languageId) {
 		return languageDao.findById(languageId);
 	}
-	
+
 	@Override
 	public List<Language> getLanguagesWithFieldHeaders() {
-	    return languageDao.getLanguagesWithFieldHeaders();
+		return languageDao.getLanguagesWithFieldHeaders();
 	}
-
 }

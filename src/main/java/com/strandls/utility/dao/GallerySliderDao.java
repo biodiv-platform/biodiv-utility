@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import java.util.List;
@@ -17,7 +15,6 @@ import com.strandls.utility.util.AbstractDAO;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 
@@ -48,9 +45,8 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<GallerySlider> getAllGallerySliderInfo(boolean isAdminList) {
 		List<GallerySlider> result = null;
-		String qry = isAdminList ?
-				"from  GallerySlider order by display_order asc" :
-				"from  GallerySlider where is_truncated is true order by display_order asc";
+		String qry = isAdminList ? "from  GallerySlider order by display_order asc"
+				: "from  GallerySlider where is_truncated is true order by display_order asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GallerySlider> query = session.createQuery(qry);
@@ -62,5 +58,4 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 		}
 		return result;
 	}
-
 }

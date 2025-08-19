@@ -1,29 +1,26 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-
-import com.strandls.activity.controller.ActivitySerivceApi;
+import com.strandls.activity.controller.ActivityServiceApi;
 import com.strandls.activity.pojo.ActivityLoggingData;
 import com.strandls.activity.pojo.DocumentActivityLogging;
 import com.strandls.activity.pojo.MailData;
 import com.strandls.utility.Headers;
 
+import jakarta.inject.Inject;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public class LogActivities {
 
 	private final Logger logger = LoggerFactory.getLogger(LogActivities.class);
 
 	@Inject
-	private ActivitySerivceApi activityService;
+	private ActivityServiceApi activityService;
 
 	@Inject
 	private Headers headers;
@@ -46,7 +43,6 @@ public class LogActivities {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
-
 	}
 
 	public void logDocumentActivities(String authHeader, String activityDescription, Long rootObjectId,
@@ -68,7 +64,5 @@ public class LogActivities {
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
-
 	}
-
 }

@@ -8,9 +8,7 @@ public class HomePageStats {
 	private Long documents;
 	private Long activeUser;
 
-	/**
-	 * 
-	 */
+	/** */
 	public HomePageStats() {
 		super();
 	}
@@ -71,5 +69,4 @@ public class HomePageStats {
 	public void setActiveUser(Long activeUser) {
 		this.activeUser = activeUser;
 	}
-
 }

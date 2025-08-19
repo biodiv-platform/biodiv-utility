@@ -1,13 +1,10 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.pojo;
 
 import java.util.List;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class TagsMapping {
 
@@ -29,5 +26,4 @@ public class TagsMapping {
 	public void setTags(List<Tags> tags) {
 		this.tags = tags;
 	}
-
 }

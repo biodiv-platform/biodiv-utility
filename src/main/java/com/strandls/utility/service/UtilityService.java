@@ -1,11 +1,7 @@
-/**
- *
- */
+/** */
 package com.strandls.utility.service;
 
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.pac4j.core.profile.CommonProfile;
 
@@ -23,9 +19,10 @@ import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public interface UtilityService {
 

@@ -29,7 +29,5 @@ public class HomePageDao extends AbstractDAO<HomePageData, Long> {
 			session.close();
 		}
 		return result;
-
 	}
-
 }

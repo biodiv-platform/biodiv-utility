@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import java.util.ArrayList;
@@ -12,14 +10,13 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-
 import com.strandls.utility.pojo.TagLinks;
 import com.strandls.utility.util.AbstractDAO;
 
+import jakarta.inject.Inject;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 
@@ -121,5 +118,4 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 
 		return result;
 	}
-
 }

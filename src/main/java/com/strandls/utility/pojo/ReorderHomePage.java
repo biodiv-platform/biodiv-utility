@@ -1,17 +1,12 @@
-/**
- *
- */
+/** */
 package com.strandls.utility.pojo;
-
 
 public class ReorderHomePage {
 
 	private Long displayOrder;
 	private Long galleryId;
 
-	/**
-	 *
-	 */
+	/** */
 	public ReorderHomePage() {
 		super();
 	}
@@ -25,7 +20,6 @@ public class ReorderHomePage {
 		this.displayOrder = displayOrder;
 		this.galleryId = galleryId;
 	}
-
 
 	public Long getDisplayOrder() {
 		return displayOrder;
@@ -42,5 +36,4 @@ public class ReorderHomePage {
 	public void setGalleryId(Long galleryId) {
 		this.galleryId = galleryId;
 	}
-
 }

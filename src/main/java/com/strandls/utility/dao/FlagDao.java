@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import java.util.List;
@@ -11,14 +9,13 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.util.AbstractDAO;
 
+import jakarta.inject.Inject;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public class FlagDao extends AbstractDAO<Flag, Long> {
 
@@ -64,7 +61,6 @@ public class FlagDao extends AbstractDAO<Flag, Long> {
 		}
 
 		return flag;
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -85,7 +81,6 @@ public class FlagDao extends AbstractDAO<Flag, Long> {
 		}
 
 		return result;
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,5 +103,4 @@ public class FlagDao extends AbstractDAO<Flag, Long> {
 		}
 		return result;
 	}
-
 }

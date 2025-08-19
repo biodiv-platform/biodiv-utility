@@ -1,22 +1,17 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.pojo;
 
 import com.strandls.user.pojo.UserIbp;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class FlagShow {
 
 	private Flag flag;
 	private UserIbp user;
 
-	/**
-	 * 
-	 */
+	/** */
 	public FlagShow() {
 		super();
 	}
@@ -46,5 +41,4 @@ public class FlagShow {
 	public void setUser(UserIbp user) {
 		this.user = user;
 	}
-
 }

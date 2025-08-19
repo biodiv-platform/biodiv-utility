@@ -1,15 +1,15 @@
 package com.strandls.utility.dao;
 
-import javax.inject.Inject;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.strandls.utility.pojo.HomePageStats;
 import com.strandls.naksha.controller.LayerServiceApi;
+import com.strandls.utility.pojo.HomePageStats;
+
+import jakarta.inject.Inject;
 
 public class HomePageStatsDao {
 
@@ -61,5 +61,4 @@ public class HomePageStatsDao {
 
 		return stats;
 	}
-
 }

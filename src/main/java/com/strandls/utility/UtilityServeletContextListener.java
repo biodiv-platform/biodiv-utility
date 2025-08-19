@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility;
 
 import java.io.File;
@@ -30,16 +28,15 @@ import com.google.inject.Injector;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.GuiceServletContextListener;
 import com.google.inject.servlet.ServletModule;
-import com.strandls.activity.controller.ActivitySerivceApi;
-import com.strandls.user.controller.UserServiceApi;
+import com.strandls.activity.controller.ActivityServiceApi;
 import com.strandls.naksha.controller.LayerServiceApi;
+import com.strandls.user.controller.UserServiceApi;
 import com.strandls.utility.controller.UtilityControllerModule;
 import com.strandls.utility.dao.UtilityDaoModule;
 import com.strandls.utility.service.impl.UtilityServiceModule;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class UtilityServeletContextListener extends GuiceServletContextListener {
 
@@ -66,7 +63,7 @@ public class UtilityServeletContextListener extends GuiceServletContextListener 
 				SessionFactory sessionFactory = configuration.buildSessionFactory();
 
 				Map<String, String> props = new HashMap<>();
-				props.put("javax.ws.rs.Application", ApplicationConfig.class.getName());
+				props.put("jakarta.ws.rs.Application", ApplicationConfig.class.getName());
 				props.put("jersey.config.server.provider.packages", "com");
 				props.put("jersey.config.server.wadl.disableWadl", "true");
 
@@ -74,16 +71,14 @@ public class UtilityServeletContextListener extends GuiceServletContextListener 
 				bind(ObjectMapper.class).toInstance(objectMapper);
 
 				bind(SessionFactory.class).toInstance(sessionFactory);
-				bind(ActivitySerivceApi.class).in(Scopes.SINGLETON);
+				bind(ActivityServiceApi.class).in(Scopes.SINGLETON);
 				bind(LayerServiceApi.class).in(Scopes.SINGLETON);
 				bind(UserServiceApi.class).in(Scopes.SINGLETON);
 				bind(Headers.class).in(Scopes.SINGLETON);
 				bind(ServletContainer.class).in(Scopes.SINGLETON);
 				serve("/api/*").with(ServletContainer.class, props);
-
 			}
 		}, new UtilityControllerModule(), new UtilityServiceModule(), new UtilityDaoModule());
-
 	}
 
 	protected List<Class<?>> getEntityClassesFromPackage(String packageName)
@@ -96,7 +91,7 @@ public class UtilityServeletContextListener extends GuiceServletContextListener 
 			Annotation[] annotations = cls.getAnnotations();
 
 			for (Annotation annotation : annotations) {
-				if (annotation instanceof javax.persistence.Entity) {
+				if (annotation instanceof jakarta.persistence.Entity) {
 					classes.add(cls);
 				}
 			}

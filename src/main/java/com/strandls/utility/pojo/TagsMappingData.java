@@ -7,9 +7,7 @@ public class TagsMappingData {
 	private TagsMapping tagsMapping;
 	private MailData mailData;
 
-	/**
-	 * 
-	 */
+	/** */
 	public TagsMappingData() {
 		super();
 	}
@@ -39,5 +37,4 @@ public class TagsMappingData {
 	public void setMailData(MailData mailData) {
 		this.mailData = mailData;
 	}
-
 }

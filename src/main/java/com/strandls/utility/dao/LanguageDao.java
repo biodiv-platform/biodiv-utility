@@ -1,6 +1,4 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.dao;
 
 import java.util.ArrayList;
@@ -12,15 +10,14 @@ import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import javax.persistence.NoResultException;
-
 import com.strandls.utility.pojo.Language;
 import com.strandls.utility.util.AbstractDAO;
 
+import jakarta.inject.Inject;
+import jakarta.persistence.NoResultException;
+
 /**
  * @author Abhishek Rudra
- *
  */
 public class LanguageDao extends AbstractDAO<Language, Long> {
 
@@ -88,7 +85,6 @@ public class LanguageDao extends AbstractDAO<Language, Long> {
 		}
 		session.close();
 		return entity;
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -110,5 +106,4 @@ public class LanguageDao extends AbstractDAO<Language, Long> {
 
 		return languages;
 	}
-
 }

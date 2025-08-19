@@ -1,20 +1,15 @@
-/**
- * 
- */
+/** */
 package com.strandls.utility.pojo;
 
 /**
  * @author Abhishek Rudra
- *
  */
 public class FlagIbp {
 
 	private String flag;
 	private String notes;
 
-	/**
-	 * 
-	 */
+	/** */
 	public FlagIbp() {
 		super();
 	}
@@ -44,5 +39,4 @@ public class FlagIbp {
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
-
 }

@@ -7,9 +7,7 @@ public class FlagCreateData {
 	private FlagIbp flagIbp;
 	private MailData mailData;
 
-	/**
-	 * 
-	 */
+	/** */
 	public FlagCreateData() {
 		super();
 	}
@@ -39,5 +37,4 @@ public class FlagCreateData {
 	public void setMailData(MailData mailData) {
 		this.mailData = mailData;
 	}
-
 }
