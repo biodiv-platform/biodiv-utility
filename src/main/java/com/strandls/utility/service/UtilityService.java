@@ -63,7 +63,7 @@ public interface UtilityService {
 
 	public Language getLanguageByTwoLetterCode(String language);
 
-	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList);
+	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList, Long languageId);
 
 	public String getYoutubeTitle(String videoId);
 
@@ -71,7 +71,7 @@ public interface UtilityService {
 
 	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
 
-	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, Map<Long, List<GallerySlider>> editData);
+	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
 
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
 
@@ -81,14 +81,14 @@ public interface UtilityService {
 
 	public List<Long> getResourceIds(String phrase, String type, String tagRefId);
 
-	public Map<String, Map<Long, List<GalleryConfig>>> createMiniGallery(HttpServletRequest request, Map<Long, List<GalleryConfig>> miniGalleryData);
+	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData);
 
-	public Map<String, Map<Long, List<GalleryConfig>>> editMiniGallery(HttpServletRequest request, Long gId, Map<Long, List<GalleryConfig>> editData);
+	public GalleryConfig editMiniGallery(HttpServletRequest request, Long gId, GalleryConfig editData);
 
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId,
-			Map<Long, List<MiniGallerySlider>> editData);
+			MiniGallerySlider editData);
 
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
 

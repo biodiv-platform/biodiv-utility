@@ -3,6 +3,8 @@
  */
 package com.strandls.utility.pojo;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -41,6 +43,7 @@ public class MiniGallerySlider {
 	private String color;
 	private String bgColor;
 	private Long sliderId;
+	private List<Translation> translations;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -204,5 +207,14 @@ public class MiniGallerySlider {
 
 	public void setBgColor(String bgColor) {
 		this.bgColor = bgColor;
+	}
+	
+	@Transient
+	public List<Translation> getTranslations() {
+		return translations;
+	}
+
+	public void setTranslations(List<Translation> translations) {
+		this.translations = translations;
 	}
 }

@@ -363,9 +363,9 @@ public class UtilityController {
 	@ApiOperation(value = "Get home page data", notes = "Return home page data", response = HomePageData.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getHomePageData(@Context HttpServletRequest request,
-			@DefaultValue("false") @QueryParam("adminList") Boolean adminList) {
+			@DefaultValue("false") @QueryParam("adminList") Boolean adminList, @DefaultValue("-1") @QueryParam("languageId") Long languageId) {
 		try {
-			HomePageData result = utilityService.getHomePageData(request, adminList);
+			HomePageData result = utilityService.getHomePageData(request, adminList, languageId);
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -381,9 +381,9 @@ public class UtilityController {
 	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = Map.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class)})
 
-	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") Map<Long, List<GalleryConfig>> miniGalleryData) {
+	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
 		try {
-			Map<String, Map<Long, List<GalleryConfig>>> result = utilityService.createMiniGallery(request, miniGalleryData);
+			GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
 			if (result!=null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -405,13 +405,13 @@ public class UtilityController {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
 	public Response editMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") Map<Long, List<GalleryConfig>> editData) {
+			@ApiParam(name = "editData") GalleryConfig editData) {
 		try {
 			if (galleryId == null) {
 				return Response.status(Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
 			}
 			Long gId = Long.parseLong(galleryId);
-			Map<String, Map<Long, List<GalleryConfig>>> result = utilityService.editMiniGallery(request, gId, editData);
+			GalleryConfig result = utilityService.editMiniGallery(request, gId, editData);
 			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
@@ -484,7 +484,7 @@ public class UtilityController {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
 	public Response editHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") Map<Long, List<GallerySlider>> editData) {
+			@ApiParam(name = "editData") GallerySlider editData) {
 		try {
 			Long gId = Long.parseLong(galleryId);
 			HomePageData result = utilityService.editHomePage(request, gId, editData);
@@ -509,7 +509,7 @@ public class UtilityController {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
 	public Response editMiniHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") Map<Long, List<MiniGallerySlider>> editData) {
+			@ApiParam(name = "editData") MiniGallerySlider editData) {
 		try {
 			Long gId = Long.parseLong(galleryId);
 			HomePageData result = utilityService.editMiniHomePage(request, gId, editData);

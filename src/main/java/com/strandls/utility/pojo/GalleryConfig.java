@@ -35,9 +35,10 @@ public class GalleryConfig {
    private Long slidesPerView;
    private String title;
    private Boolean isVertical;
-   private Map<String, Map<Long, List<MiniGallerySlider>>> gallerySlider;
+   private List<Translation> translations;
    private Long languageId;
    private Long galleryId;
+   private List<MiniGallerySlider> gallerySlider;
   
 
 
@@ -112,12 +113,22 @@ public class GalleryConfig {
    }
   
    @Transient
-   public Map<String, Map<Long, List<MiniGallerySlider>>> getGallerySlider() {
+   public List<Translation> getTranslations() {
+       return translations;
+   }
+
+
+   public void setTranslations(List<Translation> translations) {
+       this.translations = translations;
+   }
+   
+   @Transient
+   public List<MiniGallerySlider> getGallerySlider() {
        return gallerySlider;
    }
 
 
-   public void setGallerySlider(Map<String, Map<Long, List<MiniGallerySlider>>> gallerySlider) {
+   public void setGallerySlider(List<MiniGallerySlider> gallerySlider) {
        this.gallerySlider = gallerySlider;
    }
 }

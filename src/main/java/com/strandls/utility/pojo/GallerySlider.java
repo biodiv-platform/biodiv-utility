@@ -3,6 +3,8 @@
  */
 package com.strandls.utility.pojo;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -40,6 +42,7 @@ public class GallerySlider {
 	private String gallerySidebar;
 	private Long sliderId;
 	private Long languageId;
+	private List<Translation> translations;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -177,7 +180,6 @@ public class GallerySlider {
 	public void setGallerySidebar(String gallerySidebar) {
 		this.gallerySidebar = gallerySidebar;
 	}
-	
 
 	@Column(name = "slider_id")
 	public Long getSliderId() {
@@ -187,7 +189,7 @@ public class GallerySlider {
 	public void setSliderId(Long sliderId) {
 		this.sliderId = sliderId;
 	}
-	
+
 	@Column(name = "language_id")
 	public Long getLanguageId() {
 		return languageId;
@@ -195,6 +197,15 @@ public class GallerySlider {
 
 	public void setLanguageId(Long languageId) {
 		this.languageId = languageId;
+	}
+
+	@Transient
+	public List<Translation> getTranslations() {
+		return translations;
+	}
+
+	public void setTranslations(List<Translation> translations) {
+		this.translations = translations;
 	}
 
 }
