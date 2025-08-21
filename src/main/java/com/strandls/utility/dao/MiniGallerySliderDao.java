@@ -13,30 +13,31 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.strandls.utility.pojo.GallerySlider;
+import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.util.AbstractDAO;
 
 /**
- * @author Abhishek Rudra
+ * @author Mekala Rishitha Ravi
  *
  */
-public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
+public class MiniGallerySliderDao extends AbstractDAO<MiniGallerySlider, Long> {
 
-	private final Logger logger = LoggerFactory.getLogger(GallerySliderDao.class);
+	private final Logger logger = LoggerFactory.getLogger(MiniGallerySliderDao.class);
 
 	/**
 	 * @param sessionFactory
 	 */
 	@Inject
-	protected GallerySliderDao(SessionFactory sessionFactory) {
+	protected MiniGallerySliderDao(SessionFactory sessionFactory) {
 		super(sessionFactory);
 	}
 
 	@Override
-	public GallerySlider findById(Long id) {
-		GallerySlider result = null;
+	public MiniGallerySlider findById(Long id) {
+		MiniGallerySlider result = null;
 		Session session = sessionFactory.openSession();
 		try {
-			result = session.get(GallerySlider.class, id);
+			result = session.get(MiniGallerySlider.class, id);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
@@ -46,13 +47,15 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List<GallerySlider> getAllGallerySliderInfo(boolean isAdminList) {
-		List<GallerySlider> result = null;
-		String qry = isAdminList ? "from  GallerySlider order by display_order asc"
-				: "from  GallerySlider where is_truncated is true order by display_order asc";
+	public List<MiniGallerySlider> getAllGallerySliderInfo(boolean isAdminList, Long galleryId) {
+		List<MiniGallerySlider> result = null;
+		String qry = isAdminList ?
+				"from  MiniGallerySlider where galleryId = :galleryId order by display_order asc" :
+				"from  MiniGallerySlider where galleryId = :galleryId and is_truncated is true order by display_order asc";
 		Session session = sessionFactory.openSession();
 		try {
-			Query<GallerySlider> query = session.createQuery(qry);
+			Query<MiniGallerySlider> query = session.createQuery(qry);
+			query.setParameter("galleryId", galleryId);
 			result = query.getResultList();
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -61,14 +64,14 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 		}
 		return result;
 	}
-
+	
 	@SuppressWarnings("unchecked")
-	public List<GallerySlider> findBySliderId(Long sId) {
-		String qry = "from GallerySlider where sliderId = :sId";
+	public List<MiniGallerySlider> findBySliderId(Long sId) {
+		String qry = "from MiniGallerySlider where sliderId = :sId";
 		Session session = sessionFactory.openSession();
-		List<GallerySlider> result = null;
+		List<MiniGallerySlider> result = null;
 		try {
-			Query<GallerySlider> query = session.createQuery(qry);
+			Query<MiniGallerySlider> query = session.createQuery(qry);
 			query.setParameter("sId", sId);
 			result = query.getResultList();
 

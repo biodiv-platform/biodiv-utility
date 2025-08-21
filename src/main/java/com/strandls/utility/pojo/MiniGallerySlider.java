@@ -16,17 +16,16 @@ import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
- * @author Abhishek Rudra
+ * @author Mekala Rishitha Ravi
  *
  */
 
 @Entity
-@Table(name = "gallery_slider")
+@Table(name = "mini_gallery_slider")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class GallerySlider {
+public class MiniGallerySlider {
 
 	private Long id;
-	private Long ugId;
 	private String fileName;
 	private Long observationId;
 	private Long authorId;
@@ -39,29 +38,22 @@ public class GallerySlider {
 	private Boolean isTruncated;
 	private String readMoreText;
 	private String readMoreUIType;
-	private String gallerySidebar;
-	private Long sliderId;
+	private Long galleryId;
 	private Long languageId;
+	private String color;
+	private String bgColor;
+	private Long sliderId;
 	private List<Translation> translations;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id")
+	@Column(name = "id", columnDefinition = "BIGINT")
 	public Long getId() {
 		return id;
 	}
 
 	public void setId(Long id) {
 		this.id = id;
-	}
-
-	@Column(name = "ug_id")
-	public Long getUgId() {
-		return ugId;
-	}
-
-	public void setUgId(Long ugId) {
-		this.ugId = ugId;
 	}
 
 	@Column(name = "file_name")
@@ -73,7 +65,7 @@ public class GallerySlider {
 		this.fileName = fileName;
 	}
 
-	@Column(name = "observation_id")
+	@Column(name = "observation_id", columnDefinition = "BIGINT")
 	public Long getObservationId() {
 		return observationId;
 	}
@@ -82,7 +74,7 @@ public class GallerySlider {
 		this.observationId = observationId;
 	}
 
-	@Column(name = "author_id")
+	@Column(name = "author_id", columnDefinition = "BIGINT")
 	public Long getAuthorId() {
 		return authorId;
 	}
@@ -136,7 +128,7 @@ public class GallerySlider {
 		this.moreLinks = moreLinks;
 	}
 
-	@Column(name = "display_order", nullable = false)
+	@Column(name = "display_order", nullable = false, columnDefinition = "BIGINT")
 	public Long getDisplayOrder() {
 		return displayOrder;
 	}
@@ -145,7 +137,7 @@ public class GallerySlider {
 		this.displayOrder = displayOrder;
 	}
 
-	@Column(name = "is_truncated", nullable = false)
+	@Column(name = "is_truncated", nullable = false, columnDefinition = "BOOLEAN")
 	public Boolean getTruncated() {
 		return isTruncated;
 	}
@@ -154,7 +146,7 @@ public class GallerySlider {
 		this.isTruncated = isTruncated;
 	}
 
-	@Column(name = "read_more_text")
+	@Column(name = "read_more_text", columnDefinition = "TEXT")
 	public String getReadMoreText() {
 		return readMoreText;
 	}
@@ -171,17 +163,17 @@ public class GallerySlider {
 	public void setReadMoreUIType(String readMoreUIType) {
 		this.readMoreUIType = readMoreUIType;
 	}
-
-	@Column(name = "gallery_sidebar", columnDefinition = "text default 'opaque'")
-	public String getGallerySidebar() {
-		return gallerySidebar;
+	
+	@Column(name = "gallery_id", columnDefinition = "BIGINT")
+	public Long getGalleryId() {
+		return galleryId;
 	}
 
-	public void setGallerySidebar(String gallerySidebar) {
-		this.gallerySidebar = gallerySidebar;
+	public void setGalleryId(Long galleryId) {
+		this.galleryId = galleryId;
 	}
-
-	@Column(name = "slider_id")
+	
+	@Column(name = "slider_id", columnDefinition = "BIGINT")
 	public Long getSliderId() {
 		return sliderId;
 	}
@@ -190,7 +182,7 @@ public class GallerySlider {
 		this.sliderId = sliderId;
 	}
 
-	@Column(name = "language_id")
+	@Column(name = "language_id", columnDefinition = "BIGINT")
 	public Long getLanguageId() {
 		return languageId;
 	}
@@ -198,7 +190,25 @@ public class GallerySlider {
 	public void setLanguageId(Long languageId) {
 		this.languageId = languageId;
 	}
+	
+	@Column(name = "color")
+	public String getColor() {
+		return color;
+	}
 
+	public void setColor(String color) {
+		this.color = color;
+	}
+	
+	@Column(name = "bg_color")
+	public String getBgColor() {
+		return bgColor;
+	}
+
+	public void setBgColor(String bgColor) {
+		this.bgColor = bgColor;
+	}
+	
 	@Transient
 	public List<Translation> getTranslations() {
 		return translations;
@@ -207,5 +217,4 @@ public class GallerySlider {
 	public void setTranslations(List<Translation> translations) {
 		this.translations = translations;
 	}
-
 }

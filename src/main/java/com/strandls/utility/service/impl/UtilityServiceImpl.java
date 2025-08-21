@@ -3,14 +3,20 @@
  */
 package com.strandls.utility.service.impl;
 
+import java.util.function.Function;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -33,30 +39,36 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
+import com.strandls.user.pojo.User;
 import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
+import com.strandls.utility.dao.GalleryConfigDao;
 import com.strandls.utility.dao.GallerySliderDao;
 import com.strandls.utility.dao.HabitatDao;
 import com.strandls.utility.dao.HomePageDao;
 import com.strandls.utility.dao.HomePageStatsDao;
 import com.strandls.utility.dao.LanguageDao;
+import com.strandls.utility.dao.MiniGallerySliderDao;
 import com.strandls.utility.dao.TagLinksDao;
 import com.strandls.utility.dao.TagsDao;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
 import com.strandls.utility.pojo.FlagShow;
+import com.strandls.utility.pojo.GalleryConfig;
 import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.Habitat;
 import com.strandls.utility.pojo.HomePageData;
 import com.strandls.utility.pojo.HomePageStats;
 import com.strandls.utility.pojo.Language;
+import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.TagLinks;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMapping;
 import com.strandls.utility.pojo.TagsMappingData;
+import com.strandls.utility.pojo.Translation;
 import com.strandls.utility.service.UtilityService;
 
 import net.minidev.json.JSONArray;
@@ -101,6 +113,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private GallerySliderDao gallerySliderDao;
+
+	@Inject
+	private MiniGallerySliderDao miniGallerySliderDao;
+
+	@Inject
+	private GalleryConfigDao galleryConfigDao;
 
 	@Inject
 	private HabitatDao habitatDao;
@@ -412,7 +430,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
-	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList) {
+	public HomePageData getHomePageData(HttpServletRequest request, Boolean adminList, Long languageId) {
 		try {
 
 			HomePageData result = null;
@@ -428,11 +446,47 @@ public class UtilityServiceImpl implements UtilityService {
 					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
 					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
-			for (GallerySlider gallery : galleryData) {
-				if (gallery.getAuthorId() != null) {
-					UserIbp userIbp = userService.getUserIbp(gallery.getAuthorId().toString());
-					gallery.setAuthorImage(userIbp.getProfilePic());
-					gallery.setAuthorName(userIbp.getName());
+			List<GallerySlider> groupedBySliderId = groupGallerySliders(galleryData, languageId, true);
+
+			List<GalleryConfig> miniGalleryData = isadmin && adminList ? galleryConfigDao.getAllMiniSlider(true)
+					: galleryConfigDao.getAllMiniSlider(false);
+			List<Long> miniGalleryIds = new ArrayList<>();
+			Map<Long, Integer> miniGalleryIndexMapping = new HashMap<>();
+			List<GalleryConfig> miniGalleryConfig = new ArrayList<>();
+			for (GalleryConfig miniGallery : miniGalleryData) {
+				Long galleryId = miniGallery.getGalleryId();
+				if (!miniGalleryIds.contains(galleryId)) {
+					miniGalleryIds.add(galleryId);
+					miniGalleryIndexMapping.put(galleryId, miniGalleryIndexMapping.size());
+					List<MiniGallerySlider> miniSliders = isadmin && adminList
+							? miniGallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE, galleryId)
+							: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, galleryId);
+					miniGallery.setGallerySlider(groupMiniGallerySliders(miniSliders, languageId, isadmin && adminList));
+					if (isadmin && adminList) {
+						Translation translation = new Translation(miniGallery.getId(), miniGallery.getTitle(),
+								miniGallery.getLanguageId(), null, null);
+						miniGallery.setTranslations(Collections.singletonList(translation));
+					}
+					miniGalleryConfig.add(miniGallery);
+				} else {
+					int targetIndex = miniGalleryIndexMapping.get(galleryId);
+					GalleryConfig targetGallery = miniGalleryConfig.get(targetIndex);
+
+					if (isadmin && adminList) {
+						// Ensure we have a mutable list
+						List<Translation> translations = targetGallery.getTranslations() != null
+								? new ArrayList<>(targetGallery.getTranslations())
+								: new ArrayList<>();
+
+						// Add new translation
+						translations.add(new Translation(miniGallery.getId(), miniGallery.getTitle(),
+								miniGallery.getLanguageId(), null, null));
+
+						targetGallery.setTranslations(translations);
+					} else if (miniGallery.getLanguageId().equals(languageId)) {
+						targetGallery.setTitle(miniGallery.getTitle());
+						targetGallery.setLanguageId(languageId);
+					}
 				}
 			}
 
@@ -441,7 +495,8 @@ public class UtilityServiceImpl implements UtilityService {
 			homePageStats = portalStatusDao.fetchPortalStats();
 
 			result = homePageDao.findById(1L);
-			result.setGallerySlider(galleryData);
+			result.setGallerySlider(groupedBySliderId);
+			result.setMiniGallery(miniGalleryConfig);
 			result.setStats(homePageStats);
 
 			return result;
@@ -452,6 +507,105 @@ public class UtilityServiceImpl implements UtilityService {
 
 	}
 
+	private List<GallerySlider> groupGallerySliders(List<GallerySlider> galleryData, Long languageId, Boolean admin) {
+		List<GallerySlider> gallerySlider = new ArrayList<>();
+		List<Long> uniqueAuthorIds = galleryData.stream().map(GallerySlider::getAuthorId).filter(Objects::nonNull)
+				.distinct().collect(Collectors.toList());
+		try {
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
+			Map<String, User> userMap = users.stream()
+					.collect(Collectors.toMap(user -> user.getId().toString(), Function.identity()));
+			Map<Long, Integer> GalleryIndexMapping = new HashMap<>();
+			for (GallerySlider gallery : galleryData) {
+				Long galleryId = gallery.getSliderId();
+				if (!GalleryIndexMapping.keySet().contains(galleryId)) {
+					GalleryIndexMapping.put(galleryId, GalleryIndexMapping.size());
+					if (gallery.getAuthorId() != null) {
+						gallery.setAuthorImage(userMap.get(gallery.getAuthorId().toString()).getProfilePic());
+						gallery.setAuthorName(userMap.get(gallery.getAuthorId().toString()).getName());
+					}
+					if (admin) {
+						Translation translation = new Translation(gallery.getId(), gallery.getTitle(),
+								gallery.getLanguageId(), gallery.getCustomDescripition(), gallery.getReadMoreText());
+						gallery.setTranslations(Collections.singletonList(translation));
+					}
+					gallerySlider.add(gallery);
+				} else {
+					int targetIndex = GalleryIndexMapping.get(galleryId);
+					GallerySlider targetGallery = gallerySlider.get(targetIndex);
+
+					if (admin) { // Ensure we have a mutable list
+						List<Translation> translations = targetGallery.getTranslations() != null
+								? new ArrayList<>(targetGallery.getTranslations())
+								: new ArrayList<>();
+
+						translations.add(new Translation(gallery.getId(), gallery.getTitle(), gallery.getLanguageId(),
+								gallery.getCustomDescripition(), gallery.getReadMoreText()));
+
+						targetGallery.setTranslations(translations);
+					} else if (gallery.getLanguageId().equals(languageId)) {
+						targetGallery.setTitle(gallery.getTitle());
+						targetGallery.setLanguageId(languageId);
+						targetGallery.setCustomDescripition(gallery.getCustomDescripition());
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error while grouping gallery sliders", e);
+		}
+		return gallerySlider;
+	}
+
+	private List<MiniGallerySlider> groupMiniGallerySliders(List<MiniGallerySlider> sliders, Long languageId,
+			Boolean admin) {
+		List<MiniGallerySlider> gallerySlider = new ArrayList<>();
+		List<Long> uniqueAuthorIds = sliders.stream().map(MiniGallerySlider::getAuthorId).filter(Objects::nonNull)
+				.distinct().collect(Collectors.toList());
+		try {
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
+			Map<String, User> userMap = users.stream()
+					.collect(Collectors.toMap(user -> user.getId().toString(), Function.identity()));
+			Map<Long, Integer> GalleryIndexMapping = new HashMap<>();
+			for (MiniGallerySlider gallery : sliders) {
+				Long galleryId = gallery.getSliderId();
+				if (!GalleryIndexMapping.keySet().contains(galleryId)) {
+					GalleryIndexMapping.put(galleryId, GalleryIndexMapping.size());
+					if (gallery.getAuthorId() != null) {
+						gallery.setAuthorImage(userMap.get(gallery.getAuthorId().toString()).getProfilePic());
+						gallery.setAuthorName(userMap.get(gallery.getAuthorId().toString()).getName());
+					}
+					if (admin) {
+						Translation translation = new Translation(gallery.getId(), gallery.getTitle(),
+								gallery.getLanguageId(), gallery.getCustomDescripition(), gallery.getReadMoreText());
+						gallery.setTranslations(Collections.singletonList(translation));
+					}
+					gallerySlider.add(gallery);
+				} else {
+					int targetIndex = GalleryIndexMapping.get(galleryId);
+					MiniGallerySlider targetGallery = gallerySlider.get(targetIndex);
+
+					if (admin) { // Ensure we have a mutable list
+						List<Translation> translations = targetGallery.getTranslations() != null
+								? new ArrayList<>(targetGallery.getTranslations())
+								: new ArrayList<>();
+
+						translations.add(new Translation(gallery.getId(), gallery.getTitle(), gallery.getLanguageId(),
+								gallery.getCustomDescripition(), gallery.getReadMoreText()));
+
+						targetGallery.setTranslations(translations);
+					} else if (gallery.getLanguageId().equals(languageId)) {
+						targetGallery.setTitle(gallery.getTitle());
+						targetGallery.setLanguageId(languageId);
+						targetGallery.setCustomDescripition(gallery.getCustomDescripition());
+					}
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Error while grouping mini gallery sliders", e);
+		}
+		return gallerySlider;
+	}
+
 	@Override
 	public HomePageData removeHomePage(HttpServletRequest request, Long galleryId) {
 		try {
@@ -459,9 +613,11 @@ public class UtilityServiceImpl implements UtilityService {
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
 			if (roles.contains(ROLE_ADMIN)) {
-				GallerySlider entity = gallerySliderDao.findById(galleryId);
-				gallerySliderDao.delete(entity);
-				return getHomePageData(request, true);
+				List<GallerySlider> translations = gallerySliderDao.findBySliderId(galleryId);
+				for (GallerySlider translation : translations) {
+					gallerySliderDao.delete(translation);
+				}
+				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -471,23 +627,226 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
+	public GalleryConfig createMiniGallery(HttpServletRequest request, GalleryConfig miniGalleryData) {
+		try {
+			List<Translation> translations = new ArrayList<>();
+			Long galleryId = null;
+			for (Translation translation : miniGalleryData.getTranslations()) {
+				GalleryConfig miniGallery = new GalleryConfig();
+				miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
+				miniGallery.setIsVertical(miniGalleryData.getIsVertical());
+				miniGallery.setTitle(translation.getTitle());
+				miniGallery.setLanguageId(translation.getLanguageId());
+				miniGallery.setIsActive(true);
+				miniGallery.setId(null);
+
+				// First save without galleryId to get the generated one
+				if (galleryId == null) {
+					miniGallery.setGalleryId(null);
+					miniGallery = galleryConfigDao.save(miniGallery);
+					galleryId = miniGallery.getId();
+					miniGallery.setGalleryId(galleryId);
+					miniGallery = galleryConfigDao.update(miniGallery);
+					translations.add(new Translation(miniGallery.getId(), miniGallery.getTitle(),
+							miniGallery.getLanguageId(), null, null));
+				} else {
+					miniGallery.setGalleryId(galleryId);
+					miniGallery = galleryConfigDao.save(miniGallery); // just one save now
+					translations.add(new Translation(miniGallery.getId(), miniGallery.getTitle(),
+							miniGallery.getLanguageId(), null, null));
+				}
+				if (translation.getLanguageId().equals(miniGalleryData.getLanguageId())) {
+					miniGalleryData.setTitle(translation.getTitle());
+				}
+
+			}
+			miniGalleryData.setTranslations(translations);
+			miniGalleryData.setIsActive(true);
+			miniGalleryData.setGalleryId(galleryId);
+			return miniGalleryData;
+		} catch (Exception e) {
+			logger.error("Failed to create mini gallery: {}", e.getMessage(), e);
+			return null;
+		}
+	}
+
+	@Override
+	public GalleryConfig editMiniGallery(HttpServletRequest request, Long galleryId, GalleryConfig miniGalleryData) {
+		try {
+			List<Translation> translations = new ArrayList<>();
+			for (Translation translation : miniGalleryData.getTranslations()) {
+				if (translation.getId() != null) {
+					GalleryConfig miniGallery = galleryConfigDao.findById(translation.getId());
+					miniGallery.setTitle(translation.getTitle());
+					miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
+					miniGallery.setIsVertical(miniGalleryData.getIsVertical());
+					miniGallery.setIsActive(miniGalleryData.getIsActive());
+					miniGallery = galleryConfigDao.update(miniGallery);
+					translations.add(new Translation(miniGallery.getId(), miniGallery.getTitle(),
+							miniGallery.getLanguageId(), null, null));
+				} else {
+					GalleryConfig miniGallery = new GalleryConfig();
+					miniGallery.setId(null);
+					miniGallery.setIsActive(miniGalleryData.getIsActive());
+					miniGallery.setSlidesPerView(miniGalleryData.getSlidesPerView());
+					miniGallery.setTitle(translation.getTitle());
+					miniGallery.setIsVertical(miniGalleryData.getIsVertical());
+					miniGallery.setLanguageId(translation.getLanguageId());
+					miniGallery.setGalleryId(galleryId);
+					miniGallery = galleryConfigDao.save(miniGallery);
+					translations.add(new Translation(miniGallery.getId(), miniGallery.getTitle(),
+							miniGallery.getLanguageId(), null, null));
+				}
+				if (translation.getLanguageId().equals(miniGalleryData.getLanguageId())) {
+					miniGalleryData.setTitle(translation.getTitle());
+				}
+			}
+			miniGalleryData.setTranslations(translations);
+			return miniGalleryData;
+
+		} catch (Exception e) {
+			logger.error("Failed to edit mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
+			return null;
+		}
+	}
+
+	@Override
+	public Boolean removeMiniGallery(HttpServletRequest request, Long galleryId) {
+		try {
+			List<GalleryConfig> miniGallery = galleryConfigDao.getByGalleryId(galleryId);
+			if (miniGallery == null) {
+				logger.warn("Mini gallery with ID {} not found for deletion.", galleryId);
+				return false;
+			}
+			for (GalleryConfig translation : miniGallery) {
+				galleryConfigDao.delete(translation);
+			}
+			List<MiniGallerySlider> miniGallerySlides = miniGallerySliderDao.getAllGallerySliderInfo(true, galleryId);
+			for (MiniGallerySlider slide : miniGallerySlides) {
+				miniGallerySliderDao.delete(slide);
+			}
+			return true;
+		} catch (Exception e) {
+			logger.error("Error while deleting mini gallery with ID {}: {}", galleryId, e.getMessage(), e);
+			return false;
+		}
+	}
+
+	@Override
 	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 			if (roles.contains(ROLE_ADMIN)) {
-				GallerySlider gallerySliderEntity = gallerySliderDao.findById(galleryId);
-				gallerySliderEntity.setFileName(editData.getFileName());
-				gallerySliderEntity.setTitle(editData.getTitle());
-				gallerySliderEntity.setCustomDescripition(editData.getCustomDescripition());
-				gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
-				gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
-				gallerySliderEntity.setTruncated(editData.getTruncated());
-				gallerySliderEntity.setReadMoreText(editData.getReadMoreText());
-				gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
-				gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
-				gallerySliderDao.update(gallerySliderEntity);
-				return getHomePageData(request, true);
+				for (Translation translation : editData.getTranslations()) {
+					if (translation.getId() != null) {
+						GallerySlider gallerySliderEntity = gallerySliderDao.findById(translation.getId());
+						gallerySliderEntity.setFileName(editData.getFileName());
+						gallerySliderEntity.setTitle(translation.getTitle());
+						gallerySliderEntity.setCustomDescripition(translation.getDescription());
+						gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+						gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+						gallerySliderEntity.setTruncated(editData.getTruncated());
+						gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+						gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+						gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
+						gallerySliderEntity.setLanguageId(translation.getLanguageId());
+						gallerySliderEntity.setSliderId(galleryId);
+
+						gallerySliderDao.update(gallerySliderEntity);
+					} else {
+						GallerySlider gallerySliderEntity = new GallerySlider();
+						gallerySliderEntity.setId(null);
+						gallerySliderEntity.setAuthorId(editData.getAuthorId());
+						gallerySliderEntity.setCustomDescripition(translation.getDescription());
+						gallerySliderEntity.setFileName(editData.getFileName());
+						gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+						gallerySliderEntity.setObservationId(editData.getObservationId());
+						gallerySliderEntity.setTitle(translation.getTitle());
+						gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+						gallerySliderEntity.setTruncated(editData.getTruncated());
+						gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+						gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
+						gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+						gallerySliderEntity.setLanguageId(translation.getLanguageId());
+						gallerySliderEntity.setSliderId(galleryId);
+						gallerySliderDao.save(gallerySliderEntity);
+					}
+				}
+				return getHomePageData(request, true, (long) -1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public HomePageData editMiniHomePage(HttpServletRequest request, Long galleryId, MiniGallerySlider editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
+				for (Translation translation : editData.getTranslations()) {
+					if (translation.getId() != null) {
+						MiniGallerySlider gallerySliderEntity = miniGallerySliderDao.findById(translation.getId());
+						gallerySliderEntity.setFileName(editData.getFileName());
+						gallerySliderEntity.setTitle(translation.getTitle());
+						gallerySliderEntity.setCustomDescripition(translation.getDescription());
+						gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+						gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+						gallerySliderEntity.setTruncated(editData.getTruncated());
+						gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+						gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+						gallerySliderEntity.setLanguageId(translation.getLanguageId());
+						gallerySliderEntity.setSliderId(galleryId);
+						gallerySliderEntity.setColor(editData.getColor());
+						gallerySliderEntity.setBgColor(editData.getBgColor());
+
+						miniGallerySliderDao.update(gallerySliderEntity);
+					} else {
+						MiniGallerySlider gallerySliderEntity = new MiniGallerySlider();
+						gallerySliderEntity.setId(null);
+						gallerySliderEntity.setAuthorId(editData.getAuthorId());
+						gallerySliderEntity.setCustomDescripition(translation.getDescription());
+						gallerySliderEntity.setFileName(editData.getFileName());
+						gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+						gallerySliderEntity.setObservationId(editData.getObservationId());
+						gallerySliderEntity.setTitle(translation.getTitle());
+						gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+						gallerySliderEntity.setTruncated(editData.getTruncated());
+						gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+						gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+						gallerySliderEntity.setLanguageId(translation.getLanguageId());
+						gallerySliderEntity.setSliderId(galleryId);
+						gallerySliderEntity.setGalleryId(editData.getGalleryId());
+						gallerySliderEntity.setColor(editData.getColor());
+						gallerySliderEntity.setBgColor(editData.getBgColor());
+						miniGallerySliderDao.save(gallerySliderEntity);
+					}
+				}
+				return getHomePageData(request, true, (long) -1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
+
+	@Override
+	public HomePageData removeMiniHomePage(HttpServletRequest request, Long galleryId) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+
+			if (roles.contains(ROLE_ADMIN)) {
+				List<MiniGallerySlider> translations = miniGallerySliderDao.findBySliderId(galleryId);
+				for (MiniGallerySlider translation : translations) {
+					miniGallerySliderDao.delete(translation);
+				}
+				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -514,7 +873,7 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowDesc(editData.getShowDesc());
 				homePageDataEntity.setDescription(editData.getDescription());
 				homePageDao.update(homePageDataEntity);
-				return getHomePageData(request, true);
+				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -572,20 +931,97 @@ public class UtilityServiceImpl implements UtilityService {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
 			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
 
-			if (roles.contains(ROLE_ADMIN)) {
+			if (roles != null && roles.contains(ROLE_ADMIN)) {
 				editHomePageData(request, editData);
-				List<GallerySlider> galleryData = editData.getGallerySlider();
-				if (galleryData != null && !galleryData.isEmpty())
-					for (GallerySlider gallery : galleryData) {
-						gallerySliderDao.save(gallery);
-					}
 
-				return getHomePageData(request, true);
+				// Save GallerySlider
+				List<GallerySlider> galleryData = editData.getGallerySlider();
+				if (galleryData != null && !galleryData.isEmpty() && galleryData.size() > 0) {
+					galleryData.forEach(languageMap ->
+					saveGallerySliderTranslations(languageMap));
+				}
+
+				// Save MiniGallerySlider
+				for (GalleryConfig miniGallery : editData.getMiniGallery()) {
+					if (miniGallery.getGallerySlider() != null && !miniGallery.getGallerySlider().isEmpty()
+							&& miniGallery.getGallerySlider().size() > 0) {
+						miniGallery.getGallerySlider().forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
+					}
+				}
+
+				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Error inserting homepage: ", e);
 		}
+
 		return null;
+	}
+
+	private void saveGallerySliderTranslations(GallerySlider translations) {
+		Long sliderId = null;
+		for (Translation translation : translations.getTranslations()) {
+			GallerySlider gallerySliderEntity = new GallerySlider();
+			gallerySliderEntity.setId(null);
+			gallerySliderEntity.setAuthorId(translations.getAuthorId());
+			gallerySliderEntity.setCustomDescripition(translation.getDescription());
+			gallerySliderEntity.setFileName(translations.getFileName());
+			gallerySliderEntity.setMoreLinks(translations.getMoreLinks());
+			gallerySliderEntity.setObservationId(translations.getObservationId());
+			gallerySliderEntity.setTitle(translation.getTitle());
+			gallerySliderEntity.setDisplayOrder(translations.getDisplayOrder());
+			gallerySliderEntity.setTruncated(translations.getTruncated());
+			gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+			gallerySliderEntity.setGallerySidebar(translations.getGallerySidebar());
+			gallerySliderEntity.setReadMoreUIType(translations.getReadMoreUIType());
+			gallerySliderEntity.setLanguageId(translation.getLanguageId());
+
+			if (sliderId != null) {
+				gallerySliderEntity.setSliderId(sliderId);
+			}
+
+			gallerySliderEntity = gallerySliderDao.save(gallerySliderEntity);
+
+			if (sliderId == null) {
+				sliderId = gallerySliderEntity.getId();
+				gallerySliderEntity.setSliderId(sliderId);
+				gallerySliderDao.update(gallerySliderEntity);
+			}
+		}
+	}
+
+	private void saveMiniGallerySliderTranslations(MiniGallerySlider languageMap) {
+		Long sliderId = null;
+		for (Translation translation : languageMap.getTranslations()) {
+			MiniGallerySlider gallerySliderEntity = new MiniGallerySlider();
+			gallerySliderEntity.setId(null);
+			gallerySliderEntity.setAuthorId(languageMap.getAuthorId());
+			gallerySliderEntity.setCustomDescripition(translation.getDescription());
+			gallerySliderEntity.setFileName(languageMap.getFileName());
+			gallerySliderEntity.setMoreLinks(languageMap.getMoreLinks());
+			gallerySliderEntity.setObservationId(languageMap.getObservationId());
+			gallerySliderEntity.setTitle(translation.getTitle());
+			gallerySliderEntity.setDisplayOrder(languageMap.getDisplayOrder());
+			gallerySliderEntity.setTruncated(languageMap.getTruncated());
+			gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+			gallerySliderEntity.setReadMoreUIType(languageMap.getReadMoreUIType());
+			gallerySliderEntity.setLanguageId(translation.getLanguageId());
+			gallerySliderEntity.setGalleryId(languageMap.getGalleryId());
+			gallerySliderEntity.setColor(languageMap.getColor());
+			gallerySliderEntity.setBgColor(languageMap.getBgColor());
+
+			if (sliderId != null) {
+				gallerySliderEntity.setSliderId(sliderId);
+			}
+
+			gallerySliderEntity = miniGallerySliderDao.save(gallerySliderEntity);
+
+			if (sliderId == null) {
+				sliderId = gallerySliderEntity.getId();
+				gallerySliderEntity.setSliderId(sliderId);
+				miniGallerySliderDao.update(gallerySliderEntity);
+			}
+		}
 	}
 
 	@Override
@@ -596,12 +1032,37 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles.contains(ROLE_ADMIN)) {
 				for (ReorderHomePage reorder : reorderHomePage) {
-					GallerySlider gallery = gallerySliderDao.findById(reorder.getGalleryId());
-					gallery.setDisplayOrder(reorder.getDisplayOrder());
-					gallerySliderDao.update(gallery);
+					List<GallerySlider> gallery = gallerySliderDao.findBySliderId(reorder.getGalleryId());
+					for (GallerySlider translation : gallery) {
+						translation.setDisplayOrder(reorder.getDisplayOrder());
+						gallerySliderDao.update(translation);
+					}
 				}
 
-				return getHomePageData(request, true);
+				return getHomePageData(request, true, (long) -1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+		return null;
+	}
+
+	@Override
+	public HomePageData reorderMiniHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderHomePage) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+
+			if (roles.contains(ROLE_ADMIN)) {
+				for (ReorderHomePage reorder : reorderHomePage) {
+					List<MiniGallerySlider> gallery = miniGallerySliderDao.findBySliderId(reorder.getGalleryId());
+					for (MiniGallerySlider translation : gallery) {
+						translation.setDisplayOrder(reorder.getDisplayOrder());
+						miniGallerySliderDao.update(translation);
+					}
+				}
+
+				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage());
