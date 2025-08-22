@@ -301,34 +301,30 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Override
 	public ParsedName findParsedName(String scientificName) {
-
 		URIBuilder builder = new URIBuilder();
-		builder.setScheme("http").setHost("localhost:9091").setPath("/api").setParameter("q", scientificName);
+		builder.setScheme("http").setHost("localhost").setPort(9091).setPath("/api/v1/" + scientificName);
 
 		List<ParsedName> parsedName = null;
-
 		URI uri = null;
+
 		try {
 			uri = builder.build();
 			HttpGet request = new HttpGet(uri);
 
 			try (CloseableHttpResponse response = httpClient.execute(request)) {
-
 				HttpEntity entity = response.getEntity();
-
 				if (entity != null) {
 					// return it as a String
 					String result = EntityUtils.toString(entity);
 					parsedName = Arrays.asList(objectMapper.readValue(result, ParsedName[].class));
 				}
-
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}
-
 		} catch (URISyntaxException e1) {
 			logger.error(e1.getMessage());
 		}
+
 		if (parsedName != null) {
 			return parsedName.get(0);
 		} else {
