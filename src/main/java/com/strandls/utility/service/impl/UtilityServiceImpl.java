@@ -442,7 +442,7 @@ public class UtilityServiceImpl implements UtilityService {
 					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
 					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
-			List<GallerySlider> groupedBySliderId = groupGallerySliders(galleryData, languageId, true);
+			List<GallerySlider> groupedBySliderId = groupGallerySliders(galleryData, languageId,isadmin && adminList);
 
 			List<GalleryConfig> miniGalleryData = isadmin && adminList ? galleryConfigDao.getAllMiniSlider(true)
 					: galleryConfigDao.getAllMiniSlider(false);
@@ -540,9 +540,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 						targetGallery.setTranslations(translations);
 					} else if (gallery.getLanguageId().equals(languageId)) {
-						targetGallery.setTitle(gallery.getTitle());
-						targetGallery.setLanguageId(languageId);
-						targetGallery.setCustomDescripition(gallery.getCustomDescripition());
+						gallerySlider.set(targetIndex, gallery);
 					}
 				}
 			}
@@ -590,9 +588,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 						targetGallery.setTranslations(translations);
 					} else if (gallery.getLanguageId().equals(languageId)) {
-						targetGallery.setTitle(gallery.getTitle());
-						targetGallery.setLanguageId(languageId);
-						targetGallery.setCustomDescripition(gallery.getCustomDescripition());
+						gallerySlider.set(targetIndex, gallery);
 					}
 				}
 			}
