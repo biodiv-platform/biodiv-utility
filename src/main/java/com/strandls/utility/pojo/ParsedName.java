@@ -252,6 +252,7 @@ class AuthorshipInfo {
 	private List<String> authors;
 	private AuthorGroup original;
 	private AuthorGroup combination;
+	private AuthorGroup originalAuth;
 
 	public String getVerbatim() {
 		return verbatim;
@@ -299,6 +300,14 @@ class AuthorshipInfo {
 
 	public void setCombination(AuthorGroup combination) {
 		this.combination = combination;
+	}
+
+	public AuthorGroup getOriginalAuth() {
+		return originalAuth;
+	}
+
+	public void setOriginalAuth(AuthorGroup originalAuth) {
+		this.originalAuth = originalAuth;
 	}
 
 	@Override
@@ -354,6 +363,7 @@ class AuthorGroup {
 class YearInfo {
 	private String value;
 	private Boolean isApproximate;
+	private String year;
 
 	public String getValue() {
 		return value;
@@ -371,9 +381,17 @@ class YearInfo {
 		this.isApproximate = isApproximate;
 	}
 
+	public String getYear() {
+		return year;
+	}
+
+	public void setYear(String year) {
+		this.year = year;
+	}
+
 	@Override
 	public String toString() {
-		return "YearInfo [value=" + value + ", isApproximate=" + isApproximate + "]";
+		return "YearInfo [value=" + value + ", isApproximate=" + isApproximate + ", year=" + year + "]";
 	}
 }
 
