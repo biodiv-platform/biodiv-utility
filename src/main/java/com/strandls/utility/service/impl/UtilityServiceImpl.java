@@ -302,7 +302,8 @@ public class UtilityServiceImpl implements UtilityService {
 	@Override
 	public ParsedName findParsedName(String scientificName) {
 		URIBuilder builder = new URIBuilder();
-		builder.setScheme("http").setHost("localhost").setPort(9091).setPath("/api/v1/" + scientificName);
+		builder.setScheme("http").setHost("localhost").setPort(9091).setPath("/api/v1/" + scientificName)
+				.setParameter("with_details", "true");
 
 		List<ParsedName> parsedName = null;
 		URI uri = null;
@@ -442,7 +443,7 @@ public class UtilityServiceImpl implements UtilityService {
 					? gallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE)
 					: gallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE);
 
-			List<GallerySlider> groupedBySliderId = groupGallerySliders(galleryData, languageId,isadmin && adminList);
+			List<GallerySlider> groupedBySliderId = groupGallerySliders(galleryData, languageId, isadmin && adminList);
 
 			List<GalleryConfig> miniGalleryData = isadmin && adminList ? galleryConfigDao.getAllMiniSlider(true)
 					: galleryConfigDao.getAllMiniSlider(false);
@@ -457,7 +458,8 @@ public class UtilityServiceImpl implements UtilityService {
 					List<MiniGallerySlider> miniSliders = isadmin && adminList
 							? miniGallerySliderDao.getAllGallerySliderInfo(Boolean.TRUE, galleryId)
 							: miniGallerySliderDao.getAllGallerySliderInfo(Boolean.FALSE, galleryId);
-					miniGallery.setGallerySlider(groupMiniGallerySliders(miniSliders, languageId, isadmin && adminList));
+					miniGallery
+							.setGallerySlider(groupMiniGallerySliders(miniSliders, languageId, isadmin && adminList));
 					if (isadmin && adminList) {
 						Translation translation = new Translation(miniGallery.getId(), miniGallery.getTitle(),
 								miniGallery.getLanguageId(), null, null);
@@ -929,15 +931,15 @@ public class UtilityServiceImpl implements UtilityService {
 				// Save GallerySlider
 				List<GallerySlider> galleryData = editData.getGallerySlider();
 				if (galleryData != null && !galleryData.isEmpty() && galleryData.size() > 0) {
-					galleryData.forEach(languageMap ->
-					saveGallerySliderTranslations(languageMap));
+					galleryData.forEach(languageMap -> saveGallerySliderTranslations(languageMap));
 				}
 
 				// Save MiniGallerySlider
 				for (GalleryConfig miniGallery : editData.getMiniGallery()) {
 					if (miniGallery.getGallerySlider() != null && !miniGallery.getGallerySlider().isEmpty()
 							&& miniGallery.getGallerySlider().size() > 0) {
-						miniGallery.getGallerySlider().forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
+						miniGallery.getGallerySlider()
+								.forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
 					}
 				}
 
