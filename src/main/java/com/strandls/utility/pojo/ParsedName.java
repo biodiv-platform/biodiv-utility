@@ -253,6 +253,7 @@ class AuthorshipInfo {
 	private AuthorGroup original;
 	private AuthorGroup combination;
 	private AuthorGroup originalAuth;
+	private AuthorGroup combinationAuth;
 
 	public String getVerbatim() {
 		return verbatim;
@@ -308,6 +309,14 @@ class AuthorshipInfo {
 
 	public void setOriginalAuth(AuthorGroup originalAuth) {
 		this.originalAuth = originalAuth;
+	}
+
+	public AuthorGroup getCombinationAuth() {
+		return combinationAuth;
+	}
+
+	public void setCombinationAuth(AuthorGroup combinationAuth) {
+		this.combinationAuth = combinationAuth;
 	}
 
 	@Override
