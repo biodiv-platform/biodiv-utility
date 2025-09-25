@@ -55,9 +55,8 @@ public class HomePageData {
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
-			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription,
-			String description, List<GalleryConfig> miniGallery,
-			List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider) {
+			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description,
+			List<GalleryConfig> miniGallery, List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;

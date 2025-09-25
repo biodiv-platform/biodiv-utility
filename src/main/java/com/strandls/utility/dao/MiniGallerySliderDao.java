@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
-import com.strandls.utility.pojo.GallerySlider;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.util.AbstractDAO;
 
@@ -49,9 +48,8 @@ public class MiniGallerySliderDao extends AbstractDAO<MiniGallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<MiniGallerySlider> getAllGallerySliderInfo(boolean isAdminList, Long galleryId) {
 		List<MiniGallerySlider> result = null;
-		String qry = isAdminList ?
-				"from  MiniGallerySlider where galleryId = :galleryId order by display_order asc" :
-				"from  MiniGallerySlider where galleryId = :galleryId and is_truncated is true order by display_order asc";
+		String qry = isAdminList ? "from  MiniGallerySlider where galleryId = :galleryId order by display_order asc"
+				: "from  MiniGallerySlider where galleryId = :galleryId and is_truncated is true order by display_order asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<MiniGallerySlider> query = session.createQuery(qry);
@@ -64,7 +62,7 @@ public class MiniGallerySliderDao extends AbstractDAO<MiniGallerySlider, Long> {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<MiniGallerySlider> findBySliderId(Long sId) {
 		String qry = "from MiniGallerySlider where sliderId = :sId";

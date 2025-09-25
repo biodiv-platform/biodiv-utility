@@ -2,7 +2,6 @@
 package com.strandls.utility.service;
 
 import java.util.List;
-import java.util.Map;
 
 import org.pac4j.core.profile.CommonProfile;
 
@@ -84,8 +83,7 @@ public interface UtilityService {
 
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 
-	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId,
-			MiniGallerySlider editData);
+	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId, MiniGallerySlider editData);
 
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
 

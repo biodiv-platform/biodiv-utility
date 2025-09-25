@@ -178,9 +178,9 @@ public class ParsedName {
 	public String toString() {
 		return "ParsedName [parsed=" + parsed + ", quality=" + quality + ", verbatim=" + verbatim + ", normalized="
 				+ normalized + ", canonical=" + canonical + ", authorship=" + authorship + ", cardinality="
-				+ cardinality + ", id=" + id + ", details=" + details + ", words=" + words
-				+ ", surrogate=" + surrogate + ", virus=" + virus + ", hybrid=" + hybrid + ", bacteria=" + bacteria
-				+ ", parserVersion=" + parserVersion + "]";
+				+ cardinality + ", id=" + id + ", details=" + details + ", words=" + words + ", surrogate=" + surrogate
+				+ ", virus=" + virus + ", hybrid=" + hybrid + ", bacteria=" + bacteria + ", parserVersion="
+				+ parserVersion + "]";
 	}
 }
 
@@ -321,7 +321,8 @@ class AuthorshipInfo {
 
 	@Override
 	public String toString() {
-		return "AuthorshipInfo [verbatim=" + verbatim + ", normalized=" + normalized + ", year=" + year + ", authors=" + authors + "]";
+		return "AuthorshipInfo [verbatim=" + verbatim + ", normalized=" + normalized + ", year=" + year + ", authors="
+				+ authors + "]";
 	}
 }
 
@@ -479,6 +480,7 @@ class Word {
 
 	@Override
 	public String toString() {
-		return "Word [verbatim=" + verbatim + ", normalized=" + normalized + ", wordType=" + wordType + ", start=" + start + ", end=" + end + "]";
+		return "Word [verbatim=" + verbatim + ", normalized=" + normalized + ", wordType=" + wordType + ", start="
+				+ start + ", end=" + end + "]";
 	}
 }

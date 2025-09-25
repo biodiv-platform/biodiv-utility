@@ -47,27 +47,27 @@ public class Translation {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
 	public Long getLanguageId() {
 		return languageId;
 	}
-	
+
 	public void setLanguageId(Long languageId) {
 		this.languageId = languageId;
 	}
-	
+
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	
+
 	public String getReadMoreText() {
 		return readMoreText;
 	}
-	
+
 	public void setReadMoreText(String readMoreText) {
 		this.readMoreText = readMoreText;
 	}

@@ -1,8 +1,6 @@
 /** */
 package com.strandls.utility.service.impl;
 
-import java.util.function.Function;
-
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -12,9 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.http.HttpEntity;
@@ -34,7 +31,6 @@ import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
 import com.strandls.user.pojo.User;
-import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.FlagDao;
 import com.strandls.utility.dao.GalleryConfigDao;
 import com.strandls.utility.dao.GallerySliderDao;
