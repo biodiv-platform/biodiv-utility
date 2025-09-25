@@ -7,13 +7,13 @@ package com.strandls.utility.pojo;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -39,7 +39,7 @@ public class GalleryConfig {
    private Long languageId;
    private Long galleryId;
    private List<MiniGallerySlider> gallerySlider;
-  
+
 
 
    @Id
@@ -64,7 +64,7 @@ public class GalleryConfig {
    public void setIsActive(Boolean isActive) {
        this.isActive = isActive;
    }
-  
+
    @Column(name = "is_vertical", columnDefinition = "BOOLEAN")
    public Boolean getIsVertical() {
        return isVertical;
@@ -74,7 +74,7 @@ public class GalleryConfig {
    public void setIsVertical(Boolean isVertical) {
 	   this.isVertical = isVertical;
    }
-  
+
    @Column(name = "slides_per_view", columnDefinition = "BIGINT")
    public Long getSlidesPerView() {
        return slidesPerView;
@@ -84,34 +84,34 @@ public class GalleryConfig {
    public void setSlidesPerView(Long slidesPerView) {
        this.slidesPerView = slidesPerView;
    }
-  
+
    @Column(name = "title")
    public String getTitle() {
        return title;
    }
-  
+
    public void setTitle(String title) {
        this.title = title;
    }
-   
+
    @Column(name = "language_id", columnDefinition = "BIGINT")
    public Long getLanguageId() {
        return languageId;
    }
-  
+
    public void setLanguageId(Long languageId) {
        this.languageId = languageId;
    }
-   
+
    @Column(name = "gallery_id", columnDefinition = "BIGINT")
    public Long getGalleryId() {
        return galleryId;
    }
-  
+
    public void setGalleryId(Long galleryId) {
        this.galleryId = galleryId;
    }
-  
+
    @Transient
    public List<Translation> getTranslations() {
        return translations;
@@ -121,7 +121,7 @@ public class GalleryConfig {
    public void setTranslations(List<Translation> translations) {
        this.translations = translations;
    }
-   
+
    @Transient
    public List<MiniGallerySlider> getGallerySlider() {
        return gallerySlider;

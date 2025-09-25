@@ -26,11 +26,13 @@ import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.service.UtilityService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
@@ -321,82 +323,104 @@ public class UtilityController {
 		}
 	}
 
-	@POST
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.CREATE)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@ValidateUser
+// CREATE
+@POST
+@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.CREATE)
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Creates a new mini gallery",
+    description = "Return created mini gallery",
+	responses = {
+    @ApiResponse(responseCode = "200", description = "Created",
+        content = @Content(schema = @Schema(implementation = GalleryConfig.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to create mini gallery",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "404", description = "Not found")
+})
+public Response createMiniGallery(
+    @Context HttpServletRequest request,
+    @RequestBody(description = "Mini gallery payload", required = true,
+        content = @Content(schema = @Schema(implementation = GalleryConfig.class)))
+    GalleryConfig miniGalleryData
+) {
+    try {
+        GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 
-	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = Map.class)
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class)})
+// EDIT
+@PUT
+@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.EDIT + "/{galleryId}")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Edit mini gallery data",
+    description = "Return updated mini gallery",
+	responses = {
+    @ApiResponse(responseCode = "200", description = "OK",
+        content = @Content(schema = @Schema(implementation = GalleryConfig.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to edit",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "404", description = "Not found")
+})
+public Response editMiniGallery(
+    @Context HttpServletRequest request,
+    @Parameter(description = "Gallery ID") @PathParam("galleryId") String galleryId,
+    @RequestBody(description = "Edit payload", required = true,
+        content = @Content(schema = @Schema(implementation = GalleryConfig.class)))
+    GalleryConfig editData
+) {
+    try {
+        if (galleryId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
+        }
+        Long gId = Long.parseLong(galleryId);
+        GalleryConfig result = utilityService.editMiniGallery(request, gId, editData);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 
-	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
-		try {
-			GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
-			if (result!=null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.EDIT + "/{galleryId}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-
-	@ValidateUser
-
-	@ApiOperation(value = "Edit mini gallery data", notes = "return mini gallery data", response = Map.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
-
-	public Response editMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") GalleryConfig editData) {
-		try {
-			if (galleryId == null) {
-				return Response.status(Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
-			}
-			Long gId = Long.parseLong(galleryId);
-			GalleryConfig result = utilityService.editMiniGallery(request, gId, editData);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@DELETE
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.REMOVE + "/{galleryId}")
-	@Consumes(MediaType.TEXT_PLAIN)
-	@Produces(MediaType.APPLICATION_JSON)
-
-	@ValidateUser
-
-	@ApiOperation(value = "Delete mini gallery data", notes = "returns null", response = Void.class)
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
-
-	public Response removeMiniGalleryData(@Context HttpServletRequest request,
-			@PathParam("galleryId") String galleryId) {
-		try {
-			if (galleryId == null) {
-				return Response.status(Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
-			}
-			Long gId = Long.parseLong(galleryId);
-			Boolean result = utilityService.removeMiniGallery(request, gId);
-			if (Boolean.TRUE.equals(result))
-				return Response.status(Status.OK).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
+// DELETE
+@DELETE
+@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.REMOVE + "/{galleryId}")
+@Consumes(MediaType.TEXT_PLAIN)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Delete mini gallery data",
+    description = "Deletes the mini gallery and returns no content",
+	responses = {
+    @ApiResponse(responseCode = "200", description = "Deleted"),
+    @ApiResponse(responseCode = "400", description = "Unable to delete",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "404", description = "Not found")
+})
+public Response removeMiniGalleryData(
+    @Context HttpServletRequest request,
+    @Parameter(description = "Gallery ID") @PathParam("galleryId") String galleryId
+) {
+    try {
+        if (galleryId == null) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Gallery Id cannot be null").build();
+        }
+        Long gId = Long.parseLong(galleryId);
+        Boolean result = utilityService.removeMiniGallery(request, gId);
+        if (Boolean.TRUE.equals(result)) return Response.status(Response.Status.OK).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 	@DELETE
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + "/{galleryId}")
 	@Consumes(MediaType.TEXT_PLAIN)
@@ -438,95 +462,144 @@ public class UtilityController {
 		}
 	}
 
-	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER + "/{galleryId}")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
+// PUT: edit homepage mini gallery
+@PUT
+@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER + "/{galleryId}")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Edit homepage mini gallery data",
+    description = "Return home page data"
+)
+@ApiResponses({
+    @ApiResponse(responseCode = "200", description = "OK",
+        content = @Content(schema = @Schema(implementation = HomePageData.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to retrieve the data",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "404", description = "Not found")
+})
+public Response editMiniHomePage(
+    @Context HttpServletRequest request,
+    @Parameter(description = "Gallery ID") @PathParam("galleryId") String galleryId,
+    @RequestBody(description = "Mini gallery slider edit payload", required = true,
+        content = @Content(schema = @Schema(implementation = MiniGallerySlider.class)))
+    MiniGallerySlider editData
+) {
+    try {
+        Long gId = Long.parseLong(galleryId);
+        HomePageData result = utilityService.editMiniHomePage(request, gId, editData);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 
-	@ValidateUser
+// DELETE: delete homepage mini gallery
+@DELETE
+@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + ApiConstants.MINI_SLIDER + "/{galleryId}")
+@Consumes(MediaType.TEXT_PLAIN)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Delete homepage mini gallery data",
+    description = "Return home page data"
+)
+@ApiResponses({
+    @ApiResponse(responseCode = "200", description = "OK",
+        content = @Content(schema = @Schema(implementation = HomePageData.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to retrieve the data",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "404", description = "Not found")
+})
+public Response removeMiniGallery(
+    @Context HttpServletRequest request,
+    @Parameter(description = "Gallery ID") @PathParam("galleryId") String galleryId
+) {
+    try {
+        Long gId = Long.parseLong(galleryId);
+        HomePageData result = utilityService.removeMiniHomePage(request, gId);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 
-	@ApiOperation(value = "Edit homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+// PUT: reorder homepage gallery slider (List body)
+@PUT
+@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Reorder homepage gallery slider",
+    requestBody = @RequestBody(
+        required = true,
+        description = "Array of reorder instructions",
+        content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = ReorderHomePage.class))
+        )
+    )
+)
+@ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Home page data",
+        content = @Content(schema = @Schema(implementation = HomePageData.class))),
+    @ApiResponse(responseCode = "404", description = "Not found",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to retrieve the data",
+        content = @Content(schema = @Schema(implementation = String.class)))
+})
+public Response reorderingHomePageGallerySlider(
+    @Context HttpServletRequest request,
+    List<ReorderHomePage> reorderingHomePage
+) {
+    try {
+        HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 
-	public Response editMiniHomePage(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId,
-			@ApiParam(name = "editData") MiniGallerySlider editData) {
-		try {
-			Long gId = Long.parseLong(galleryId);
-			HomePageData result = utilityService.editMiniHomePage(request, gId, editData);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@DELETE
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + ApiConstants.MINI_SLIDER + "/{galleryId}")
-	@Consumes(MediaType.TEXT_PLAIN)
-	@Produces(MediaType.APPLICATION_JSON)
-
-	@ValidateUser
-
-	@ApiOperation(value = "Delete homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
-
-	public Response removeMiniGallery(@Context HttpServletRequest request, @PathParam("galleryId") String galleryId) {
-		try {
-			Long gId = Long.parseLong(galleryId);
-			HomePageData result = utilityService.removeMiniHomePage(request, gId);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.REORDERING)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@ValidateUser
-	@Operation(summary = "Reorder homepage gallery slider", requestBody = @RequestBody(required = true, content = @Content(array = @ArraySchema(schema = @Schema(implementation = ReorderHomePage.class)))), responses = {
-			@ApiResponse(responseCode = "200", description = "Home page data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
-			@ApiResponse(responseCode = "404", description = "Not found", content = @Content(schema = @Schema(implementation = String.class))),
-			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
-	public Response reorderingHomePageGallerySlider(@Context HttpServletRequest request,
-			List<ReorderHomePage> reorderingHomePage) {
-		try {
-			HomePageData result = utilityService.reorderHomePageSlider(request, reorderingHomePage);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
-	@PUT
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_SLIDER + ApiConstants.REORDERING)
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-
-	@ValidateUser
-
-	public Response reorderingMiniHomePageGallerySlider(@Context HttpServletRequest request,
-			@ApiParam(name = "reorderingHomePage") List<ReorderHomePage> reorderingHomePage) {
-		try {
-			HomePageData result = utilityService.reorderMiniHomePageSlider(request, reorderingHomePage);
-			if (result != null)
-				return Response.status(Status.OK).entity(result).build();
-			return Response.status(Status.NOT_FOUND).build();
-
-		} catch (Exception e) {
-			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-		}
-	}
-
+// PUT: reorder mini homepage gallery slider (List body)
+@PUT
+@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_SLIDER + ApiConstants.REORDERING)
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@ValidateUser
+@Operation(
+    summary = "Reorder mini homepage gallery slider",
+    requestBody = @RequestBody(
+        required = true,
+        description = "Array of reorder instructions",
+        content = @Content(
+            array = @ArraySchema(schema = @Schema(implementation = ReorderHomePage.class))
+        )
+    )
+)
+@ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Home page data",
+        content = @Content(schema = @Schema(implementation = HomePageData.class))),
+    @ApiResponse(responseCode = "404", description = "Not found",
+        content = @Content(schema = @Schema(implementation = String.class))),
+    @ApiResponse(responseCode = "400", description = "Unable to retrieve the data",
+        content = @Content(schema = @Schema(implementation = String.class)))
+})
+public Response reorderingMiniHomePageGallerySlider(
+    @Context HttpServletRequest request,
+    List<ReorderHomePage> reorderingHomePage
+) {
+    try {
+        HomePageData result = utilityService.reorderMiniHomePageSlider(request, reorderingHomePage);
+        if (result != null) return Response.status(Response.Status.OK).entity(result).build();
+        return Response.status(Response.Status.NOT_FOUND).build();
+    } catch (Exception e) {
+        return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+    }
+}
 	// Insert list of New Home gallery Data
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT)

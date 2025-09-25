@@ -1,17 +1,17 @@
 /**
- * 
+ *
  */
 package com.strandls.utility.pojo;
 
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -163,7 +163,7 @@ public class MiniGallerySlider {
 	public void setReadMoreUIType(String readMoreUIType) {
 		this.readMoreUIType = readMoreUIType;
 	}
-	
+
 	@Column(name = "gallery_id", columnDefinition = "BIGINT")
 	public Long getGalleryId() {
 		return galleryId;
@@ -172,7 +172,7 @@ public class MiniGallerySlider {
 	public void setGalleryId(Long galleryId) {
 		this.galleryId = galleryId;
 	}
-	
+
 	@Column(name = "slider_id", columnDefinition = "BIGINT")
 	public Long getSliderId() {
 		return sliderId;
@@ -190,7 +190,7 @@ public class MiniGallerySlider {
 	public void setLanguageId(Long languageId) {
 		this.languageId = languageId;
 	}
-	
+
 	@Column(name = "color")
 	public String getColor() {
 		return color;
@@ -199,7 +199,7 @@ public class MiniGallerySlider {
 	public void setColor(String color) {
 		this.color = color;
 	}
-	
+
 	@Column(name = "bg_color")
 	public String getBgColor() {
 		return bgColor;
@@ -208,7 +208,7 @@ public class MiniGallerySlider {
 	public void setBgColor(String bgColor) {
 		this.bgColor = bgColor;
 	}
-	
+
 	@Transient
 	public List<Translation> getTranslations() {
 		return translations;
