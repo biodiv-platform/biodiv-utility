@@ -2,6 +2,7 @@
 package com.strandls.utility.pojo;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -32,6 +33,8 @@ public class HomePageData {
 	private Boolean showDesc;
 	private HomePageStats stats;
 	private List<GallerySlider> gallerySlider;
+	private List<GalleryConfig> miniGallery;
+	private List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider;
 	private String ugDescription;
 	private String description;
 
@@ -52,7 +55,9 @@ public class HomePageData {
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
-			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description) {
+			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription,
+			String description, List<GalleryConfig> miniGallery,
+			List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -65,8 +70,10 @@ public class HomePageData {
 		this.showDesc = showDesc;
 		this.stats = stats;
 		this.gallerySlider = gallerySlider;
+		this.miniGallery = miniGallery;
 		this.ugDescription = ugDescription;
 		this.description = description;
+		this.miniGallerySlider = miniGallerySlider;
 	}
 
 	@Id
@@ -168,6 +175,24 @@ public class HomePageData {
 
 	public void setGallerySlider(List<GallerySlider> gallerySlider) {
 		this.gallerySlider = gallerySlider;
+	}
+
+	@Transient
+	public List<GalleryConfig> getMiniGallery() {
+		return miniGallery;
+	}
+
+	public void setMiniGallery(List<GalleryConfig> miniGallery) {
+		this.miniGallery = miniGallery;
+	}
+
+	@Transient
+	public List<Map<String, Map<Long, List<MiniGallerySlider>>>> getMiniGallerySlider() {
+		return miniGallerySlider;
+	}
+
+	public void setMiniGallerySlider(List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider) {
+		this.miniGallerySlider = miniGallerySlider;
 	}
 
 	public String getUgDescription() {

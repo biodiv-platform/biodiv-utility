@@ -58,4 +58,24 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 		}
 		return result;
 	}
+
+	@SuppressWarnings("unchecked")
+	public List<GallerySlider> findBySliderId(Long sId) {
+		String qry = "from GallerySlider where sliderId = :sId";
+		Session session = sessionFactory.openSession();
+		List<GallerySlider> result = null;
+		try {
+			Query<GallerySlider> query = session.createQuery(qry);
+			query.setParameter("sId", sId);
+			result = query.getResultList();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+		return result;
+
+	}
+
 }
