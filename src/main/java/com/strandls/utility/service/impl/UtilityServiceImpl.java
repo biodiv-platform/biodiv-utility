@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -40,7 +39,7 @@ import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.user.controller.UserServiceApi;
 import com.strandls.user.pojo.User;
-import com.strandls.user.pojo.UserIbp;
+import com.strandls.utility.dao.AnnouncementDao;
 import com.strandls.utility.dao.FlagDao;
 import com.strandls.utility.dao.GalleryConfigDao;
 import com.strandls.utility.dao.GallerySliderDao;
@@ -51,6 +50,7 @@ import com.strandls.utility.dao.LanguageDao;
 import com.strandls.utility.dao.MiniGallerySliderDao;
 import com.strandls.utility.dao.TagLinksDao;
 import com.strandls.utility.dao.TagsDao;
+import com.strandls.utility.pojo.Announcement;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
@@ -116,6 +116,9 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private MiniGallerySliderDao miniGallerySliderDao;
+	
+	@Inject
+	private AnnouncementDao announcementDao;
 
 	@Inject
 	private GalleryConfigDao galleryConfigDao;
@@ -1100,6 +1103,47 @@ public class UtilityServiceImpl implements UtilityService {
 			tagRefers.add(taglink.getTagRefer());
 		}
 		return tagRefers;
+	}
+	
+	@Override
+	public Announcement createAnnouncement(HttpServletRequest request, Announcement announcementData) {
+		try {
+			Map<Long,String> translations = new HashMap<>();
+			Long aId = null;
+			for (Entry<Long, String> translation : announcementData.getTranslations().entrySet()) {
+				Announcement announcement = new Announcement();
+				announcement.setDescription(translation.getValue());
+				announcement.setLanguageId(translation.getKey());
+				announcement.setColor(announcementData.getColor());
+				announcement.setBgColor(announcementData.getBgColor());
+				announcement.setEnabled(announcementData.getEnabled());
+				announcement.setId(null);
+
+				// First save without galleryId to get the generated one
+				if (aId == null) {
+					announcement.setAnnouncementId(null);
+					announcement = announcementDao.save(announcement);
+					aId = announcement.getId();
+					announcement.setAnnouncementId(aId);
+					announcement = announcementDao.update(announcement);
+					translations.put(translation.getKey(), translation.getValue());
+				} else {
+					announcement.setAnnouncementId(aId);
+					announcement = announcementDao.save(announcement); // just one save now
+					translations.put(translation.getKey(), translation.getValue());
+					
+				}
+				if (translation.getKey().equals(announcement.getLanguageId())) {
+					announcement.setDescription(translation.getValue());
+				}
+
+			}
+			announcementData.setAnnouncementId(aId);
+			return announcementData;
+		} catch (Exception e) {
+			logger.error("Failed to create mini gallery: {}", e.getMessage(), e);
+			return null;
+		}
 	}
 
 }

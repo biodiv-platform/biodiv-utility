@@ -29,6 +29,7 @@ import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.filter.ValidateUser;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.utility.ApiConstants;
+import com.strandls.utility.pojo.Announcement;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
@@ -660,6 +661,27 @@ public class UtilityController {
 		try {
 			List<Long> result = utilityService.getResourceIds(phrase, type, tagRefId);
 			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@POST
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.ANNOUNCEMENT + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+
+	@ApiOperation(value = "Creates an announcement", notes = "Return created announcement", response = Map.class)
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create announcement", response = String.class)})
+
+	public Response createAnnouncement(@Context HttpServletRequest request, @ApiParam(name = "announcementData") Announcement announcementData) {
+		try {
+			Announcement result = utilityService.createAnnouncement(request, announcementData);
+			if (result!=null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
