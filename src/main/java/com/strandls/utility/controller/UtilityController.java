@@ -688,7 +688,7 @@ public class UtilityController {
 	}
 	
 	@GET
-	@Path(ApiConstants.HOMEPAGE + ApiConstants.ANNOUNCEMENT)
+	@Path(ApiConstants.ANNOUNCEMENT)
 	@Produces(MediaType.APPLICATION_JSON)
 
 	@ApiOperation(value = "Get announcements data", notes = "Return announcements data", response = List.class)
