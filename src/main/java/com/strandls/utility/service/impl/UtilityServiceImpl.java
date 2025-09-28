@@ -116,7 +116,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Inject
 	private MiniGallerySliderDao miniGallerySliderDao;
-	
+
 	@Inject
 	private AnnouncementDao announcementDao;
 
@@ -1104,11 +1104,11 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 		return tagRefers;
 	}
-	
+
 	@Override
 	public Announcement createAnnouncement(HttpServletRequest request, Announcement announcementData) {
 		try {
-			Map<Long,String> translations = new HashMap<>();
+			Map<Long, String> translations = new HashMap<>();
 			Long aId = null;
 			for (Entry<Long, String> translation : announcementData.getTranslations().entrySet()) {
 				Announcement announcement = new Announcement();
@@ -1131,7 +1131,7 @@ public class UtilityServiceImpl implements UtilityService {
 					announcement.setAnnouncementId(aId);
 					announcement = announcementDao.save(announcement); // just one save now
 					translations.put(translation.getKey(), translation.getValue());
-					
+
 				}
 				if (translation.getKey().equals(announcement.getLanguageId())) {
 					announcement.setDescription(translation.getValue());
@@ -1141,7 +1141,38 @@ public class UtilityServiceImpl implements UtilityService {
 			announcementData.setAnnouncementId(aId);
 			return announcementData;
 		} catch (Exception e) {
-			logger.error("Failed to create mini gallery: {}", e.getMessage(), e);
+			logger.error("Failed to create announcement: {}", e.getMessage(), e);
+			return null;
+		}
+	}
+
+	@Override
+	public List<Announcement> getAnnouncementData(HttpServletRequest request) {
+		try {
+			List<Announcement> announcementData = new ArrayList<>();
+			Map<Long, Integer> announcementIndexMapping = new HashMap<>();
+			List<Announcement> announcements = announcementDao.findAll();
+			for (Announcement announcement : announcements) {
+				Long aId = announcement.getId();
+				if (!announcementIndexMapping.keySet().contains(aId)) {
+					announcementIndexMapping.put(aId, announcementIndexMapping.size());
+					Map<Long, String> translations = new HashMap<>();
+					translations.put(announcement.getLanguageId(), announcement.getDescription());
+					announcement.setTranslations(translations);
+					announcementData.add(announcement);
+				} else {
+					int targetIndex = announcementIndexMapping.get(aId);
+					Announcement targetAnnouncement = announcementData.get(targetIndex);
+					
+					Map<Long, String> translationsMap = targetAnnouncement.getTranslations();
+					translationsMap.put(announcement.getLanguageId(), announcement.getDescription());
+
+					targetAnnouncement.setTranslations(translationsMap);
+				}
+			}
+			return announcementData;
+		} catch (Exception e) {
+			logger.error("Failed to get announcement Data: {}", e.getMessage(), e);
 			return null;
 		}
 	}

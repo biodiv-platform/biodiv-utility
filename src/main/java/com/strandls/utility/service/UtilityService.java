@@ -96,4 +96,6 @@ public interface UtilityService {
 	public HomePageData reorderMiniHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderingHomePage);
 
 	public Announcement createAnnouncement(HttpServletRequest request, Announcement announcementData);
+
+	public List<Announcement> getAnnouncementData(HttpServletRequest request);
 }
