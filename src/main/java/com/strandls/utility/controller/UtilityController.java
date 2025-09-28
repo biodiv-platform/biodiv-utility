@@ -701,5 +701,29 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+	
+	@DELETE
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.REMOVE + "/{announcementId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Delete announcement data", notes = "return if success", response = Boolean.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
+
+	public Response removeAnnouncementData(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId) {
+		try {
+			Long aId = Long.parseLong(announcementId);
+			Boolean result = utilityService.removeAnnouncement(request, aId);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
 
 }

@@ -98,4 +98,6 @@ public interface UtilityService {
 	public Announcement createAnnouncement(HttpServletRequest request, Announcement announcementData);
 
 	public List<Announcement> getAnnouncementData(HttpServletRequest request);
+
+	public Boolean removeAnnouncement(HttpServletRequest request, Long aId);
 }

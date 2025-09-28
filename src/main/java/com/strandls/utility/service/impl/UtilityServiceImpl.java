@@ -1176,5 +1176,23 @@ public class UtilityServiceImpl implements UtilityService {
 			return null;
 		}
 	}
+	
+	@Override
+	public Boolean removeAnnouncement(HttpServletRequest request, Long aId) {
+		try {
+			List<Announcement> announcements = announcementDao.findByAnnouncemntId(aId);
+			if (announcements == null) {
+				logger.warn("Announcement with ID {} not found for deletion.", aId);
+				return false;
+			}
+			for (Announcement translation : announcements) {
+				announcementDao.delete(translation);
+			}
+			return true;
+		} catch (Exception e) {
+			logger.error("Error while deleting announcement with ID {}: {}", aId, e.getMessage(), e);
+			return false;
+		}
+	}
 
 }
