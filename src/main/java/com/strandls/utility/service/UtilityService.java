@@ -103,5 +103,5 @@ public interface UtilityService {
 
 	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement editData);
 
-	public Announcement getActiveAnnouncement(HttpServletRequest request);
+	public List<Announcement> getActiveAnnouncement(HttpServletRequest request);
 }

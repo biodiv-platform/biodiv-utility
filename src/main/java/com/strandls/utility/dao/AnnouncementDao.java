@@ -46,13 +46,13 @@ public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public Announcement getActiveAnnouncemntInfo() {
-		Announcement result = null;
+	public List<Announcement> getActiveAnnouncemntInfo() {
+		List<Announcement> result = null;
 		String qry = "from  Announcement where enabled is true";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<Announcement> query = session.createQuery(qry);
-			result = query.getResultList().get(0);
+			result = query.getResultList();
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {

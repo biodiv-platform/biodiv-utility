@@ -1233,16 +1233,30 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 	
 	@Override
-	public Announcement getActiveAnnouncement(HttpServletRequest request) {
+	public List<Announcement> getActiveAnnouncement(HttpServletRequest request) {
 		try {
-			Announcement announcement = announcementDao.getActiveAnnouncemntInfo();
-			Map<Long, String> translations = new HashMap<>();
-			List<Announcement> announcementTranslations = announcementDao.findByAnnouncemntId(announcement.getAnnouncementId());
-			for (Announcement translation: announcementTranslations) {
-				translations.put(translation.getLanguageId(), translation.getDescription());
+			List<Announcement> announcementData = new ArrayList<>();
+			Map<Long, Integer> announcementIndexMapping = new HashMap<>();
+			List<Announcement> announcements = announcementDao.getActiveAnnouncemntInfo();
+			for (Announcement announcement : announcements) {
+				Long aId = announcement.getAnnouncementId();
+				if (!announcementIndexMapping.keySet().contains(aId)) {
+					announcementIndexMapping.put(aId, announcementIndexMapping.size());
+					Map<Long, String> translations = new HashMap<>();
+					translations.put(announcement.getLanguageId(), announcement.getDescription());
+					announcement.setTranslations(translations);
+					announcementData.add(announcement);
+				} else {
+					int targetIndex = announcementIndexMapping.get(aId);
+					Announcement targetAnnouncement = announcementData.get(targetIndex);
+					
+					Map<Long, String> translationsMap = targetAnnouncement.getTranslations();
+					translationsMap.put(announcement.getLanguageId(), announcement.getDescription());
+
+					targetAnnouncement.setTranslations(translationsMap);
+				}
 			}
-			announcement.setTranslations(translations);
-			return announcement;
+			return announcementData;
 		} catch (Exception e) {
 			logger.error("Failed to get active announcement : {}", e.getMessage(), e);
 			return null;

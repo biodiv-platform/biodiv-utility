@@ -762,7 +762,7 @@ public class UtilityController {
 	@ApiResponses(value = { @ApiResponse(code =	 400, message = "unable to fetch the data", response = String.class) })
 	public Response getActiveAnnouncement(@Context HttpServletRequest request) {
 		try {
-			Announcement result = utilityService.getActiveAnnouncement(request);
+			List<Announcement> result = utilityService.getActiveAnnouncement(request);
 			return Response.status(Status.OK).entity(result).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
