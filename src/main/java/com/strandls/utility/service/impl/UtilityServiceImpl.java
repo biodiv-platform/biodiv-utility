@@ -1153,7 +1153,7 @@ public class UtilityServiceImpl implements UtilityService {
 			Map<Long, Integer> announcementIndexMapping = new HashMap<>();
 			List<Announcement> announcements = announcementDao.findAll();
 			for (Announcement announcement : announcements) {
-				Long aId = announcement.getAnnouncementId();
+				Long aId = announcement.getId();
 				if (!announcementIndexMapping.keySet().contains(aId)) {
 					announcementIndexMapping.put(aId, announcementIndexMapping.size());
 					Map<Long, String> translations = new HashMap<>();
