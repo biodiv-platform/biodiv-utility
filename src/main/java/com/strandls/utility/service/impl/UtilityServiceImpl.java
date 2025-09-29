@@ -1194,5 +1194,42 @@ public class UtilityServiceImpl implements UtilityService {
 			return false;
 		}
 	}
+	
+	@Override
+	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement announcementData) {
+		try {
+			Map<Long, String> translations = new HashMap<>();
+			Map<Long, String> editTranslationsData = announcementData.getTranslations();
+			List<Announcement> announcementTranslations = announcementDao.findByAnnouncemntId(aId);
+			for (Announcement translation : announcementTranslations) {
+					translation.setBgColor(announcementData.getBgColor());
+					translation.setColor(announcementData.getColor());
+					translation.setDescription(editTranslationsData.get(translation.getLanguageId()));
+					translation.setEnabled(announcementData.getEnabled());
+					translation = announcementDao.update(translation);
+					translations.put(translation.getLanguageId(), editTranslationsData.get(translation.getLanguageId()));
+					editTranslationsData.remove(translation.getLanguageId());
+			}
+			for (Entry<Long, String> editTranslation: editTranslationsData.entrySet()) {
+				Announcement announcement = new Announcement();
+				announcement.setDescription(editTranslation.getValue());
+				announcement.setLanguageId(editTranslation.getKey());
+				announcement.setColor(announcementData.getColor());
+				announcement.setBgColor(announcementData.getBgColor());
+				announcement.setEnabled(announcementData.getEnabled());
+				announcement.setId(null);
+				announcement.setAnnouncementId(aId);
+				announcement = announcementDao.save(announcement);
+				translations.put(editTranslation.getKey(), editTranslation.getValue());
+				
+			}
+			announcementData.setTranslations(translations);
+			return announcementData;
+
+		} catch (Exception e) {
+			logger.error("Failed to edit annnouncement with ID {}: {}", aId, e.getMessage(), e);
+			return null;
+		}
+	}
 
 }

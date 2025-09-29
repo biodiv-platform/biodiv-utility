@@ -725,5 +725,34 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+	
+	@PUT
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.EDIT + "/{announcementId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit mini announcement data", notes = "return announcement data", response = Map.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editAnnouncement(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId,
+			@ApiParam(name = "editData") Announcement editData) {
+		try {
+			if (announcementId == null) {
+				return Response.status(Status.BAD_REQUEST).entity("announcemnt Id cannot be null").build();
+			}
+			Long aId = Long.parseLong(announcementId);
+			Announcement result = utilityService.editAnnouncement(request, aId, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 
 }
