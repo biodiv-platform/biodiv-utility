@@ -102,4 +102,6 @@ public interface UtilityService {
 	public Boolean removeAnnouncement(HttpServletRequest request, Long aId);
 
 	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement editData);
+
+	public Announcement getActiveAnnouncement(HttpServletRequest request);
 }

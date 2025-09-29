@@ -1231,5 +1231,22 @@ public class UtilityServiceImpl implements UtilityService {
 			return null;
 		}
 	}
+	
+	@Override
+	public Announcement getActiveAnnouncement(HttpServletRequest request) {
+		try {
+			Announcement announcement = announcementDao.getActiveAnnouncemntInfo();
+			Map<Long, String> translations = new HashMap<>();
+			List<Announcement> announcementTranslations = announcementDao.findByAnnouncemntId(announcement.getAnnouncementId());
+			for (Announcement translation: announcementTranslations) {
+				translations.put(translation.getLanguageId(), translation.getDescription());
+			}
+			announcement.setTranslations(translations);
+			return announcement;
+		} catch (Exception e) {
+			logger.error("Failed to get active announcement : {}", e.getMessage(), e);
+			return null;
+		}
+	}
 
 }

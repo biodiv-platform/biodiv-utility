@@ -45,21 +45,21 @@ public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 		return result;
 	}
 
-	/*@SuppressWarnings("unchecked")
-	public List<Announcement> getAllAnnouncemntInfo() {
-		List<MiniGallerySlider> result = null;
-		String qry = "from  MiniGallerySlider where galleryId = :galleryId and is_truncated is true order by display_order asc";
+	@SuppressWarnings("unchecked")
+	public Announcement getActiveAnnouncemntInfo() {
+		Announcement result = null;
+		String qry = "from  Announcement where enabled is true";
 		Session session = sessionFactory.openSession();
 		try {
-			Query<MiniGallerySlider> query = session.createQuery(qry);
-			result = query.getResultList();
+			Query<Announcement> query = session.createQuery(qry);
+			result = query.getResultList().get(0);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 		} finally {
 			session.close();
 		}
 		return result;
-	}*/
+	}
 	
 	@SuppressWarnings("unchecked")
 	public List<Announcement> findByAnnouncemntId(Long aId) {
