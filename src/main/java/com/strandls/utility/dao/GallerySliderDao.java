@@ -45,8 +45,8 @@ public class GallerySliderDao extends AbstractDAO<GallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<GallerySlider> getAllGallerySliderInfo(boolean isAdminList) {
 		List<GallerySlider> result = null;
-		String qry = isAdminList ? "from  GallerySlider order by display_order asc"
-				: "from  GallerySlider where is_truncated is true order by display_order asc";
+		String qry = isAdminList ? "from  GallerySlider order by displayOrder asc"
+				: "from  GallerySlider where truncated = true order by displayOrder asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GallerySlider> query = session.createQuery(qry);

@@ -39,7 +39,7 @@ public class GalleryConfigDao extends AbstractDAO<GalleryConfig, Long> {
 	public List<GalleryConfig> getAllMiniSlider(boolean isAdminList) {
 		List<GalleryConfig> result = null;
 		String qry = isAdminList ? "from  GalleryConfig order by id asc"
-				: "from  GalleryConfig where is_active is true order by id asc";
+				: "from  GalleryConfig where isActive = true order by id asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<GalleryConfig> query = session.createQuery(qry);

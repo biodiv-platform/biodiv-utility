@@ -48,8 +48,8 @@ public class MiniGallerySliderDao extends AbstractDAO<MiniGallerySlider, Long> {
 	@SuppressWarnings("unchecked")
 	public List<MiniGallerySlider> getAllGallerySliderInfo(boolean isAdminList, Long galleryId) {
 		List<MiniGallerySlider> result = null;
-		String qry = isAdminList ? "from  MiniGallerySlider where galleryId = :galleryId order by display_order asc"
-				: "from  MiniGallerySlider where galleryId = :galleryId and is_truncated is true order by display_order asc";
+		String qry = isAdminList ? "from  MiniGallerySlider where galleryId = :galleryId order by displayOrder asc"
+				: "from  MiniGallerySlider where galleryId = :galleryId and truncated = true order by displayOrder asc";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<MiniGallerySlider> query = session.createQuery(qry);
