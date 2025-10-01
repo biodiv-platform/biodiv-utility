@@ -29,6 +29,7 @@ import com.strandls.activity.pojo.MailData;
 import com.strandls.authentication_utility.filter.ValidateUser;
 import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.utility.ApiConstants;
+import com.strandls.utility.pojo.Announcement;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
@@ -664,5 +665,109 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+	
+	@POST
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.ANNOUNCEMENT + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+
+	@ApiOperation(value = "Creates an announcement", notes = "Return created announcement", response = Map.class)
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create announcement", response = String.class)})
+
+	public Response createAnnouncement(@Context HttpServletRequest request, @ApiParam(name = "announcementData") Announcement announcementData) {
+		try {
+			Announcement result = utilityService.createAnnouncement(request, announcementData);
+			if (result!=null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@GET
+	@Path(ApiConstants.ANNOUNCEMENT+ApiConstants.ALL)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Get announcements data", notes = "Return announcements data", response = List.class)
+	@ApiResponses(value = { @ApiResponse(code =	 400, message = "unable to fetch the data", response = String.class) })
+	public Response getAnnouncementData(@Context HttpServletRequest request) {
+		try {
+			List<Announcement> result = utilityService.getAnnouncementData(request);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@DELETE
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.REMOVE + "/{announcementId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Delete announcement data", notes = "return if success", response = Boolean.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
+
+	public Response removeAnnouncementData(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId) {
+		try {
+			Long aId = Long.parseLong(announcementId);
+			Boolean result = utilityService.removeAnnouncement(request, aId);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@PUT
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.EDIT + "/{announcementId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit mini announcement data", notes = "return announcement data", response = Map.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response editAnnouncement(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId,
+			@ApiParam(name = "editData") Announcement editData) {
+		try {
+			if (announcementId == null) {
+				return Response.status(Status.BAD_REQUEST).entity("announcemnt Id cannot be null").build();
+			}
+			Long aId = Long.parseLong(announcementId);
+			Announcement result = utilityService.editAnnouncement(request, aId, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+	
+	@GET
+	@Path(ApiConstants.ANNOUNCEMENT+ApiConstants.ACTIVE)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Get active announcement", notes = "Return announcement data", response = List.class)
+	@ApiResponses(value = { @ApiResponse(code =	 400, message = "unable to fetch the data", response = String.class) })
+	public Response getActiveAnnouncement(@Context HttpServletRequest request) {
+		try {
+			List<Announcement> result = utilityService.getActiveAnnouncement(request);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 
 }
