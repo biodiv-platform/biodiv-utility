@@ -496,11 +496,7 @@ public class UtilityServiceImpl implements UtilityService {
 		List<Long> uniqueAuthorIds = galleryData.stream().map(GallerySlider::getAuthorId).filter(Objects::nonNull)
 				.distinct().collect(Collectors.toList());
 		try {
-			// Convert List<Long> to List<Integer>
-			List<Integer> authorIdIntegers = uniqueAuthorIds.stream()
-					.map(Math::toIntExact)
-					.collect(Collectors.toList());
-			List<User> users = userService.getUserBulk(authorIdIntegers);
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
 			Map<String, User> userMap = users.stream()
 					.collect(Collectors.toMap(user -> user.getId().toString(), Function.identity()));
 			Map<Long, Integer> GalleryIndexMapping = new HashMap<>();
@@ -548,11 +544,7 @@ public class UtilityServiceImpl implements UtilityService {
 		List<Long> uniqueAuthorIds = sliders.stream().map(MiniGallerySlider::getAuthorId).filter(Objects::nonNull)
 				.distinct().collect(Collectors.toList());
 		try {
-			// Convert List<Long> to List<Integer>
-			List<Integer> authorIdIntegers = uniqueAuthorIds.stream()
-					.map(Math::toIntExact)
-					.collect(Collectors.toList());
-			List<User> users = userService.getUserBulk(authorIdIntegers);
+			List<User> users = userService.getUserBulk(uniqueAuthorIds);
 			Map<String, User> userMap = users.stream()
 					.collect(Collectors.toMap(user -> user.getId().toString(), Function.identity()));
 			Map<Long, Integer> GalleryIndexMapping = new HashMap<>();
