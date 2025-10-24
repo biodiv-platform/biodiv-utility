@@ -1469,7 +1469,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.showText(speciesData.getBadge().equals("ACCEPTED")?"Accepted":speciesData.getBadge().equals("SYNONYM")?"Synonym":"Help Identify");
 		cs.endText();
 		
-		addImage(document, page, "/app/data/biodiv/sgroup/Plants_th.jpg", 40, currentY-badgeWidth - 10, 80, 80);
+		addImage(document, page, "/app/data/biodiv/sgroup/Plants_gall_th.jpg", 40, currentY-badgeWidth - 10, 80, 80);
 
 		currentY = PAGE_HEIGHT - bannerHeight;
 
