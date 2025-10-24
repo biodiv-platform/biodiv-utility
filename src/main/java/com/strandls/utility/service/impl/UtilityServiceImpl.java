@@ -1432,7 +1432,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.addRect(0, PAGE_HEIGHT - bannerHeight, PAGE_WIDTH, bannerHeight);
 		cs.fill();
 
-		addImage(document, page, "/app/data/biodiv/logo/IBP.png", 0, currentY -20, 128, 60);
+		addImage(document, page, "/app/data/biodiv/logo/IBP.png", 0, currentY -100, 128, 60);
 
 		cs.setNonStrokingColor(BLACK);
 		cs.beginText();
