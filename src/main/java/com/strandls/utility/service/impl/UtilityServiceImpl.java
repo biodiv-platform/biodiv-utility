@@ -1425,48 +1425,51 @@ public class UtilityServiceImpl implements UtilityService {
 	private static float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData) throws Exception {
 		float bannerHeight = (splitTextIntoLines(speciesData.getTitle(), PDType1Font.HELVETICA_BOLD_OBLIQUE, 32,
-				PAGE_WIDTH - 80).size() * 35) + 20 + 50;
+				PAGE_WIDTH - 80).size() * 35) + 50+80+80;
 
 		// Solid background color - changed from GRAY_200
-		cs.setNonStrokingColor(new Color(240, 245, 250));
+		cs.setNonStrokingColor(new Color(199, 212, 224));
 		cs.addRect(0, PAGE_HEIGHT - bannerHeight, PAGE_WIDTH, bannerHeight);
 		cs.fill();
 
-		addImage(document, page, "/app/data/biodiv/logo/IBP.png", 0, currentY -100, 128, 60);
+		//addImage(document, page, "/app/data/biodiv/logo/IBP.png", 0, currentY -50, 128, 60);
+		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY -70, 128, 60);
 
 		cs.setNonStrokingColor(BLACK);
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA, 14);
-		cs.newLineAtOffset(MARGIN+128, currentY - 20);
+		cs.newLineAtOffset(MARGIN+138, currentY - 45);
 		cs.showText("India Biodiversity Portal");
 		cs.endText();
 
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA, 14);
-		cs.newLineAtOffset(MARGIN + CONTENT_WIDTH - 80, currentY - 20);
+		cs.newLineAtOffset(MARGIN + CONTENT_WIDTH - 80, currentY - 45);
 		String formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 		cs.showText(formattedDate);
 		cs.endText();
 
 		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), PDType1Font.HELVETICA_BOLD_OBLIQUE, 32, 40,
-				PAGE_HEIGHT - 60, PAGE_WIDTH - 80, 35, null);
+				PAGE_HEIGHT - 110, PAGE_WIDTH - 80, 35, null);
 
 		float badgeX = 40;
 		float badgeY = currentY;
 		float badgeWidth = 80;
-		float badgeHeight = 20;
+		float badgeHeight = 16;
 
 		// Badge background - changed color
-		cs.setNonStrokingColor(new Color(203, 255, 232));
+		cs.setNonStrokingColor(speciesData.getBadge().equals("ACCEPTED")?new Color(220, 252, 231):speciesData.getBadge().equals("SYNONYM")?new Color(243, 232, 255):new Color(254, 226, 226));
 		cs.addRect(badgeX, badgeY, badgeWidth, badgeHeight);
 		cs.fill();
 
-		cs.setNonStrokingColor(new Color(0, 140, 68));
+		cs.setNonStrokingColor(speciesData.getBadge().equals("ACCEPTED")?new Color(17, 105, 50):speciesData.getBadge().equals("SYNONYM")?new Color(100, 27, 163):new Color(153, 25, 25));
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA, 11);
 		cs.newLineAtOffset(badgeX + 8, badgeY + 5);
-		cs.showText(speciesData.getBadge());
+		cs.showText(speciesData.getBadge().equals("ACCEPTED")?"Accepted":speciesData.getBadge().equals("SYNONYM")?"Synonym":"Help Identify");
 		cs.endText();
+		
+		addImage(document, page, "/app/data/biodiv/sgroup/"+speciesData.getSpeciesGroup()+"_th.jpg", 40, currentY-badgeWidth - 10, 80, 80);
 
 		currentY = PAGE_HEIGHT - bannerHeight;
 
@@ -1620,19 +1623,6 @@ public class UtilityServiceImpl implements UtilityService {
 
 		float headerHeight = 35;
 
-		// Section header background - changed color
-		/*
-		 * cs.setNonStrokingColor(new Color(225, 225, 225)); cs.addRect(MARGIN,
-		 * curretLeftY - headerHeight, width, headerHeight); cs.fill();
-		 */
-
-		// Bottom border - changed color
-		cs.setStrokingColor(BLACK);
-		cs.setLineWidth(2);
-		cs.moveTo(MARGIN, curretLeftY - headerHeight);
-		cs.lineTo(MARGIN + width, curretLeftY - headerHeight);
-		cs.stroke();
-
 		cs.setStrokingColor(new Color(220, 220, 220));
 		cs.setLineWidth(1);
 		cs.addRect(MARGIN, curretLeftY - headerHeight, width, headerHeight);
@@ -1740,7 +1730,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private static PageContext addTaxonomySection(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData, float currentLeftY) throws Exception {
 		float width = CONTENT_WIDTH;
-		float y = currentLeftY - 37;
+		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
@@ -1751,7 +1741,7 @@ public class UtilityServiceImpl implements UtilityService {
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
 			drawSectionCard(cs, "Taxonomy", 0, currentY);
-			y = currentY - 47;
+			y = currentY - 50;
 		} else {
 			drawSectionCard(cs, "Taxonomy", 0, sectionStartY);
 			y = y - 10;
@@ -1785,7 +1775,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private static PageContext addSynonymSection(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData, float currentLeftY) throws Exception {
 		float width = CONTENT_WIDTH;
-		float y = currentLeftY - 37;
+		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
@@ -1796,7 +1786,7 @@ public class UtilityServiceImpl implements UtilityService {
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
 			drawSectionCard(cs, "Synonyms", 0, currentY);
-			y = currentY - 47;
+			y = currentY - 50;
 		} else {
 			drawSectionCard(cs, "Synonyms", 0, sectionStartY);
 			y = y - 10;
@@ -1828,7 +1818,7 @@ public class UtilityServiceImpl implements UtilityService {
 			SpeciesDownload speciesData, float currentLeftY) throws Exception {
 		float i = 0;
 		float width = CONTENT_WIDTH;
-		float y = currentLeftY - 37;
+		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
@@ -1839,7 +1829,7 @@ public class UtilityServiceImpl implements UtilityService {
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
 			drawSectionCard(cs, "Common Names", 0, currentY);
-			y = currentY - 47;
+			y = currentY - 50;
 		} else {
 			drawSectionCard(cs, "Common Names", 0, sectionStartY);
 			y = y - 10;
@@ -1900,7 +1890,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private static PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesField speciesField, float currentLeftY) throws Exception {
-		float y = currentLeftY - 37;
+		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
@@ -1911,7 +1901,7 @@ public class UtilityServiceImpl implements UtilityService {
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
 			drawSectionCard(cs, speciesField.getName(), 0, currentY);
-			y = currentY - 47;
+			y = currentY - 50;
 		} else {
 			drawSectionCard(cs, speciesField.getName(), 0, sectionStartY);
 			y = y - 10;
@@ -1966,10 +1956,10 @@ public class UtilityServiceImpl implements UtilityService {
 				for (String line : lines) {
 				if (!line.isEmpty()) {
 					PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-							paragraph.startsWith("<h>") ? line.substring(3) : line,
-							paragraph.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, 11,
+							line.startsWith("<h>") ? line.substring(3) : line,
+							line.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, 11,
 							MARGIN + 25, y, width - 50, 16, new Color(255, 255, 255), null,
-							paragraph.startsWith("<h>") ? 10 : 5);
+							line.startsWith("<h>") ? 10 : 5);
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;

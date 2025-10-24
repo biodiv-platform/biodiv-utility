@@ -6,6 +6,7 @@ import java.util.Map;
 public class SpeciesDownload {
 
 	private String title;
+	private String speciesGroup;
 	private String badge;
 	private List<String> synonyms;
 	private List<BreadCrumb> taxonomy;
@@ -35,6 +36,14 @@ public class SpeciesDownload {
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+	
+	public String getSpeciesGroup() {
+		return speciesGroup;
+	}
+
+	public void setSpeciesGroup(String speciesGroup) {
+		this.speciesGroup = speciesGroup;
 	}
 	
 	public String getBadge() {
