@@ -24,6 +24,7 @@ import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
+import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 
@@ -104,4 +105,6 @@ public interface UtilityService {
 	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement editData);
 
 	public List<Announcement> getActiveAnnouncement(HttpServletRequest request);
+
+	public byte[] download(HttpServletRequest request, SpeciesDownload speciesData);
 }
