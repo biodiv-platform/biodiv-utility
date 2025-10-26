@@ -1464,11 +1464,11 @@ public class UtilityServiceImpl implements UtilityService {
 
 		// Draw text
 		contentStream.beginText();
-		contentStream.setFont(PDType1Font.TIMES_BOLD, 10);
+		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
 		contentStream.setNonStrokingColor(Color.DARK_GRAY);
 
 		// Center text approximately
-		float textWidth = PDType1Font.TIMES_BOLD.getStringWidth(text) / 1000 * 10;
+		float textWidth = PDType1Font.HELVETICA_BOLD.getStringWidth(text) / 1000 * 10;
 		float textX = x + (width - textWidth) / 2;
 		float textY = y + (height / 2) - 4; // Roughly center vertically
 
@@ -1479,7 +1479,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private static float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData) throws Exception {
-		float bannerHeight = (splitTextIntoLines(speciesData.getTitle(), PDType1Font.TIMES_BOLD, 32,
+		float bannerHeight = (splitTextIntoLines(speciesData.getTitle(), PDType1Font.HELVETICA_BOLD, 32,
 				PAGE_WIDTH - 80).size() * 35) + 50 + 80 + 80;
 
 		// Solid background color - changed from GRAY_200
@@ -1493,19 +1493,19 @@ public class UtilityServiceImpl implements UtilityService {
 
 		cs.setNonStrokingColor(BLACK);
 		cs.beginText();
-		cs.setFont(PDType1Font.TIMES_ROMAN, 14);
+		cs.setFont(PDType1Font.HELVETICA, 14);
 		cs.newLineAtOffset(MARGIN + 138, currentY - 45);
 		cs.showText("India Biodiversity Portal");
 		cs.endText();
 
 		cs.beginText();
-		cs.setFont(PDType1Font.TIMES_ROMAN, 14);
+		cs.setFont(PDType1Font.HELVETICA, 14);
 		cs.newLineAtOffset(MARGIN + CONTENT_WIDTH - 80, currentY - 45);
 		String formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 		cs.showText(formattedDate);
 		cs.endText();
 
-		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), PDType1Font.TIMES_BOLD, 32, 40,
+		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), PDType1Font.HELVETICA_BOLD, 32, 40,
 				PAGE_HEIGHT - 110, PAGE_WIDTH - 80, 35, null);
 
 		float badgeX = 40;
@@ -1522,7 +1522,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.setNonStrokingColor(speciesData.getBadge().equals("ACCEPTED") ? new Color(17, 105, 50)
 				: speciesData.getBadge().equals("SYNONYM") ? new Color(100, 27, 163) : new Color(153, 25, 25));
 		cs.beginText();
-		cs.setFont(PDType1Font.TIMES_ROMAN, 11);
+		cs.setFont(PDType1Font.HELVETICA, 11);
 		cs.newLineAtOffset(badgeX + 8, badgeY + 5);
 		cs.showText(speciesData.getBadge().equals("ACCEPTED") ? "Accepted"
 				: speciesData.getBadge().equals("SYNONYM") ? "Synonym" : "Help Identify");
@@ -1661,9 +1661,9 @@ public class UtilityServiceImpl implements UtilityService {
 	    Matcher matcher = pattern.matcher(line);
 
 	    // You'll need to load these fonts - adjust based on your available fonts
-	    PDFont boldFont = PDType1Font.TIMES_BOLD;
-	    PDFont italicFont = PDType1Font.TIMES_ITALIC;
-	    PDFont boldItalicFont = PDType1Font.TIMES_BOLD_ITALIC;
+	    PDFont boldFont = PDType1Font.HELVETICA_BOLD;
+	    PDFont italicFont = PDType1Font.HELVETICA_OBLIQUE;
+	    PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
 	    while (matcher.find()) {
 	        String boldText = matcher.group(2);
@@ -1819,7 +1819,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		cs.setNonStrokingColor(BLACK);
 		cs.beginText();
-		cs.setFont(PDType1Font.TIMES_BOLD, 13);
+		cs.setFont(PDType1Font.HELVETICA_BOLD, 13);
 		cs.newLineAtOffset(MARGIN + 15, curretLeftY - 22);
 		cs.showText(title);
 		cs.endText();
@@ -1854,7 +1854,7 @@ public class UtilityServiceImpl implements UtilityService {
 			// Draw "?" in center - changed color
 			cs.setNonStrokingColor(new Color(70, 170, 120));
 			cs.beginText();
-			cs.setFont(PDType1Font.TIMES_BOLD, 80);
+			cs.setFont(PDType1Font.HELVETICA_BOLD, 80);
 			cs.newLineAtOffset(circleCenterX - 20, circleCenterY - 25);
 			cs.showText("?");
 			cs.endText();
@@ -1862,9 +1862,9 @@ public class UtilityServiceImpl implements UtilityService {
 			// Caption - changed color
 			cs.setNonStrokingColor(new Color(160, 170, 180));
 			cs.beginText();
-			cs.setFont(PDType1Font.TIMES_ITALIC, 10);
+			cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 10);
 			String caption = "No image available - Placeholder shown";
-			float captionWidth = PDType1Font.TIMES_ITALIC.getStringWidth(caption) / 1000 * 10;
+			float captionWidth = PDType1Font.HELVETICA_OBLIQUE.getStringWidth(caption) / 1000 * 10;
 			cs.newLineAtOffset((PAGE_WIDTH - captionWidth) / 2, circleCenterY - 130);
 			cs.showText(caption);
 			cs.endText();
@@ -1940,7 +1940,7 @@ public class UtilityServiceImpl implements UtilityService {
 			Color rowColor = new Color(255, 255, 255);
 
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-					speciesData.getTaxonomy().get(i).getName(), PDType1Font.TIMES_ROMAN, 11, MARGIN + 165, y, width - 185,
+					speciesData.getTaxonomy().get(i).getName(), PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185,
 					16, rowColor, name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase(), 5, false);
 			page = context.page;
 			cs = context.contentStream;
@@ -1983,7 +1983,7 @@ public class UtilityServiceImpl implements UtilityService {
 			Color rowColor = i % 2 == 0 ? new Color(235, 242, 247) : new Color(255, 255, 255);
 
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesData.getSynonyms().get(i),
-					PDType1Font.TIMES_ROMAN, 11, MARGIN + 165, y, width - 185, 16, rowColor, "synonym", 5, false);
+					PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185, 16, rowColor, "synonym", 5, false);
 			page = context.page;
 			cs = context.contentStream;
 			y = context.yPosition;
@@ -2032,7 +2032,7 @@ public class UtilityServiceImpl implements UtilityService {
 				Color rowColor = i % 2 == 0 ? new Color(235, 242, 247) : new Color(255, 255, 255);
 
 				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, commonName,
-						PDType1Font.TIMES_ROMAN, 11, MARGIN + 165, y, width - 185, 16, rowColor, j == 0 ? language : null,
+						PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185, 16, rowColor, j == 0 ? language : null,
 						5, false);
 				page = context.page;
 				cs = context.contentStream;
@@ -2116,7 +2116,7 @@ public class UtilityServiceImpl implements UtilityService {
 		if (level != 0) {
 			// Changed background color
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesField.getName(),
-					PDType1Font.TIMES_BOLD, titleSize[level], MARGIN + 15, y, width - 30, 16,
+					PDType1Font.HELVETICA_BOLD, titleSize[level], MARGIN + 15, y, width - 30, 16,
 					new Color(250, 250, 250), null, 10, false);
 			page = context.page;
 			cs = context.contentStream;
@@ -2162,7 +2162,7 @@ public class UtilityServiceImpl implements UtilityService {
 				if (!paragraph.isEmpty()) {
 					PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
 							paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
-							paragraph.startsWith("<h>") ? PDType1Font.TIMES_BOLD : PDType1Font.TIMES_ROMAN, 11,
+							paragraph.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, 11,
 							MARGIN + 25, y, width - 50, 16, new Color(255, 255, 255), null, 5, true);
 					page = context.page;
 					cs = context.contentStream;
@@ -2171,7 +2171,7 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-					speciesField.getValues().get(i).getAttributions(), PDType1Font.TIMES_ROMAN, 9, MARGIN + 155, y,
+					speciesField.getValues().get(i).getAttributions(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
 					width - 175, 11, new Color(255, 255, 255), "Attributions", 5, true);
 			page = context.page;
 			cs = context.contentStream;
@@ -2180,7 +2180,7 @@ public class UtilityServiceImpl implements UtilityService {
 			float j = 0;
 
 			for (String contributor : speciesField.getValues().get(i).getContributor()) {
-				context = drawTextWithWordWrapAndOverflow(cs, document, page, contributor, PDType1Font.TIMES_ROMAN, 9,
+				context = drawTextWithWordWrapAndOverflow(cs, document, page, contributor, PDType1Font.HELVETICA, 9,
 						MARGIN + 155, y, width - 175, 11, new Color(255, 255, 255), j == 0 ? "Contributors" : null, 5,
 						true);
 				page = context.page;
@@ -2190,7 +2190,7 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesField.getValues().get(i).getLicense(),
-					PDType1Font.TIMES_ROMAN, 10, MARGIN + 155, y, width - 175, 16, new Color(255, 255, 255), "License", 5,
+					PDType1Font.HELVETICA, 10, MARGIN + 155, y, width - 175, 16, new Color(255, 255, 255), "License", 5,
 					true);
 			page = context.page;
 			cs = context.contentStream;
@@ -2240,7 +2240,7 @@ public class UtilityServiceImpl implements UtilityService {
 			List<String> names = entry.getValue();
 
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, language,
-					PDType1Font.TIMES_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
+					PDType1Font.HELVETICA_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
 					false);
 			page = context.page;
 			cs = context.contentStream;
@@ -2255,7 +2255,7 @@ public class UtilityServiceImpl implements UtilityService {
 				Color rowColor = new Color(255, 255, 255);
 
 				context = drawTextWithWordWrapAndOverflow(cs, document, page,
-						Integer.toString(j + 1) + ". " + commonName, PDType1Font.TIMES_ROMAN, 11, MARGIN + 15, y,
+						Integer.toString(j + 1) + ". " + commonName, PDType1Font.HELVETICA, 11, MARGIN + 15, y,
 						width - 30, 16, rowColor, null, 5, false);
 				page = context.page;
 				cs = context.contentStream;
@@ -2264,7 +2264,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 
 		PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, "Common references",
-				PDType1Font.TIMES_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
+				PDType1Font.HELVETICA_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
 				false);
 		page = context.page;
 		cs = context.contentStream;
