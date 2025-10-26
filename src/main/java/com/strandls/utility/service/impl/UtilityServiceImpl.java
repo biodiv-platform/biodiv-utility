@@ -1371,7 +1371,10 @@ public class UtilityServiceImpl implements UtilityService {
 			currentLeftY = ctx.yPosition;
 
 			if (speciesData.getChartImage() != null && !speciesData.getChartImage().isEmpty()) {
-				currentLeftY = addChartToPdf(document, contentStream, speciesData, MARGIN, currentLeftY);
+				ctx = addTemporalObservedOn(document, contentStream, page, speciesData, currentLeftY);
+				contentStream = ctx.contentStream;
+				page = ctx.page;
+				currentLeftY = ctx.yPosition;
 			}
 
 			contentStream.close();
@@ -2286,66 +2289,67 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
-	private float addChartToPdf(PDDocument document, PDPageContentStream contentStream, SpeciesDownload speciesData,
-			float margin, float yPosition) throws IOException {
+	private static PageContext addTemporalObservedOn(PDDocument document, PDPageContentStream cs, PDPage page,
+			SpeciesDownload speciesData, float currentLeftY) throws Exception {
+		float width = CONTENT_WIDTH;
+		float y = currentLeftY - 40;
+		float sectionStartY = currentLeftY;
 
-// Add chart title
-		contentStream.beginText();
-		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
-		contentStream.newLineAtOffset(margin, yPosition);
-		contentStream.showText("Temporal Distribution Chart");
-		contentStream.endText();
-		yPosition -= 20;
+		if (y < 0) {
+			cs.close();
+			PDPage newPage = new PDPage(PDRectangle.A4);
+			document.addPage(newPage);
+			page = newPage;
+			currentY = PAGE_HEIGHT;
+			cs = new PDPageContentStream(document, newPage);
+			drawSectionCard(cs, "Temporal Observed On", 0, currentY);
+			y = currentY - 50;
+		} else {
+			drawSectionCard(cs, "Temporal Observed On", 0, sectionStartY);
+			y = y - 10;
+		}
 
-		try {
-// Extract base64 data (remove data:image/png;base64, prefix if present)
-			String base64Image = speciesData.getChartImage();
-			if (base64Image.contains(",")) {
-				base64Image = base64Image.split(",")[1];
-			}
+		// Extract and decode base64 image
+		/*
+		 * String base64Image = speciesData.getChartImage(); if
+		 * (base64Image.contains(",")) { base64Image = base64Image.split(",")[1]; }
+		 * byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+		 * 
+		 * // Create and draw image PDImageXObject pdImage =
+		 * PDImageXObject.createFromByteArray(document, imageBytes, "chart");
+		 */
 
-// Decode base64 to bytes
-			byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+		if (speciesData.getChartImage() != null && !speciesData.getChartImage().trim().isEmpty()) {
+            try {
+                String imageData = speciesData.getChartImage();
+                if (imageData.contains(",")) {
+                    imageData = imageData.split(",")[1];
+                }
 
-// Create PDImageXObject from bytes
-			PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "chart");
+                byte[] imageBytes = Base64.getDecoder().decode(imageData);
+                PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "chart");
+                
+                // Calculate height maintaining aspect ratio
+                float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
+                float height = (CONTENT_WIDTH-30) * aspectRatio;
+                
+                addBase64Image(document, page, pdImage, MARGIN + 15, y - height, CONTENT_WIDTH - 30, height);
+            } catch (Exception e) {
+                drawFallbackRectangle(cs, MARGIN+15, y, CONTENT_WIDTH-30, 100, "Invalid image");
+            }
+		}
 
-// Calculate dimensions
-			float pdfWidth = PDRectangle.A4.getWidth() - (2 * margin);
-			float scale = pdfWidth / pdImage.getWidth();
-			float scaledHeight = pdImage.getHeight() * scale;
+		return new PageContext(page, cs, y - 10);
+	}
 
-// Check if we need a new page
-			if (yPosition - scaledHeight < 50) {
-// Create new page
-				contentStream.close();
-				PDPage newPage = new PDPage(PDRectangle.A4);
-				document.addPage(newPage);
-				contentStream = new PDPageContentStream(document, newPage);
-				yPosition = 750;
+	public static void addBase64Image(PDDocument document, PDPage page,PDImageXObject pdImage, float x, float y,
+			float width, float height) throws IOException {
 
-// Add chart title on new page
-				contentStream.beginText();
-				contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
-				contentStream.newLineAtOffset(margin, yPosition);
-				contentStream.showText("Temporal Distribution Chart");
-				contentStream.endText();
-				yPosition -= 20;
-			}
+		try (PDPageContentStream contentStream = new PDPageContentStream(document, page,
+				PDPageContentStream.AppendMode.APPEND, true)) {
 
-// Draw image in PDF
-			contentStream.drawImage(pdImage, margin, yPosition - scaledHeight, pdfWidth, scaledHeight);
+			contentStream.drawImage(pdImage, x, y, width, height);
 
-			return yPosition - scaledHeight - 20;
-
-		} catch (Exception e) {
-// If chart image processing fails, add error message and continue
-			contentStream.beginText();
-			contentStream.setFont(PDType1Font.HELVETICA, 10);
-			contentStream.newLineAtOffset(margin, yPosition);
-			contentStream.showText("Chart image could not be loaded");
-			contentStream.endText();
-			return yPosition - 20;
 		}
 	}
 
