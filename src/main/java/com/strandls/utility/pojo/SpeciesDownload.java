@@ -14,6 +14,7 @@ public class SpeciesDownload {
 	private List<String> conceptNames;
 	private List<SpeciesField> fieldData;
 	private Map<String, List<String>> references;
+	private String chartImage;
 
 	/**
 	 * 
@@ -102,4 +103,12 @@ public class SpeciesDownload {
 	public void setReferences(Map<String, List<String>> references) {
 		this.references = references;
 	}
+	
+	public String getChartImage() {
+        return chartImage;
+    }
+    
+    public void setChartImage(String chartImage) {
+        this.chartImage = chartImage;
+    }
 }

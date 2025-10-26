@@ -16,6 +16,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -1369,6 +1370,10 @@ public class UtilityServiceImpl implements UtilityService {
 			page = ctx.page;
 			currentLeftY = ctx.yPosition;
 
+			if (speciesData.getChartImage() != null && !speciesData.getChartImage().isEmpty()) {
+				currentLeftY = addChartToPdf(document, contentStream, speciesData, MARGIN, currentLeftY);
+			}
+
 			contentStream.close();
 
 			document.save(baos);
@@ -1652,47 +1657,48 @@ public class UtilityServiceImpl implements UtilityService {
 	 * NEW: Parse a line into formatted segments
 	 */
 	private static List<TextSegment> parseFormattedSegments(String line, PDFont baseFont, float fontSize)
-	        throws IOException {
-	    List<TextSegment> segments = new ArrayList<>();
+			throws IOException {
+		List<TextSegment> segments = new ArrayList<>();
 
-	    // Improved regex to handle consecutive formatted words
-	    // This pattern matches: **bold**, *italic*, or any text without asterisks
-	    Pattern pattern = Pattern.compile("(\\*\\*(.*?)\\*\\*)|(\\*([^*]+)\\*)|([^*]+)");
-	    Matcher matcher = pattern.matcher(line);
+		// Improved regex to handle consecutive formatted words
+		// This pattern matches: **bold**, *italic*, or any text without asterisks
+		Pattern pattern = Pattern.compile("(\\*\\*(.*?)\\*\\*)|(\\*([^*]+)\\*)|([^*]+)");
+		Matcher matcher = pattern.matcher(line);
 
-	    // You'll need to load these fonts - adjust based on your available fonts
-	    PDFont boldFont = PDType1Font.HELVETICA_BOLD;
-	    PDFont italicFont = PDType1Font.HELVETICA_OBLIQUE;
-	    PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
+		// You'll need to load these fonts - adjust based on your available fonts
+		PDFont boldFont = PDType1Font.HELVETICA_BOLD;
+		PDFont italicFont = PDType1Font.HELVETICA_OBLIQUE;
+		PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
-	    while (matcher.find()) {
-	        String boldText = matcher.group(2);
-	        String italicText = matcher.group(4);
-	        String normalText = matcher.group(5);
+		while (matcher.find()) {
+			String boldText = matcher.group(2);
+			String italicText = matcher.group(4);
+			String normalText = matcher.group(5);
 
-	        String segmentText;
-	        PDFont segmentFont = baseFont;
+			String segmentText;
+			PDFont segmentFont = baseFont;
 
-	        if (boldText != null) {
-	            segmentText = boldText;
-	            segmentFont = boldFont;
-	        } else if (italicText != null) {
-	            segmentText = italicText;
-	            segmentFont = baseFont.equals(boldFont) ? boldItalicFont : italicFont;
-	        } else {
-	            segmentText = normalText;
-	        }
+			if (boldText != null) {
+				segmentText = boldText;
+				segmentFont = boldFont;
+			} else if (italicText != null) {
+				segmentText = italicText;
+				segmentFont = baseFont.equals(boldFont) ? boldItalicFont : italicFont;
+			} else {
+				segmentText = normalText;
+			}
 
-	        // Skip empty segments
-	        if (segmentText != null && !segmentText.isEmpty()) {
-	            // Calculate width for this segment
-	            float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
-	            segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
-	        }
-	    }
+			// Skip empty segments
+			if (segmentText != null && !segmentText.isEmpty()) {
+				// Calculate width for this segment
+				float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
+				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
+			}
+		}
 
-	    return segments;
+		return segments;
 	}
+
 	/**
 	 * NEW: Helper class to represent formatted text segments
 	 */
@@ -1892,7 +1898,8 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.addRect(thumbX, thumbY, thumbWidth, thumbHeight);
 				cs.fill();
 
-				addImage(document, page, "/app/data/biodiv/sgroup/Plants_gall_th.jpg", thumbX, thumbY, thumbWidth, thumbHeight);
+				addImage(document, page, "/app/data/biodiv/sgroup/Plants_gall_th.jpg", thumbX, thumbY, thumbWidth,
+						thumbHeight);
 			}
 		}
 
@@ -2277,6 +2284,69 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.stroke();
 
 		return new PageContext(page, cs, y - 10);
+	}
+
+	private float addChartToPdf(PDDocument document, PDPageContentStream contentStream, SpeciesDownload speciesData,
+			float margin, float yPosition) throws IOException {
+
+// Add chart title
+		contentStream.beginText();
+		contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+		contentStream.newLineAtOffset(margin, yPosition);
+		contentStream.showText("Temporal Distribution Chart");
+		contentStream.endText();
+		yPosition -= 20;
+
+		try {
+// Extract base64 data (remove data:image/png;base64, prefix if present)
+			String base64Image = speciesData.getChartImage();
+			if (base64Image.contains(",")) {
+				base64Image = base64Image.split(",")[1];
+			}
+
+// Decode base64 to bytes
+			byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+
+// Create PDImageXObject from bytes
+			PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "chart");
+
+// Calculate dimensions
+			float pdfWidth = PDRectangle.A4.getWidth() - (2 * margin);
+			float scale = pdfWidth / pdImage.getWidth();
+			float scaledHeight = pdImage.getHeight() * scale;
+
+// Check if we need a new page
+			if (yPosition - scaledHeight < 50) {
+// Create new page
+				contentStream.close();
+				PDPage newPage = new PDPage(PDRectangle.A4);
+				document.addPage(newPage);
+				contentStream = new PDPageContentStream(document, newPage);
+				yPosition = 750;
+
+// Add chart title on new page
+				contentStream.beginText();
+				contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+				contentStream.newLineAtOffset(margin, yPosition);
+				contentStream.showText("Temporal Distribution Chart");
+				contentStream.endText();
+				yPosition -= 20;
+			}
+
+// Draw image in PDF
+			contentStream.drawImage(pdImage, margin, yPosition - scaledHeight, pdfWidth, scaledHeight);
+
+			return yPosition - scaledHeight - 20;
+
+		} catch (Exception e) {
+// If chart image processing fails, add error message and continue
+			contentStream.beginText();
+			contentStream.setFont(PDType1Font.HELVETICA, 10);
+			contentStream.newLineAtOffset(margin, yPosition);
+			contentStream.showText("Chart image could not be loaded");
+			contentStream.endText();
+			return yPosition - 20;
+		}
 	}
 
 }
