@@ -13,6 +13,7 @@ public class SpeciesDownload {
 	private Map<String, List<String>> commonNames;
 	private List<String> conceptNames;
 	private List<SpeciesField> fieldData;
+	private Map<String, List<String>> references;
 
 	/**
 	 * 
@@ -94,4 +95,11 @@ public class SpeciesDownload {
 		this.fieldData = fieldData;
 	}
 
+	public Map<String, List<String>> getReferences() {
+		return references;
+	}
+
+	public void setReferences(Map<String, List<String>> references) {
+		this.references = references;
+	}
 }

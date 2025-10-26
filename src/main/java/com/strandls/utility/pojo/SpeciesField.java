@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class SpeciesField {
+	private Long id;
     private String name;
     private List<SpeciesField> childField;
-    private List<String> values;
+    private List<FieldValue> values;
+    private List<Trait> traits;
 
     // Constructors
     public SpeciesField() {
@@ -14,6 +16,9 @@ public class SpeciesField {
     }
 
     // Getters and Setters
+    
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -21,6 +26,9 @@ public class SpeciesField {
     public List<SpeciesField> getChildField() { return childField; }
     public void setChildField(List<SpeciesField> childField) { this.childField = childField; }
 
-    public List<String> getValues() { return values; }
-    public void setValues(List<String> values) { this.values = values; }
+    public List<FieldValue> getValues() { return values; }
+    public void setValues(List<FieldValue> values) { this.values = values; }
+    
+    public List<Trait> getTraits() { return traits; }
+    public void setTraits(List<Trait> traits) { this.traits = traits; }
 }
