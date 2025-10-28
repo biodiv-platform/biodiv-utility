@@ -15,6 +15,10 @@ public class SpeciesDownload {
 	private List<SpeciesField> fieldData;
 	private Map<String, List<String>> references;
 	private String chartImage;
+	private String traitsChart;
+	private String observationMap;
+	private List<String> resourceData;
+	private List<String> documentMetaList;
 
 	/**
 	 * 
@@ -110,5 +114,37 @@ public class SpeciesDownload {
     
     public void setChartImage(String chartImage) {
         this.chartImage = chartImage;
+    }
+    
+    public String getTraitsChart() {
+        return traitsChart;
+    }
+    
+    public void setTraitsChart(String traitsChart) {
+        this.traitsChart = traitsChart;
+    }
+    
+    public String getObservationMap() {
+        return observationMap;
+    }
+    
+    public void setObservationMap(String observationMap) {
+        this.observationMap = observationMap;
+    }
+    
+    public List<String> getResourceData() {
+        return resourceData;
+    }
+    
+    public void setResourceData(List<String> resourceData) {
+        this.resourceData = resourceData;
+    }
+    
+    public List<String> getDocumentMetaList() {
+        return documentMetaList;
+    }
+    
+    public void setDocumentMetaList(List<String> documentMetaList) {
+        this.documentMetaList = documentMetaList;
     }
 }
