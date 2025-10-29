@@ -29,5 +29,10 @@
 		<mapping class="com.strandls.utility.pojo.Tags"/>
 		<mapping class="com.strandls.utility.pojo.TagLinks"/>
 		<mapping class="com.strandls.utility.pojo.Language"/>
+		<mapping class="com.strandls.utility.pojo.GalleryConfig"/>
+		<mapping class="com.strandls.utility.pojo.MiniGallerySlider"/>
+		<mapping class="com.strandls.utility.pojo.Habitat"/>
+		<mapping class="com.strandls.utility.pojo.GallerySlider"/>
+		<mapping class="com.strandls.utility.pojo.HomePageData"/>
 	</session-factory>
 </hibernate-configuration>
