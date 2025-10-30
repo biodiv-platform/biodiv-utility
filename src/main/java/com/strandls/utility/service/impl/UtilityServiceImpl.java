@@ -2219,7 +2219,8 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	private static String decodeHtmlEntities(String text) {
-		return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+		String cleanedText = text.replace("\t", "");
+		return cleanedText.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
 				.replace("&#39;", "'").replace("&nbsp;", " ").replace("&copy;", "(c)").replace("&reg;", "(r)")
 				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"");
 	}
