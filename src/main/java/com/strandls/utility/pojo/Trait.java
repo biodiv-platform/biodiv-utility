@@ -8,6 +8,7 @@ public class Trait {
     private String dataType;
     private Map<Long, String> options;
     private List<TraitValue> values;
+    private String units;
 
     // Constructors
     public Trait() {
@@ -25,5 +26,8 @@ public class Trait {
     
     public List<TraitValue> getValues() { return values; }
     public void setValues(List<TraitValue> values) { this.values = values; }
+    
+    public String getUnits() { return units; }
+    public void setUnits(String units) { this.units = units; }
 
 }

@@ -18,7 +18,7 @@ public class SpeciesDownload {
 	private String traitsChart;
 	private String observationMap;
 	private List<String> resourceData;
-	private List<String> documentMetaList;
+	private List<DocumentMeta> documentMetaList;
 
 	/**
 	 * 
@@ -140,11 +140,11 @@ public class SpeciesDownload {
         this.resourceData = resourceData;
     }
     
-    public List<String> getDocumentMetaList() {
+    public List<DocumentMeta> getDocumentMetaList() {
         return documentMetaList;
     }
     
-    public void setDocumentMetaList(List<String> documentMetaList) {
+    public void setDocumentMetaList(List<DocumentMeta> documentMetaList) {
         this.documentMetaList = documentMetaList;
     }
 }
