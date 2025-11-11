@@ -9,6 +9,7 @@ public class Trait {
     private Map<Long, String> options;
     private List<TraitValue> values;
     private String units;
+    private String icon;
 
     // Constructors
     public Trait() {
@@ -29,5 +30,8 @@ public class Trait {
     
     public String getUnits() { return units; }
     public void setUnits(String units) { this.units = units; }
+    
+    public String getIcon() { return icon; }
+    public void setIcon(String icon) { this.icon = icon; }
 
 }

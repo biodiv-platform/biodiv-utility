@@ -45,6 +45,10 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionGoTo;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionURI;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitDestination;
 import org.pac4j.core.profile.CommonProfile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1325,7 +1329,9 @@ public class UtilityServiceImpl implements UtilityService {
 			document.addPage(page);
 			PDPageContentStream contentStream = new PDPageContentStream(document, page);
 			
-			//Adding background colour to page
+			PDPage sourcePage = page;
+
+			// Adding background colour to page
 			contentStream.setNonStrokingColor(new Color(246, 250, 252));
 			contentStream.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 			contentStream.fill();
@@ -1337,7 +1343,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 			contentStream.close();
 
-			//Check if new page is needed
+			// Check if new page is needed
 			PageContext ctx = checkAndCreateNewPage(document, page, null, 200);
 			page = ctx.page;
 			contentStream = ctx.contentStream;
@@ -1345,6 +1351,21 @@ public class UtilityServiceImpl implements UtilityService {
 			addImageGallery(document, page, contentStream, speciesData);
 
 			float currentLeftY = currentY;
+
+			if (speciesData.getResourceData() != null && speciesData.getResourceData().size() > 1) {
+				contentStream.setNonStrokingColor(WHITE);
+				contentStream.beginText();
+				contentStream.setFont(PDType1Font.HELVETICA, 10);
+				contentStream.newLineAtOffset(CONTENT_WIDTH - 30, currentY + 30);
+				contentStream.showText("View More");
+				contentStream.endText();
+				
+				sourcePage = page;
+			}
+			
+			PDAnnotationLink link = new PDAnnotationLink();
+		    PDRectangle position = new PDRectangle(CONTENT_WIDTH - 30, currentY + 30, 50, 10);
+		    link.setRectangle(position);
 
 			ctx = addTaxonomySection(document, contentStream, page, speciesData, currentLeftY);
 			contentStream = ctx.contentStream;
@@ -1387,6 +1408,13 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (speciesData.getTraitsChart() != null && !speciesData.getTraitsChart().isEmpty()) {
 				ctx = addTraitsPerMonth(document, contentStream, page, speciesData, currentLeftY);
+				contentStream = ctx.contentStream;
+				page = ctx.page;
+				currentLeftY = ctx.yPosition;
+			}
+
+			if (speciesData.getResourceData() != null && speciesData.getResourceData().size() > 1) {
+				ctx = addAdditionalImages(document, contentStream, page, speciesData, currentLeftY, link, sourcePage);
 				contentStream = ctx.contentStream;
 				page = ctx.page;
 				currentLeftY = ctx.yPosition;
@@ -1449,8 +1477,8 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(currentPage, currentStream);
 	}
 
-	public static void addImage(PDDocument document, PDPage page, String imagePath, float x, float y, float height, Boolean fallback)
-			throws IOException {
+	public static void addImage(PDDocument document, PDPage page, String imagePath, float x, float y, float height,
+			Boolean fallback, Boolean align, float maxWidth) throws IOException {
 
 		File imageFile = new File(imagePath);
 
@@ -1463,19 +1491,28 @@ public class UtilityServiceImpl implements UtilityService {
 					PDImageXObject pdImage = PDImageXObject.createFromFile(imagePath, document);
 					float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 					float width = (float) height / aspectRatio;
+					if (align) {
+						x = x + (maxWidth - width) / 2;
+					}
 					contentStream.drawImage(pdImage, x, y, width, height);
 				} catch (Exception e) {
 					// If image loading fails
-					logger.error("Loading fails for image path: "+ imagePath);
+					logger.error("Loading fails for image path: " + imagePath);
 					if (fallback) {
-					drawFallbackRectangle(contentStream, x, y, height, height, "!");
+						if (align) {
+							x = x + (maxWidth - height) / 2;
+						}
+						drawFallbackRectangle(contentStream, x, y, height, height, "!");
 					}
 				}
 			} else {
 				// Draw fallback if file doesn't exist
-				logger.error("Image file doesn't exist: "+ imagePath);
+				logger.error("Image file doesn't exist: " + imagePath);
 				if (fallback) {
-				drawFallbackRectangle(contentStream, x, y, height, height, "!");
+					if (align) {
+						x = x + (maxWidth - height) / 2;
+					}
+					drawFallbackRectangle(contentStream, x, y, height, height, "!");
 				}
 			}
 		}
@@ -1507,7 +1544,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private static float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData) throws Exception {
-		//Divides text into lines based on width available
+		// Divides text into lines based on width available
 		float bannerHeight = (splitTextIntoLines(speciesData.getTitle(), PDType1Font.HELVETICA_BOLD, 32,
 				PAGE_WIDTH - 80).size() * 35) + 170;
 
@@ -1516,18 +1553,19 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.addRect(0, PAGE_HEIGHT - bannerHeight, PAGE_WIDTH, bannerHeight);
 		cs.fill();
 
-		//Adding Logo
-		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY - 70, 60, true);
+		// Adding Logo
+		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY - 70, 60, true, false,
+				CONTENT_WIDTH);
 
-		//Adding portal name
-		cs.setNonStrokingColor(new Color (33, 37, 41));
+		// Adding portal name
+		cs.setNonStrokingColor(new Color(33, 37, 41));
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA, 14);
-		cs.newLineAtOffset(MARGIN + 138, currentY - 45);
+		cs.newLineAtOffset(MARGIN + 158, currentY - 45);
 		cs.showText("India Biodiversity Portal");
 		cs.endText();
 
-		//Adding date of download
+		// Adding date of download
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA, 14);
 		cs.newLineAtOffset(MARGIN + CONTENT_WIDTH - 80, currentY - 45);
@@ -1535,7 +1573,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.showText(formattedDate);
 		cs.endText();
 
-		//Adding Species Name
+		// Adding Species Name
 		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), PDType1Font.HELVETICA_BOLD, 32, 40,
 				PAGE_HEIGHT - 110, PAGE_WIDTH - 80, 35, null);
 
@@ -1550,7 +1588,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.addRect(badgeX, badgeY, badgeWidth, badgeHeight);
 		cs.fill();
 
-		//Adding badge text
+		// Adding badge text
 		cs.setNonStrokingColor(speciesData.getBadge().equals("ACCEPTED") ? new Color(17, 105, 50)
 				: speciesData.getBadge().equals("SYNONYM") ? new Color(100, 27, 163) : new Color(153, 25, 25));
 		cs.beginText();
@@ -1560,8 +1598,10 @@ public class UtilityServiceImpl implements UtilityService {
 				: speciesData.getBadge().equals("SYNONYM") ? "Synonym" : "Help Identify");
 		cs.endText();
 
-		//Adding species group image
-		addImage(document, page, "/app/data/biodiv/sgroup/speciesGroups/"+speciesData.getSpeciesGroup().toLowerCase()+".png", 40, currentY - 50, 40, false);
+		// Adding species group image
+		addImage(document, page,
+				"/app/data/biodiv/sgroup/speciesGroups/" + speciesData.getSpeciesGroup().toLowerCase() + ".png", 40,
+				currentY - 50, 40, false, false, CONTENT_WIDTH);
 
 		currentY = PAGE_HEIGHT - bannerHeight;
 
@@ -1569,49 +1609,51 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	public static String convertHtmlToWordLevelMarkers(String text) {
-	    if (text == null) return null;
+		if (text == null)
+			return null;
 
-	    // Process bold first, then italic
-	    String step1 = processFormatting(text, "b", "strong", "**");
-	    String step2 = processFormatting(step1, "i", null, "*");
-	    
-	    return step2;
+		// Process bold first, then italic
+		String step1 = processFormatting(text, "b", "strong", "**");
+		String step2 = processFormatting(step1, "i", null, "*");
+
+		return step2;
 	}
 
 	private static String processFormatting(String text, String tag, String altTag, String marker) {
-	    String startTag = "<" + tag + ">";
-	    String endTag = "</" + tag + ">";
-	    
-	    String temp = text.replace(startTag, "〖START〗").replace(endTag, "〖END〗");
-	    
-	    if (altTag != null) {
-	        String altStartTag = "<" + altTag + ">";
-	        String altEndTag = "</" + altTag + ">";
-	        temp = temp.replace(altStartTag, "〖START〗").replace(altEndTag, "〖END〗");
-	    }
+		String startTag = "<" + tag + ">";
+		String endTag = "</" + tag + ">";
 
-	    StringBuilder result = new StringBuilder();
-	    String[] parts = temp.split("(〖START〗|〖END〗)");
-	    boolean inFormat = false;
+		String temp = text.replace(startTag, "〖START〗").replace(endTag, "〖END〗");
 
-	    for (String part : parts) {
-	        if (inFormat) {
-	            String[] words = part.split("(?<= )|(?= )");
-	            for (String word : words) {
-	                if (!word.trim().isEmpty() && !word.equals(" ")) {
-	                    result.append(marker).append(word).append(marker);
-	                } else {
-	                    result.append(word);
-	                }
-	            }
-	        } else {
-	            result.append(part);
-	        }
-	        inFormat = !inFormat;
-	    }
+		if (altTag != null) {
+			String altStartTag = "<" + altTag + ">";
+			String altEndTag = "</" + altTag + ">";
+			temp = temp.replace(altStartTag, "〖START〗").replace(altEndTag, "〖END〗");
+		}
 
-	    return result.toString();
+		StringBuilder result = new StringBuilder();
+		String[] parts = temp.split("(〖START〗|〖END〗)");
+		boolean inFormat = false;
+
+		for (String part : parts) {
+			if (inFormat) {
+				String[] words = part.split("(?<= )|(?= )");
+				for (String word : words) {
+					if (!word.trim().isEmpty() && !word.equals(" ")) {
+						result.append(marker).append(word).append(marker);
+					} else {
+						result.append(word);
+					}
+				}
+			} else {
+				result.append(part);
+			}
+			inFormat = !inFormat;
+		}
+
+		return result.toString();
 	}
+
 	public static List<String> splitTextIntoLines(String text, PDFont font, float fontSize, float maxWidth)
 			throws IOException {
 		List<String> lines = new ArrayList<>();
@@ -1628,21 +1670,25 @@ public class UtilityServiceImpl implements UtilityService {
 
 			// Calculate width without asterisks for accurate measurement
 			String testLineWithoutMarkers = testLine.replaceAll("\\*", "");
-			float testWidth = font.getStringWidth(testLineWithoutMarkers) / 1000 * fontSize;
-
-			if (testWidth < maxWidth) {
-				if (currentLine.length() > 0) {
-					currentLine.append(" ");
-				}
-				currentLine.append(word);
-			} else {
-				if (currentLine.length() > 0) {
-					lines.add(currentLine.toString());
-					currentLine = new StringBuilder(word);
+			try {
+				float testWidth = font.getStringWidth(testLineWithoutMarkers) / 1000 * fontSize;
+				if (testWidth < maxWidth) {
+					if (currentLine.length() > 0) {
+						currentLine.append(" ");
+					}
+					currentLine.append(word);
 				} else {
-					lines.add(word);
+					if (currentLine.length() > 0) {
+						lines.add(currentLine.toString());
+						currentLine = new StringBuilder(word);
+					} else {
+						lines.add(word);
+					}
 				}
+			} catch (IllegalArgumentException e) {
+				logger.error(e.toString());
 			}
+
 		}
 
 		if (currentLine.length() > 0) {
@@ -1654,20 +1700,20 @@ public class UtilityServiceImpl implements UtilityService {
 
 	public static float drawTextWithWordWrap(PDPageContentStream cs, String text, PDFont font, float fontSize, float x,
 			float y, float maxWidth, float lineHeight, Color color) throws IOException {
-		//Splits text into lines for managing overflow
+		// Splits text into lines for managing overflow
 		List<String> lines = splitTextIntoLines(text, font, fontSize, maxWidth);
 
 		float currentYPos = y;
 		for (String line : lines) {
 			if (color != null) {
-				//Adds background colour
+				// Adds background colour
 				cs.setNonStrokingColor(color);
 				cs.setLineWidth(1);
 				cs.addRect(MARGIN, currentYPos - 1.5f, CONTENT_WIDTH, lineHeight);
 				cs.fill();
 			}
 
-			//Adds formatting and draws each line
+			// Adds formatting and draws each line
 			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth);
 
 			currentYPos -= lineHeight;
@@ -1684,15 +1730,19 @@ public class UtilityServiceImpl implements UtilityService {
 
 		float currentX = startX;
 
-		for (TextSegment segment : segments) {
-			cs.beginText();
-			cs.setFont(segment.getFont(), fontSize);
-			cs.newLineAtOffset(currentX, y);
-			cs.showText(segment.getText());
-			cs.endText();
+		try {
+			for (TextSegment segment : segments) {
+				cs.beginText();
+				cs.setFont(segment.getFont(), fontSize);
+				cs.newLineAtOffset(currentX, y);
+				cs.showText(segment.getText());
+				cs.endText();
 
-			// Move X position for next segment
-			currentX += segment.getWidth();
+				// Move X position for next segment
+				currentX += segment.getWidth();
+			}
+		} catch (Exception e) {
+			logger.error(e.toString());
 		}
 	}
 
@@ -1767,7 +1817,7 @@ public class UtilityServiceImpl implements UtilityService {
 	public static PageContext drawTextWithWordWrapAndOverflow(PDPageContentStream cs, PDDocument document,
 			PDPage currentPage, String text, PDFont font, float fontSize, float x, float y, float maxWidth,
 			float lineHeight, Color color, String leftText, float paddingBottom, boolean speciesField,
-			boolean contributor, Color traitColor) throws IOException {
+			boolean contributor, Color traitColor, float level) throws IOException {
 		List<String> lines = List.of("");
 		if (!text.isEmpty()) {
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
@@ -1777,14 +1827,54 @@ public class UtilityServiceImpl implements UtilityService {
 		int i = 0;
 		for (String line : lines) {
 			if (currentYPos - lineHeight - (i == lines.size() - 1 ? paddingBottom : 0) < 0) {
-				cs.setNonStrokingColor(WHITE);
+				cs.setNonStrokingColor(color != null ? color : WHITE);
 				cs.addRect(MARGIN, 0, CONTENT_WIDTH, currentYPos + 14 + (i == 0 ? 5 : 0));
 				cs.fill();
 
-				if (leftText != null && speciesField) {
-					cs.setNonStrokingColor(new Color(240, 245, 250));
+				if (speciesField) {
+					cs.setNonStrokingColor(WHITE);
 					cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, currentYPos + 14 + (i == 0 ? 5 : 0));
 					cs.fill();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 15, currentYPos + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + 15, 0);
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH - 15, currentYPos + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
+					cs.stroke();
+				}
+
+				if (level != 0) {
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 10, currentYPos + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + 10, 0);
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH - 10, currentYPos + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+					cs.stroke();
+
+					if (level != 1) {
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + 13, currentYPos + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + 13, 0);
+						cs.stroke();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + CONTENT_WIDTH - 13, currentYPos + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + CONTENT_WIDTH - 13, 0);
+						cs.stroke();
+					}
 				}
 
 				cs.setStrokingColor(new Color(222, 226, 230));
@@ -1817,7 +1907,7 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.fill();
 
 				if (speciesField) {
-					cs.setNonStrokingColor(WHITE);
+					cs.setNonStrokingColor(new Color(240, 245, 250));
 					cs.setLineWidth(1);
 					cs.addRect(MARGIN + 15, currentYPos - 1.5f - (i == lines.size() - 1 ? paddingBottom : 0),
 							CONTENT_WIDTH - 30,
@@ -1834,12 +1924,58 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.fill();
 			}
 
-			if (leftText != null && speciesField) {
-				cs.setNonStrokingColor(new Color(240, 245, 250));
+			if (speciesField) {
+				cs.setNonStrokingColor(WHITE);
 				cs.setLineWidth(1);
-				cs.addRect(MARGIN + 15, currentYPos - 1.5f - (i == lines.size() - 1 ? 5 : 0), CONTENT_WIDTH - 30,
-						lineHeight + (i == 0 ? 5 : 0) + (i == lines.size() - 1 ? 5 : 0));
+				cs.addRect(MARGIN + 15,
+						currentYPos - 1.5f - (i == lines.size() - 1 ? leftText != null ? 5 : paddingBottom : 0),
+						CONTENT_WIDTH - 30, lineHeight + (i == 0 ? 5 : 0)
+								+ (i == lines.size() - 1 ? leftText != null ? 5 : paddingBottom : 0));
 				cs.fill();
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + 15, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+				cs.lineTo(MARGIN + 15,
+						currentYPos - 1.5f - (i == lines.size() - 1 ? leftText != null ? 5 : paddingBottom : 0));
+				cs.stroke();
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + CONTENT_WIDTH - 15, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+				cs.lineTo(MARGIN + CONTENT_WIDTH - 15,
+						currentYPos - 1.5f - (i == lines.size() - 1 ? leftText != null ? 5 : paddingBottom : 0));
+				cs.stroke();
+			}
+
+			if (level != 0) {
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + 10, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+				cs.lineTo(MARGIN + 10, currentYPos - 1.5f - (i == lines.size() - 1 ? paddingBottom : 0));
+				cs.stroke();
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + CONTENT_WIDTH - 10, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+				cs.lineTo(MARGIN + CONTENT_WIDTH - 10,
+						currentYPos - 1.5f - (i == lines.size() - 1 ? paddingBottom : 0));
+				cs.stroke();
+
+				if (level != 1) {
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 13, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + 13, currentYPos - 1.5f - (i == lines.size() - 1 ? paddingBottom : 0));
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH - 13, currentYPos - 1.5f + lineHeight + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 13,
+							currentYPos - 1.5f - (i == lines.size() - 1 ? paddingBottom : 0));
+					cs.stroke();
+				}
 			}
 
 			cs.setNonStrokingColor(BLACK);
@@ -1882,7 +2018,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		float headerHeight = 35;
 
-		cs.setNonStrokingColor(new Color(248, 249, 250));
+		cs.setNonStrokingColor(new Color(250, 248, 245));
 		cs.setLineWidth(1);
 		cs.addRect(MARGIN, curretLeftY - headerHeight, width, headerHeight);
 		cs.fill();
@@ -1892,7 +2028,7 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.addRect(MARGIN, curretLeftY - headerHeight, width, headerHeight);
 		cs.stroke();
 
-		cs.setNonStrokingColor(new Color (33, 37, 41) );
+		cs.setNonStrokingColor(new Color(33, 37, 41));
 		cs.beginText();
 		cs.setFont(PDType1Font.HELVETICA_BOLD, 13);
 		cs.newLineAtOffset(MARGIN + 15, curretLeftY - 22);
@@ -1906,12 +2042,12 @@ public class UtilityServiceImpl implements UtilityService {
 			SpeciesDownload species) throws Exception {
 
 		float galleryY = currentY - 360;
-		if (species.getResourceData() == null || species.getResourceData().size() < 1) {
-			// Dark background - changed color
-			cs.setNonStrokingColor(new Color(45, 55, 70));
-			cs.addRect(MARGIN, currentY - 360, CONTENT_WIDTH, 360);
-			cs.fill();
+		// Dark background - changed color
+		cs.setNonStrokingColor(new Color(45, 55, 70));
+		cs.addRect(MARGIN, currentY - 360, CONTENT_WIDTH, 360);
+		cs.fill();
 
+		if (species.getResourceData() == null || species.getResourceData().size() < 1) {
 			// Main circle placeholder
 			float circleRadius = 100;
 			float circleCenterX = PAGE_WIDTH / 2;
@@ -1942,41 +2078,47 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.newLineAtOffset((PAGE_WIDTH - captionWidth) / 2, circleCenterY - 130);
 			cs.showText(caption);
 			cs.endText();
+
+			currentY = galleryY - 10;
 		} else {
 			float galleryHeight = 360;
-			float images = species.getResourceData().size();
-			galleryY = currentY - galleryHeight - 60 - 10;
-			//Adding black background
-			cs.setNonStrokingColor(BLACK);
-			cs.addRect(MARGIN, galleryY, CONTENT_WIDTH, galleryHeight + 80);
-			cs.fill();
-			//Adding main gallery image
-			addImage(document, page, "/app/data/biodiv/img"+species.getResourceData().get(0), MARGIN, galleryY + 80,
-					galleryHeight, true);
-
-			// Thumbnail grid (4x1)
-			float thumbWidth = 100;
-			float thumbHeight = 60;
-			float thumbSpacing = 10;
-			float gridWidth = (thumbWidth * Math.min(images, 4)) + (thumbSpacing * (Math.min(images, 4) - 1));
-			float gridStartX = (PAGE_WIDTH - gridWidth) / 2;
-			float gridY = galleryY + 80;
-
-			// Changed thumbnail colors
-			cs.setNonStrokingColor(new Color(60, 75, 90));
-			cs.setStrokingColor(new Color(45, 55, 70));
-
-			for (int col = 0; col < Math.min(images, 4); col++) {
-				float thumbX = gridStartX + (col * (thumbWidth + thumbSpacing));
-				float thumbY = gridY - ((thumbHeight + thumbSpacing));
-
-				//Adding Background colour
-				cs.addRect(thumbX, thumbY, thumbWidth, thumbHeight);
-				cs.fill();
-
-				addImage(document, page, "/app/data/biodiv/img"+species.getResourceData().get(col), thumbX, thumbY, thumbHeight, true);
-			}
+			galleryY = currentY - galleryHeight - 10; // Adding black background
+			/*
+			 * cs.setNonStrokingColor(BLACK); cs.addRect(MARGIN, galleryY+70, CONTENT_WIDTH,
+			 * galleryHeight); cs.fill();
+			 */
+			// Adding main gallery image
+			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(0), MARGIN, galleryY + 20,
+					galleryHeight - 20, true, true, CONTENT_WIDTH);
 		}
+		/*
+		 * else { float galleryHeight = 360; float images =
+		 * species.getResourceData().size(); galleryY = currentY - galleryHeight - 60 -
+		 * 10; // Adding black background cs.setNonStrokingColor(BLACK);
+		 * cs.addRect(MARGIN, galleryY, CONTENT_WIDTH, galleryHeight + 80); cs.fill();
+		 * // Adding main gallery image addImage(document, page, "/app/data/biodiv/img"
+		 * + species.getResourceData().get(0), MARGIN, galleryY + 80, galleryHeight,
+		 * true, true, CONTENT_WIDTH);
+		 * 
+		 * // Thumbnail grid (4x1) float thumbWidth = 100; float thumbHeight = 60; float
+		 * thumbSpacing = 10; float gridWidth = (thumbWidth * Math.min(images, 4)) +
+		 * (thumbSpacing * (Math.min(images, 4) - 1)); float gridStartX = (PAGE_WIDTH -
+		 * gridWidth) / 2; float gridY = galleryY + 80;
+		 * 
+		 * // Changed thumbnail colors cs.setNonStrokingColor(BLACK);
+		 * cs.setStrokingColor(new Color(45, 55, 70));
+		 * 
+		 * for (int col = 0; col < Math.min(images, 4); col++) { float thumbX =
+		 * gridStartX + (col * (thumbWidth + thumbSpacing)); float thumbY = gridY -
+		 * ((thumbHeight + thumbSpacing));
+		 * 
+		 * // Adding Background colour cs.addRect(thumbX, thumbY, thumbWidth,
+		 * thumbHeight); cs.fill();
+		 * 
+		 * addImage(document, page, "/app/data/biodiv/img" +
+		 * species.getResourceData().get(col), thumbX, thumbY, thumbHeight, true, true,
+		 * thumbWidth); } }
+		 */
 
 		currentY = galleryY - 10;
 	}
@@ -2000,7 +2142,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
-			//Adding continuation background and left and right borders
+			// Adding continuation background and left and right borders
 			cs.setNonStrokingColor(WHITE);
 			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 			cs.fill();
@@ -2016,46 +2158,46 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
 			cs.stroke();
 			cs.close();
-			
-			//Adding new page
+
+			// Adding new page
 			PDPage newPage = new PDPage(PDRectangle.A4);
 			document.addPage(newPage);
 			page = newPage;
 			currentY = PAGE_HEIGHT;
 
-			//Adding background
+			// Adding background
 			cs = new PDPageContentStream(document, newPage);
 			cs.setNonStrokingColor(new Color(246, 250, 252));
 			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 			cs.fill();
-			//Adding SectionHeader
+			// Adding SectionHeader
 			drawSectionCard(cs, "Taxonomy", 0, currentY);
 			y = currentY - 50;
 		} else {
-			//Adding SectionHeader
+			// Adding SectionHeader
 			drawSectionCard(cs, "Taxonomy", 0, sectionStartY);
 			y = y - 10;
 		}
 
-		for (int i = 0; i < speciesData.getTaxonomy().size(); i++) {
+		for (int i = 1; i < speciesData.getTaxonomy().size(); i++) {
 
 			String name = speciesData.getTaxonomy().get(i).getRankName();
-			cs.setNonStrokingColor(new Color (33, 37, 41) );
+			cs.setNonStrokingColor(new Color(33, 37, 41));
 
 			// Changed row colors
 			Color rowColor = new Color(255, 255, 255);
 
-			//Adding row Content
+			// Adding row Content
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
 					speciesData.getTaxonomy().get(i).getName(), PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185,
 					16, rowColor, "*" + name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase(), 5, false,
-					false, null);
+					false, null, 0);
 			page = context.page;
 			cs = context.contentStream;
 			y = context.yPosition;
 		}
 
-		//Adding line at bottom
+		// Adding line at bottom
 		cs.setStrokingColor(new Color(222, 226, 230));
 		cs.setLineWidth(0.5f);
 		cs.moveTo(MARGIN, y + 15);
@@ -2072,7 +2214,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
-			//Adding continuation backgroung and borders
+			// Adding continuation backgroung and borders
 			cs.setNonStrokingColor(WHITE);
 			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 			cs.fill();
@@ -2093,7 +2235,7 @@ public class UtilityServiceImpl implements UtilityService {
 			page = newPage;
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
-			//Adding page backgrounds
+			// Adding page backgrounds
 			cs.setNonStrokingColor(new Color(246, 250, 252));
 			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 			cs.fill();
@@ -2105,21 +2247,21 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 
 		for (int i = 0; i < speciesData.getSynonyms().size(); i++) {
-			cs.setNonStrokingColor(new Color (33, 37, 41) );
+			cs.setNonStrokingColor(new Color(33, 37, 41));
 
 			// Changed row colors
 			Color rowColor = i % 2 == 0 ? new Color(240, 245, 250) : new Color(255, 255, 255);
 
-			//Row content
+			// Row content
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesData.getSynonyms().get(i),
 					PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185, 16, rowColor, "synonym", 5, false, false,
-					null);
+					null, 0);
 			page = context.page;
 			cs = context.contentStream;
 			y = context.yPosition;
 		}
 
-		//Bottom line
+		// Bottom line
 		cs.setStrokingColor(new Color(222, 226, 230));
 		cs.setLineWidth(0.5f);
 		cs.moveTo(MARGIN, y + 15);
@@ -2137,7 +2279,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
-			//Adding continuation background and borders
+			// Adding continuation background and borders
 			cs.setNonStrokingColor(WHITE);
 			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 			cs.fill();
@@ -2157,7 +2299,7 @@ public class UtilityServiceImpl implements UtilityService {
 			document.addPage(newPage);
 			page = newPage;
 			currentY = PAGE_HEIGHT;
-			//Adding page background
+			// Adding page background
 			cs = new PDPageContentStream(document, newPage);
 			cs.setNonStrokingColor(new Color(246, 250, 252));
 			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
@@ -2176,15 +2318,15 @@ public class UtilityServiceImpl implements UtilityService {
 			for (int j = 0; j < names.size(); j++) {
 				String commonName = names.get(j);
 
-				cs.setNonStrokingColor(new Color (33, 37, 41) );
+				cs.setNonStrokingColor(new Color(33, 37, 41));
 
 				// Changed row colors
 				Color rowColor = i % 2 == 0 ? new Color(240, 245, 250) : new Color(255, 255, 255);
 
-				//Adding row content
+				// Adding row content
 				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, commonName,
 						PDType1Font.HELVETICA, 11, MARGIN + 165, y, width - 185, 16, rowColor, j == 0 ? language : null,
-						5, false, false, null);
+						5, false, false, null, 0);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
@@ -2192,7 +2334,7 @@ public class UtilityServiceImpl implements UtilityService {
 			i = i + 1;
 		}
 
-		//Adding bottom line
+		// Adding bottom line
 		cs.setStrokingColor(new Color(222, 226, 230));
 		cs.setLineWidth(0.5f);
 		cs.moveTo(MARGIN, y + 15);
@@ -2232,7 +2374,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
-			//Adding continuation background and borders
+			// Adding continuation background and borders
 			cs.setNonStrokingColor(WHITE);
 			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 			cs.fill();
@@ -2253,11 +2395,11 @@ public class UtilityServiceImpl implements UtilityService {
 			page = newPage;
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
-			//Adding page background
+			// Adding page background
 			cs.setNonStrokingColor(new Color(246, 250, 252));
 			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 			cs.fill();
-			//Adding section card
+			// Adding section card
 			drawSectionCard(cs, speciesField.getName(), 0, currentY);
 			y = currentY - 50;
 		} else {
@@ -2270,7 +2412,7 @@ public class UtilityServiceImpl implements UtilityService {
 		page = ctx.page;
 		y = ctx.yPosition;
 
-		//Adding bottom border
+		// Adding bottom border
 		cs.setStrokingColor(new Color(222, 226, 230));
 		cs.setLineWidth(0.5f);
 		cs.moveTo(MARGIN, y + 15);
@@ -2285,11 +2427,11 @@ public class UtilityServiceImpl implements UtilityService {
 			throws Exception {
 		float width = CONTENT_WIDTH;
 		float y = currentLeftY;
-		float[] titleSize = { 15, 13, 10 };
+		float[] titleSize = { 15, 12, 10 };
 
-		cs.setNonStrokingColor(new Color (33, 37, 41) );
+		cs.setNonStrokingColor(new Color(33, 37, 41));
 
-		//Observation Map
+		// Observation Map
 		if (speciesField.getId() == 65) {
 			if (Map != null && !Map.trim().isEmpty()) {
 				try {
@@ -2302,12 +2444,14 @@ public class UtilityServiceImpl implements UtilityService {
 
 					// Calculate height maintaining aspect ratio
 
-					float height = 264;
-					float x = (CONTENT_WIDTH - 300) / 2;
+					float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
+					float imageWidth = CONTENT_WIDTH - 30;
+					float height = aspectRatio * imageWidth;
+					float x = (CONTENT_WIDTH - imageWidth) / 2;
 
 					if (y - height - 25 < 0) {
-						//Adding continuation borders and background
-						cs.setNonStrokingColor(WHITE);
+						// Adding continuation borders and background
+						cs.setNonStrokingColor(new Color(240, 245, 250));
 						cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 						cs.fill();
 
@@ -2328,17 +2472,17 @@ public class UtilityServiceImpl implements UtilityService {
 						page = newPage;
 						y = PAGE_HEIGHT - 10;
 						cs = new PDPageContentStream(document, newPage);
-						//Adding page background
+						// Adding page background
 						cs.setNonStrokingColor(new Color(246, 250, 252));
 						cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 						cs.fill();
 					}
 
-					//Adding map image
-					addBase64Image(document, page, pdImage, MARGIN + x, y - height, 300, height);
+					// Adding map image
+					addBase64Image(document, page, pdImage, MARGIN + x, y - height, imageWidth, height);
 
-					//Adding background and borders
-					cs.setNonStrokingColor(WHITE);
+					// Adding background and borders
+					cs.setNonStrokingColor(new Color(240, 245, 250));
 					cs.addRect(MARGIN, y - height - 25 + 15, CONTENT_WIDTH, height + 25);
 					cs.fill();
 
@@ -2366,27 +2510,45 @@ public class UtilityServiceImpl implements UtilityService {
 				// Adding title
 				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesField.getName(),
 						PDType1Font.HELVETICA_BOLD, titleSize[level], MARGIN + 15, y, width - 30, 16,
-						new Color(250, 250, 250), null, 10, false, false, null);
+						new Color(240, 245, 250), null, 10, false, false, null, level);
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(0.5f);
+				cs.moveTo(MARGIN + 10 + (level != 1 ? 3 : 0), y + 15);
+				cs.lineTo(MARGIN + width - 10 - (level != 1 ? 3 : 0), y + 15);
+				cs.stroke();
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
 			}
 
-			//Adding document Meta list
+			// Adding document Meta list
 			if (speciesField.getId() == 82) {
 				for (DocumentMeta doc : documentList) {
-					//Adding title
+					// Adding title
 					PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, doc.getTitle(),
-							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 15, y, width - 30, 16, new Color(250, 250, 250),
-							null, 30, false, false, null);
+							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 15, y, width - 30, 16, new Color(240, 245, 250),
+							null, 30, false, false, null, 0);
+
+					PDAnnotationLink link = new PDAnnotationLink();
+
+					PDRectangle position = new PDRectangle(MARGIN + 15, context.yPosition + 15 + 30, width - 30,
+							y - context.yPosition - 35);
+					link.setRectangle(position);
+
+					PDActionURI action = new PDActionURI();
+					action.setURI("http://localhost:3000/species/show/31369");
+					link.setAction(action);
+
+					page.getAnnotations().add(link);
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;
-					
-					//Adding author name
+
+					// Adding author name
 					drawFormattedLine(cs, doc.getUser(), PDType1Font.HELVETICA, 11, MARGIN + 40, y + 30, width - 30);
-					//Adding author image
-					addCircularImage(document, page, "/app/data/biodiv/users"+doc.getPic(), MARGIN + 25, y + 34, 16);
+					// Adding author image
+					addCircularImage(document, page, "/app/data/biodiv/users" + doc.getPic(), MARGIN + 25, y + 34, 16,
+							getInitials(doc.getUser()));
 				}
 			}
 
@@ -2394,8 +2556,8 @@ public class UtilityServiceImpl implements UtilityService {
 				// Trait name/title
 				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
 						trait.getName() + (trait.getDataType().equals("DATE") ? " (" + trait.getUnits() + ")" : ""),
-						PDType1Font.HELVETICA_BOLD, 11, MARGIN + 25, y, width - 50, 16, new Color(255, 255, 255), null,
-						5, false, false, null);
+						PDType1Font.HELVETICA_BOLD, 11, MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250), null,
+						5, false, false, null, level);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
@@ -2411,7 +2573,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 				for (int row = 0; row < rows; row++) {
 					if (y - 48 - 10 < 0) {
-						cs.setNonStrokingColor(WHITE);
+						cs.setNonStrokingColor(new Color(240, 245, 250));
 						cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 						cs.fill();
 
@@ -2427,6 +2589,18 @@ public class UtilityServiceImpl implements UtilityService {
 						cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
 						cs.stroke();
 
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + 10, y + 14);
+						cs.lineTo(MARGIN + 10, 0);
+						cs.stroke();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 14);
+						cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+						cs.stroke();
+
 						cs.close();
 						PDPage newPage = new PDPage(PDRectangle.A4);
 						document.addPage(newPage);
@@ -2438,9 +2612,21 @@ public class UtilityServiceImpl implements UtilityService {
 						cs.fill();
 					}
 					cs.setStrokingColor(new Color(222, 226, 230));
-					cs.setNonStrokingColor(WHITE);
+					cs.setNonStrokingColor(new Color(240, 245, 250));
 					cs.addRect(MARGIN, y - 58 + 15, CONTENT_WIDTH, 58);
 					cs.fill();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 10, y + 15);
+					cs.lineTo(MARGIN + 10, y - 58 + 15);
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 15);
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 10, y - 58 + 15);
+					cs.stroke();
 
 					for (int col = 0; col < 3; col++) {
 						int valueIndex = row * 3 + col;
@@ -2482,22 +2668,33 @@ public class UtilityServiceImpl implements UtilityService {
 								if (trait.getUnits().equals("MONTH")) {
 									text = sdfName.format(fromdate) + " - " + sdfName.format(todate);
 								} else {
-									text = yearFormat.format(fromdate)+" - "+yearFormat.format(todate);
+									text = yearFormat.format(fromdate) + " - " + yearFormat.format(todate);
 								}
 							}
 
 							List<String> lines = List.of("");
 							if (!text.isEmpty()) {
-								lines = splitTextIntoLines(text, PDType1Font.HELVETICA, 11, boxWidth - 10);
+								lines = splitTextIntoLines(text.split("\\|")[0], PDType1Font.HELVETICA, 11,
+										boxWidth - 10 - (text.split("\\|")[1] != null ? 45 : 0));
 							}
 
 							float textY = y - (48 - (Math.min(lines.size(), 3) * 16)) / 2;
 
-							cs.setNonStrokingColor(new Color (33, 37, 41));
+							cs.setNonStrokingColor(new Color(33, 37, 41));
 
 							for (int l = 0; l < (Math.min(lines.size(), 3)); l++) {
-								drawFormattedLine(cs, lines.get(l), PDType1Font.HELVETICA, 11, boxX + 5,
-										textY + 3.5f - l * 16, boxWidth - 10);
+								drawFormattedLine(cs, lines.get(l), PDType1Font.HELVETICA, 11,
+										boxX + 5 + (text.split("\\|")[1] != null ? 45 : 0), textY + 3.5f - l * 16,
+										boxWidth - 10 - (text.split("\\|")[1] != null ? 45 : 0));
+
+								if (text.split("\\|")[1] != null) {
+									cs.setNonStrokingColor(BLACK);
+									cs.addRect(boxX, y - 48 + 15, 45, 48);
+									cs.fill();
+
+									addImage(document, page, "/app/data/biodiv/traits" + text.split("\\|")[1], boxX,
+											y - 48 + 15, 48, true, true, 45);
+								}
 							}
 						}
 					}
@@ -2518,8 +2715,13 @@ public class UtilityServiceImpl implements UtilityService {
 				}
 
 			}
-			
+
 			for (int i = 0; i < speciesField.getValues().size(); i++) {
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(0.5f);
+				cs.moveTo(MARGIN + 15, y + 15);
+				cs.lineTo(MARGIN + width - 15, y + 15);
+				cs.stroke();
 				String plainText = convertHtmlToText(speciesField.getValues().get(i).getDescription());
 				String[] paragraphs = plainText.split("\n");
 				for (String paragraph : paragraphs) {
@@ -2527,7 +2729,8 @@ public class UtilityServiceImpl implements UtilityService {
 						PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
 								paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
 								paragraph.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, 11,
-								MARGIN + 25, y, width - 50, 16, new Color(255, 255, 255), null, 10, true, false, null);
+								MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null,
+								level);
 						page = context.page;
 						cs = context.contentStream;
 						y = context.yPosition;
@@ -2535,34 +2738,131 @@ public class UtilityServiceImpl implements UtilityService {
 				}
 
 				y = y + 5;
-				//Adding attributions
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.setLineCapStyle(1); // Round cap
+				cs.setLineDashPattern(new float[] { 2, 3 }, 0);
+				cs.moveTo(MARGIN + 15, y + 15);
+				cs.lineTo(MARGIN + width - 15, y + 15);
+				cs.stroke();
+
+				cs.setLineDashPattern(new float[] {}, 0);
+				// Adding attributions
+				List<String> attributionLines = splitTextIntoLines(speciesField.getValues().get(i).getAttributions(),
+						PDType1Font.HELVETICA, 9, width - 175);
+				int contributorLines = 0;
+				for (String contributor : speciesField.getValues().get(i).getContributor()) {
+					List<String> contriLines = splitTextIntoLines(contributor, PDType1Font.HELVETICA, 9, width - 175);
+					contributorLines += contriLines.size();
+				}
+
+				List<String> licenseLines = splitTextIntoLines(speciesField.getValues().get(i).getLicense(),
+						PDType1Font.HELVETICA, 9, width - 175);
+
+				if (y - (attributionLines.size() * 16) - 10 - ((16 + 10) * contributorLines)
+						- (licenseLines.size() * 16) - 20 < 0) {
+					cs.setNonStrokingColor(new Color(240, 245, 250));
+					cs.addRect(MARGIN, 0, CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.fill();
+					cs.setNonStrokingColor(WHITE);
+					cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.fill();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 15, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + 15, 0);
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
+					cs.stroke();
+
+					if (level != 0) {
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + 10, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + 10, 0);
+						cs.stroke();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+						cs.stroke();
+
+						if (level != 1) {
+							cs.setStrokingColor(new Color(222, 226, 230));
+							cs.setLineWidth(1);
+							cs.moveTo(MARGIN + 13, y - 5 + 14 + (i == 0 ? 5 : 0));
+							cs.lineTo(MARGIN + 13, 0);
+							cs.stroke();
+
+							cs.setStrokingColor(new Color(222, 226, 230));
+							cs.setLineWidth(1);
+							cs.moveTo(MARGIN + CONTENT_WIDTH - 13, y - 5 + 14 + (i == 0 ? 5 : 0));
+							cs.lineTo(MARGIN + CONTENT_WIDTH - 13, 0);
+							cs.stroke();
+						}
+					}
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN, 0);
+					cs.stroke();
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
+					cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+					cs.stroke();
+					cs.close();
+					PDPage newPage = new PDPage(PDRectangle.A4);
+					document.addPage(newPage);
+					page = newPage;
+					y = PAGE_HEIGHT - 16;
+					cs = new PDPageContentStream(document, newPage);
+					cs.setNonStrokingColor(new Color(246, 250, 252));
+					cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
+					cs.fill();
+				}
+
 				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
 						speciesField.getValues().get(i).getAttributions(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
-						width - 175, 16, new Color(255, 255, 255), "*Attributions", 5, true, false, null);
+						width - 175, 16, new Color(240, 245, 250), "*Attributions", 5, true, false, null, level);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
 
 				float j = 0;
-				//Adding Contributors
+				// Adding Contributors
 				for (String contributor : speciesField.getValues().get(i).getContributor()) {
 					context = drawTextWithWordWrapAndOverflow(cs, document, page, contributor, PDType1Font.HELVETICA, 9,
-							MARGIN + 155, y, width - 175, 16, new Color(255, 255, 255), j == 0 ? "*Contributors" : "",
-							5, true, false, null);
+							MARGIN + 155, y, width - 175, 16, new Color(240, 245, 250), j == 0 ? "*Contributors" : "",
+							5, true, false, null, level);
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;
 					j = j + 1;
 				}
 
-				//Adding License
+				// Adding License
 				context = drawTextWithWordWrapAndOverflow(cs, document, page,
 						speciesField.getValues().get(i).getLicense(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
-						width - 175, 16, new Color(255, 255, 255), "*License", 15, true, true, null);
+						width - 175, 16, new Color(240, 245, 250), "*License", 15, true, true, null, level);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
 
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + 15, y + 25);
+				cs.lineTo(MARGIN + width - 15, y + 25);
+				cs.stroke();
 			}
 
 			for (int i = 0; i < speciesField.getChildField().size(); i++) {
@@ -2577,6 +2877,23 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y);
 	}
 
+	public static String getInitials(String name) {
+		if (name == null || name.trim().isEmpty()) {
+			return "";
+		}
+
+		String[] parts = name.split(" ");
+		StringBuilder initials = new StringBuilder();
+
+		for (String part : parts) {
+			if (!part.isEmpty()) {
+				initials.append(part.charAt(0));
+			}
+		}
+
+		return initials.toString().toUpperCase();
+	}
+
 	private static PageContext addReferencesSection(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData, float currentLeftY) throws Exception {
 		float width = CONTENT_WIDTH;
@@ -2584,7 +2901,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float sectionStartY = currentLeftY;
 
 		if (y < 0) {
-			//Adding continuation background and borders
+			// Adding continuation background and borders
 			cs.setNonStrokingColor(WHITE);
 			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 			cs.fill();
@@ -2605,7 +2922,7 @@ public class UtilityServiceImpl implements UtilityService {
 			page = newPage;
 			currentY = PAGE_HEIGHT;
 			cs = new PDPageContentStream(document, newPage);
-			//Adding Page background
+			// Adding Page background
 			cs.setNonStrokingColor(new Color(246, 250, 252));
 			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
 			cs.fill();
@@ -2622,7 +2939,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 			PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, language,
 					PDType1Font.HELVETICA_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
-					false, false, null);
+					false, false, null, 0);
 			page = context.page;
 			cs = context.contentStream;
 			y = context.yPosition;
@@ -2630,14 +2947,14 @@ public class UtilityServiceImpl implements UtilityService {
 			for (int j = 0; j < names.size(); j++) {
 				String commonName = names.get(j);
 
-				cs.setNonStrokingColor(new Color (33, 37, 41));
+				cs.setNonStrokingColor(new Color(33, 37, 41));
 
 				// Changed row colors
 				Color rowColor = new Color(255, 255, 255);
 
 				context = drawTextWithWordWrapAndOverflow(cs, document, page,
 						Integer.toString(j + 1) + ". " + commonName, PDType1Font.HELVETICA, 11, MARGIN + 15, y,
-						width - 30, 16, rowColor, null, 5, false, false, null);
+						width - 30, 16, rowColor, null, 5, false, false, null, 0);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
@@ -2646,12 +2963,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 		PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, "Common references",
 				PDType1Font.HELVETICA_BOLD, 11, MARGIN + 15, y, width - 30, 16, new Color(255, 255, 255), null, 5,
-				false, false, null);
+				false, false, null, 0);
 		page = context.page;
 		cs = context.contentStream;
 		y = context.yPosition;
 
-		//Adding bottom line
+		// Adding bottom line
 		cs.setStrokingColor(new Color(222, 226, 230));
 		cs.setLineWidth(0.5f);
 		cs.moveTo(MARGIN, y + 15);
@@ -2710,8 +3027,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 				// Calculate height maintaining aspect ratio
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
-				float height = 264;
-				float imageWidth = (float) height / aspectRatio;
+				float imageWidth = CONTENT_WIDTH - 30;
+				float height = aspectRatio * imageWidth;
+				if (height > PAGE_HEIGHT - 30) {
+					height = PAGE_HEIGHT - 30;
+					imageWidth = (float) height / aspectRatio;
+				}
 				float x = (float) (CONTENT_WIDTH - imageWidth) / 2;
 
 				if (y - height - 25 < 0) {
@@ -2823,8 +3144,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 				// Calculate height maintaining aspect ratio
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
-				float height = 264;
-				float imageWidth = (float) height / aspectRatio;
+				float imageWidth = CONTENT_WIDTH - 30;
+				float height = aspectRatio * imageWidth;
+				if (height > PAGE_HEIGHT - 30) {
+					height = PAGE_HEIGHT - 30;
+					imageWidth = (float) height / aspectRatio;
+				}
 				float x = (float) (CONTENT_WIDTH - imageWidth) / 2;
 
 				if (y - height - 25 < 0) {
@@ -2886,6 +3211,129 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
+	private static PageContext addAdditionalImages(PDDocument document, PDPageContentStream cs, PDPage page,
+			SpeciesDownload speciesData, float currentLeftY, PDAnnotationLink link, PDPage sourcePage) throws Exception {
+		float width = CONTENT_WIDTH;
+		float y = currentLeftY - 40;
+		float sectionStartY = currentLeftY;
+
+		if (y < 0) {
+			cs.setNonStrokingColor(WHITE);
+			cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
+			cs.fill();
+			cs.setStrokingColor(new Color(222, 226, 230));
+			cs.setLineWidth(1);
+			cs.moveTo(MARGIN, y + 14);
+			cs.lineTo(MARGIN, 0);
+			cs.stroke();
+
+			cs.setStrokingColor(new Color(222, 226, 230));
+			cs.setLineWidth(1);
+			cs.moveTo(MARGIN + CONTENT_WIDTH, y + 14);
+			cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+			cs.stroke();
+			cs.close();
+			PDPage newPage = new PDPage(PDRectangle.A4);
+			document.addPage(newPage);
+			page = newPage;
+			currentY = PAGE_HEIGHT;
+			cs = new PDPageContentStream(document, newPage);
+			cs.setNonStrokingColor(new Color(246, 250, 252));
+			cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
+			cs.fill();
+			drawSectionCard(cs, "Additional Images", 0, currentY);
+			y = currentY - 50;
+		} else {
+			drawSectionCard(cs, "Additional Images", 0, sectionStartY);
+			y = y - 10;
+		}
+		
+		PDActionGoTo action = new PDActionGoTo();
+	    PDPageFitDestination destination = new PDPageFitDestination();
+	    destination.setPage(page);
+	    action.setDestination(destination);
+	    link.setAction(action);
+	    
+	    sourcePage.getAnnotations().add(link);
+	    
+
+		float boxWidth = (CONTENT_WIDTH - 50 - 30) / 4;
+		float boxHeight = 30;
+		float boxSpacing = 10;
+		float gridStartX = MARGIN + 25;
+
+		int totalValues = speciesData.getResourceData().size();
+		int rows = (int) Math.ceil(totalValues / 4.0);
+
+		for (int row = 0; row < rows; row++) {
+			if (y - 60 - 10 < 0) {
+				cs.setNonStrokingColor(WHITE);
+				cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
+				cs.fill();
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN, y + 14);
+				cs.lineTo(MARGIN, 0);
+				cs.stroke();
+
+				cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setLineWidth(1);
+				cs.moveTo(MARGIN + CONTENT_WIDTH, y + 14);
+				cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+				cs.stroke();
+
+				cs.close();
+				PDPage newPage = new PDPage(PDRectangle.A4);
+				document.addPage(newPage);
+				page = newPage;
+				y = PAGE_HEIGHT - 10;
+				cs = new PDPageContentStream(document, newPage);
+				cs.setNonStrokingColor(new Color(246, 250, 252));
+				cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
+				cs.fill();
+			}
+			cs.setStrokingColor(new Color(222, 226, 230));
+			cs.setNonStrokingColor(WHITE);
+			cs.addRect(MARGIN, y - 70 + 15, CONTENT_WIDTH, 70);
+			cs.fill();
+
+			for (int col = 0; col < 4; col++) {
+				int valueIndex = row * 4 + col;
+				if (valueIndex >= totalValues)
+					break;
+				float boxX = gridStartX + (col * (boxWidth + boxSpacing));
+				float boxY = y - 60 + 15;
+				cs.setNonStrokingColor(BLACK);
+				cs.addRect(boxX, boxY - 5, boxWidth, 60);
+				cs.fill();
+
+				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(col), boxX,
+						boxY - 5, 60, true, true, boxWidth);
+			}
+
+			y = y - 60 - 10;
+
+			cs.setStrokingColor(new Color(222, 226, 230));
+			cs.setLineWidth(1);
+			cs.moveTo(MARGIN, y + 70 + 15);
+			cs.lineTo(MARGIN, y + 15);
+			cs.stroke();
+
+			cs.setStrokingColor(new Color(222, 226, 230));
+			cs.setLineWidth(1);
+			cs.moveTo(MARGIN + CONTENT_WIDTH, y + 70 + 15);
+			cs.lineTo(MARGIN + CONTENT_WIDTH, y + 15);
+			cs.stroke();
+		}
+		cs.setStrokingColor(new Color(222, 226, 230));
+		cs.setLineWidth(0.5f);
+		cs.moveTo(MARGIN, y + 15);
+		cs.lineTo(MARGIN + width, y + 15);
+		cs.stroke();
+		return new PageContext(page, cs, y - 10);
+	}
+
 	public static void addBase64Image(PDDocument document, PDPage page, PDImageXObject pdImage, float x, float y,
 			float width, float height) throws IOException {
 
@@ -2898,7 +3346,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	public static void addCircularImage(PDDocument document, PDPage page, String imagePath, float centerX,
-			float centerY, float diameter) throws IOException {
+			float centerY, float diameter, String name) throws IOException {
 
 		File imageFile = new File(imagePath);
 
@@ -2928,11 +3376,11 @@ public class UtilityServiceImpl implements UtilityService {
 
 				} catch (Exception e) {
 // If image loading fails, draw fallback circle
-					drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, "!");
+					drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, name);
 				}
 			} else {
 // Draw fallback if file doesn't exist
-				drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, "!");
+				drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, name);
 			}
 		}
 	}
@@ -2975,10 +3423,11 @@ public class UtilityServiceImpl implements UtilityService {
 		contentStream.stroke();
 
 // Draw text in center
+		text = text.length() < 3 ? text : text.substring(0, 2);
 		contentStream.setNonStrokingColor(Color.DARK_GRAY);
 		contentStream.beginText();
 		contentStream.setFont(PDType1Font.HELVETICA_BOLD, radius);
-		contentStream.newLineAtOffset(centerX - radius / 3 + 1.5f, centerY - radius / 3);
+		contentStream.newLineAtOffset((centerX - radius) + (text.length() > 1 ? 2.5f : 3.5f), centerY - radius / 3);
 		contentStream.showText(text);
 		contentStream.endText();
 	}
