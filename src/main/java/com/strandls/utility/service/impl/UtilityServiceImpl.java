@@ -2088,7 +2088,7 @@ public class UtilityServiceImpl implements UtilityService {
 			 * galleryHeight); cs.fill();
 			 */
 			// Adding main gallery image
-			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(0), MARGIN, galleryY + 20,
+			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(1), MARGIN, galleryY + 20,
 					galleryHeight - 20, true, true, CONTENT_WIDTH);
 		}
 		/*
@@ -2652,7 +2652,11 @@ public class UtilityServiceImpl implements UtilityService {
 							float boxY = y - 48 + 15;
 							cs.addRect(boxX, boxY, boxWidth, 48);
 							cs.stroke();
-
+							
+							cs.setNonStrokingColor(WHITE);
+							cs.addRect(boxX, boxY, boxWidth, 48);
+							cs.fill();
+							
 							String text = "";
 							if (trait.getDataType().equals("STRING")) {
 								text = trait.getOptions().get(trait.getValues().get(valueIndex).getValueId());
@@ -3045,8 +3049,8 @@ public class UtilityServiceImpl implements UtilityService {
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 				float imageWidth = CONTENT_WIDTH - 30;
 				float height = aspectRatio * imageWidth;
-				if (height > PAGE_HEIGHT - 30) {
-					height = PAGE_HEIGHT - 30;
+				if (height > PAGE_HEIGHT - 75) {
+					height = PAGE_HEIGHT - 75;
 					imageWidth = (float) height / aspectRatio;
 				}
 				float x = (float) (CONTENT_WIDTH - imageWidth) / 2;
@@ -3162,8 +3166,8 @@ public class UtilityServiceImpl implements UtilityService {
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 				float imageWidth = CONTENT_WIDTH - 30;
 				float height = aspectRatio * imageWidth;
-				if (height > PAGE_HEIGHT - 30) {
-					height = PAGE_HEIGHT - 30;
+				if (height > PAGE_HEIGHT - 75) {
+					height = PAGE_HEIGHT - 75;
 					imageWidth = (float) height / aspectRatio;
 				}
 				float x = (float) (CONTENT_WIDTH - imageWidth) / 2;
