@@ -3280,6 +3280,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 		int totalValues = speciesData.getResourceData().size();
 		int rows = (int) Math.ceil(totalValues / 2.0);
+		
+		int index = 0;
 
 		for (int row = 0; row < rows; row++) {
 			if (y - 120 - 10 < 0) {
@@ -3324,8 +3326,10 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.addRect(boxX, boxY - 5, boxWidth, 120);
 				cs.fill();
 
-				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(valueIndex), boxX,
+				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(index), boxX,
 						boxY - 5, 120, true, true, boxWidth);
+				
+				index = index + 1;
 			}
 
 			y = y - 120 - 10;
