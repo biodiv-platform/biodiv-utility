@@ -2508,14 +2508,14 @@ public class UtilityServiceImpl implements UtilityService {
 		} else {
 			if (level != 0 && speciesField.getId() != 82) {
 				// Adding title
-				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesField.getName(),
-						PDType1Font.HELVETICA_BOLD, titleSize[level], MARGIN + 15, y, width - 30, 16,
-						new Color(240, 245, 250), null, 10, false, false, null, level);
-				/*cs.setStrokingColor(new Color(222, 226, 230));
+				cs.setStrokingColor(new Color(222, 226, 230));
 				cs.setLineWidth(0.5f);
 				cs.moveTo(MARGIN + 10 + (level != 1 ? 3 : 0), y + 15);
 				cs.lineTo(MARGIN + width - 10 - (level != 1 ? 3 : 0), y + 15);
-				cs.stroke();*/
+				cs.stroke();
+				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, speciesField.getName(),
+						PDType1Font.HELVETICA_BOLD, titleSize[level], MARGIN + 15, y, width - 30, 16,
+						new Color(240, 245, 250), null, 10, false, false, null, level);
 				page = context.page;
 				cs = context.contentStream;
 				y = context.yPosition;
@@ -3324,7 +3324,7 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.addRect(boxX, boxY - 5, boxWidth, 120);
 				cs.fill();
 
-				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(col), boxX,
+				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(valueIndex), boxX,
 						boxY - 5, 120, true, true, boxWidth);
 			}
 
