@@ -1498,6 +1498,7 @@ public class UtilityServiceImpl implements UtilityService {
 				} catch (Exception e) {
 					// If image loading fails
 					logger.error("Loading fails for image path: " + imagePath);
+					e.printStackTrace();
 					if (fallback) {
 						if (align) {
 							x = x + (maxWidth - height) / 2;
@@ -2088,7 +2089,7 @@ public class UtilityServiceImpl implements UtilityService {
 			 * galleryHeight); cs.fill();
 			 */
 			// Adding main gallery image
-			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(1), MARGIN, galleryY + 20,
+			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(0), MARGIN, galleryY + 20,
 					galleryHeight - 20, true, true, CONTENT_WIDTH);
 		}
 		/*
