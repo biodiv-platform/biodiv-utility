@@ -2692,12 +2692,9 @@ public class UtilityServiceImpl implements UtilityService {
 										boxWidth - 10 - (text.split("\\|").length>1 ? 45 : 0));
 
 								if (text.split("\\|").length>1) {
-									cs.setNonStrokingColor(BLACK);
-									cs.addRect(boxX, y - 48 + 15, 45, 48);
-									cs.fill();
 
 									addImage(document, page, "/app/data/biodiv/traits" + text.split("\\|")[1], boxX,
-											y - 48 + 15, 48, true, true, 45);
+											y - 43 + 15, 38, true, true, 45);
 								}
 							}
 						}
