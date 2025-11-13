@@ -1498,7 +1498,6 @@ public class UtilityServiceImpl implements UtilityService {
 				} catch (Exception e) {
 					// If image loading fails
 					logger.error("Loading fails for image path: " + imagePath);
-					e.printStackTrace();
 					if (fallback) {
 						if (align) {
 							x = x + (maxWidth - height) / 2;
@@ -2530,7 +2529,7 @@ public class UtilityServiceImpl implements UtilityService {
 							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250),
 							null, 30, true, false, null, 1);
 
-					PDAnnotationLink link = new PDAnnotationLink();
+					/*PDAnnotationLink link = new PDAnnotationLink();
 
 					PDRectangle position = new PDRectangle(MARGIN + 25, context.yPosition + 15 + 30, width - 50,
 							y - context.yPosition - 35);
@@ -2540,7 +2539,7 @@ public class UtilityServiceImpl implements UtilityService {
 					action.setURI("http://localhost:3000/species/show/31369");
 					link.setAction(action);
 
-					page.getAnnotations().add(link);
+					page.getAnnotations().add(link);*/
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;
@@ -2679,8 +2678,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 							List<String> lines = List.of("");
 							if (!text.isEmpty()) {
-								lines = splitTextIntoLines(text.split("\\|")[0], PDType1Font.HELVETICA, 11,
-										boxWidth - 10 - (text.split("\\|")[1] != null ? 45 : 0));
+								lines = splitTextIntoLines(text.split("\\|").length>1 ? text.split("\\|")[0]:text, PDType1Font.HELVETICA, 11,
+										boxWidth - 10 - (text.split("\\|").length>1? 45 : 0));
 							}
 
 							float textY = y - (48 - (Math.min(lines.size(), 3) * 16)) / 2;
@@ -2689,17 +2688,17 @@ public class UtilityServiceImpl implements UtilityService {
 
 							for (int l = 0; l < (Math.min(lines.size(), 3)); l++) {
 								drawFormattedLine(cs, lines.get(l), PDType1Font.HELVETICA, 11,
-										boxX + 5 + (text.split("\\|")[1] != null ? 45 : 0), textY + 3.5f - l * 16,
-										boxWidth - 10 - (text.split("\\|")[1] != null ? 45 : 0));
+										boxX + 5 + (text.split("\\|").length>1? 45 : 0), textY + 3.5f - l * 16,
+										boxWidth - 10 - (text.split("\\|").length>1 ? 45 : 0));
 
-								/*if (text.split("\\|")[1] != "null") {
+								if (text.split("\\|").length>1) {
 									cs.setNonStrokingColor(BLACK);
 									cs.addRect(boxX, y - 48 + 15, 45, 48);
 									cs.fill();
 
 									addImage(document, page, "/app/data/biodiv/traits" + text.split("\\|")[1], boxX,
 											y - 48 + 15, 48, true, true, 45);
-								}*/
+								}
 							}
 						}
 					}
