@@ -19,6 +19,7 @@ public class SpeciesDownload {
 	private String observationMap;
 	private List<String> resourceData;
 	private List<DocumentMeta> documentMetaList;
+	private List<String> commonReferences;
 
 	/**
 	 * 
@@ -146,5 +147,13 @@ public class SpeciesDownload {
     
     public void setDocumentMetaList(List<DocumentMeta> documentMetaList) {
         this.documentMetaList = documentMetaList;
+    }
+    
+    public List<String> getCommonReferences() {
+        return commonReferences;
+    }
+    
+    public void setCommonReferences(List<String> commonReferences) {
+        this.commonReferences = commonReferences;
     }
 }

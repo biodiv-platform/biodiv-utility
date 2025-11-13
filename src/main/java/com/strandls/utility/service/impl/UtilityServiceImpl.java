@@ -1328,7 +1328,7 @@ public class UtilityServiceImpl implements UtilityService {
 			PDPage page = new PDPage(PDRectangle.A4);
 			document.addPage(page);
 			PDPageContentStream contentStream = new PDPageContentStream(document, page);
-			
+
 			PDPage sourcePage = page;
 
 			// Adding background colour to page
@@ -1359,13 +1359,13 @@ public class UtilityServiceImpl implements UtilityService {
 				contentStream.newLineAtOffset(CONTENT_WIDTH - 30, currentY + 30);
 				contentStream.showText("View More");
 				contentStream.endText();
-				
+
 				sourcePage = page;
 			}
-			
+
 			PDAnnotationLink link = new PDAnnotationLink();
-		    PDRectangle position = new PDRectangle(CONTENT_WIDTH - 30, currentY + 30, 50, 10);
-		    link.setRectangle(position);
+			PDRectangle position = new PDRectangle(CONTENT_WIDTH - 30, currentY + 30, 50, 10);
+			link.setRectangle(position);
 
 			ctx = addTaxonomySection(document, contentStream, page, speciesData, currentLeftY);
 			contentStream = ctx.contentStream;
@@ -2526,12 +2526,12 @@ public class UtilityServiceImpl implements UtilityService {
 				for (DocumentMeta doc : documentList) {
 					// Adding title
 					PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, doc.getTitle(),
-							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 15, y, width - 30, 16, new Color(240, 245, 250),
-							null, 30, false, false, null, 0);
+							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250),
+							null, 30, true, false, null, 1);
 
 					PDAnnotationLink link = new PDAnnotationLink();
 
-					PDRectangle position = new PDRectangle(MARGIN + 15, context.yPosition + 15 + 30, width - 30,
+					PDRectangle position = new PDRectangle(MARGIN + 25, context.yPosition + 15 + 30, width - 50,
 							y - context.yPosition - 35);
 					link.setRectangle(position);
 
@@ -2545,9 +2545,9 @@ public class UtilityServiceImpl implements UtilityService {
 					y = context.yPosition;
 
 					// Adding author name
-					drawFormattedLine(cs, doc.getUser(), PDType1Font.HELVETICA, 11, MARGIN + 40, y + 30, width - 30);
+					drawFormattedLine(cs, doc.getUser(), PDType1Font.HELVETICA, 11, MARGIN + 50, y + 30, width - 30);
 					// Adding author image
-					addCircularImage(document, page, "/app/data/biodiv/users" + doc.getPic(), MARGIN + 25, y + 34, 16,
+					addCircularImage(document, page, "/app/data/biodiv/users" + doc.getPic(), MARGIN + 35, y + 34, 16,
 							getInitials(doc.getUser()));
 				}
 			}
@@ -2967,6 +2967,22 @@ public class UtilityServiceImpl implements UtilityService {
 		page = context.page;
 		cs = context.contentStream;
 		y = context.yPosition;
+		
+		for (int j = 0; j < speciesData.getCommonReferences().size(); j++) {
+			String commonName = speciesData.getCommonReferences().get(j);
+
+			cs.setNonStrokingColor(new Color(33, 37, 41));
+
+			// Changed row colors
+			Color rowColor = new Color(255, 255, 255);
+
+			context = drawTextWithWordWrapAndOverflow(cs, document, page,
+					Integer.toString(j + 1) + ". " + commonName, PDType1Font.HELVETICA, 11, MARGIN + 15, y,
+					width - 30, 16, rowColor, null, 5, false, false, null, 0);
+			page = context.page;
+			cs = context.contentStream;
+			y = context.yPosition;
+		}
 
 		// Adding bottom line
 		cs.setStrokingColor(new Color(222, 226, 230));
@@ -3212,7 +3228,8 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	private static PageContext addAdditionalImages(PDDocument document, PDPageContentStream cs, PDPage page,
-			SpeciesDownload speciesData, float currentLeftY, PDAnnotationLink link, PDPage sourcePage) throws Exception {
+			SpeciesDownload speciesData, float currentLeftY, PDAnnotationLink link, PDPage sourcePage)
+			throws Exception {
 		float width = CONTENT_WIDTH;
 		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
@@ -3247,26 +3264,25 @@ public class UtilityServiceImpl implements UtilityService {
 			drawSectionCard(cs, "Additional Images", 0, sectionStartY);
 			y = y - 10;
 		}
-		
-		PDActionGoTo action = new PDActionGoTo();
-	    PDPageFitDestination destination = new PDPageFitDestination();
-	    destination.setPage(page);
-	    action.setDestination(destination);
-	    link.setAction(action);
-	    
-	    sourcePage.getAnnotations().add(link);
-	    
 
-		float boxWidth = (CONTENT_WIDTH - 50 - 30) / 4;
+		PDActionGoTo action = new PDActionGoTo();
+		PDPageFitDestination destination = new PDPageFitDestination();
+		destination.setPage(page);
+		action.setDestination(destination);
+		link.setAction(action);
+
+		sourcePage.getAnnotations().add(link);
+
+		float boxWidth = (CONTENT_WIDTH - 50 - 10) / 2;
 		float boxHeight = 30;
 		float boxSpacing = 10;
 		float gridStartX = MARGIN + 25;
 
 		int totalValues = speciesData.getResourceData().size();
-		int rows = (int) Math.ceil(totalValues / 4.0);
+		int rows = (int) Math.ceil(totalValues / 2.0);
 
 		for (int row = 0; row < rows; row++) {
-			if (y - 60 - 10 < 0) {
+			if (y - 120 - 10 < 0) {
 				cs.setNonStrokingColor(WHITE);
 				cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 				cs.fill();
@@ -3295,34 +3311,34 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 			cs.setStrokingColor(new Color(222, 226, 230));
 			cs.setNonStrokingColor(WHITE);
-			cs.addRect(MARGIN, y - 70 + 15, CONTENT_WIDTH, 70);
+			cs.addRect(MARGIN, y - 130 + 15, CONTENT_WIDTH, 70);
 			cs.fill();
 
-			for (int col = 0; col < 4; col++) {
-				int valueIndex = row * 4 + col;
+			for (int col = 0; col < 2; col++) {
+				int valueIndex = row * 2 + col;
 				if (valueIndex >= totalValues)
 					break;
 				float boxX = gridStartX + (col * (boxWidth + boxSpacing));
-				float boxY = y - 60 + 15;
+				float boxY = y - 120 + 15;
 				cs.setNonStrokingColor(BLACK);
-				cs.addRect(boxX, boxY - 5, boxWidth, 60);
+				cs.addRect(boxX, boxY - 5, boxWidth, 120);
 				cs.fill();
 
 				addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(col), boxX,
-						boxY - 5, 60, true, true, boxWidth);
+						boxY - 5, 120, true, true, boxWidth);
 			}
 
-			y = y - 60 - 10;
+			y = y - 120 - 10;
 
 			cs.setStrokingColor(new Color(222, 226, 230));
 			cs.setLineWidth(1);
-			cs.moveTo(MARGIN, y + 70 + 15);
+			cs.moveTo(MARGIN, y + 130 + 15);
 			cs.lineTo(MARGIN, y + 15);
 			cs.stroke();
 
 			cs.setStrokingColor(new Color(222, 226, 230));
 			cs.setLineWidth(1);
-			cs.moveTo(MARGIN + CONTENT_WIDTH, y + 70 + 15);
+			cs.moveTo(MARGIN + CONTENT_WIDTH, y + 130 + 15);
 			cs.lineTo(MARGIN + CONTENT_WIDTH, y + 15);
 			cs.stroke();
 		}
