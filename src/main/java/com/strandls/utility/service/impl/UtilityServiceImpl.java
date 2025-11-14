@@ -1824,6 +1824,9 @@ public class UtilityServiceImpl implements UtilityService {
 		List<String> lines = List.of("");
 		if (!text.isEmpty()) {
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
+			if (lines==null) {
+				lines = List.of("");
+			}
 		}
 
 		float currentYPos = y - 5;
