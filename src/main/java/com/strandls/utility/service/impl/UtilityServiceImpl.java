@@ -1662,6 +1662,9 @@ public class UtilityServiceImpl implements UtilityService {
 		String markdownText = convertHtmlToWordLevelMarkers(text);
 
 		// Now split using the markdown text
+		if (markdownText==null) {
+			return lines;
+		}
 		String[] words = markdownText.split(" ");
 		StringBuilder currentLine = new StringBuilder();
 
