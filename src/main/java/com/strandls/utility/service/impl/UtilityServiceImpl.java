@@ -1502,7 +1502,8 @@ public class UtilityServiceImpl implements UtilityService {
 					float width = (float) height / aspectRatio;
 					if (fixedWidth) {
 						width = maxWidth;
-						height = width*aspectRatio;
+						y = y + (height - width * aspectRatio) / 2;
+						height = width * aspectRatio;
 					}
 					if (align) {
 						x = x + (maxWidth - width) / 2;
@@ -1567,8 +1568,8 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.fill();
 
 		// Adding Logo
-		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY - 70, 60, true, false,
-				CONTENT_WIDTH, false);
+		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY - 70, 60, true, false, CONTENT_WIDTH,
+				false);
 
 		// Adding portal name
 		cs.setNonStrokingColor(new Color(33, 37, 41));
@@ -3362,15 +3363,15 @@ public class UtilityServiceImpl implements UtilityService {
 					float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 					maxHeight = boxWidth * aspectRatio;
 				}
-				
-				if ((index+1)<totalValues) {
-					imageFile = new File("/app/data/biodiv/img" + speciesData.getResourceData().get(index+1));
+
+				if ((index + 1) < totalValues) {
+					imageFile = new File("/app/data/biodiv/img" + speciesData.getResourceData().get(index + 1));
 					if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								"/app/data/biodiv/img" + speciesData.getResourceData().get(index+1), document);
+								"/app/data/biodiv/img" + speciesData.getResourceData().get(index + 1), document);
 						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 						float image2Height = boxWidth * aspectRatio;
-						if (image2Height>maxHeight) {
+						if (image2Height > maxHeight) {
 							maxHeight = image2Height;
 						}
 					}
