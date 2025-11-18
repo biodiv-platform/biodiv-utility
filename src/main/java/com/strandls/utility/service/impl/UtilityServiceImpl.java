@@ -3363,7 +3363,7 @@ public class UtilityServiceImpl implements UtilityService {
 					imageFile = new File("/app/data/biodiv/img" + speciesData.getResourceData().get(index+1));
 					if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								"/app/data/biodiv/img" + speciesData.getResourceData().get(index), document);
+								"/app/data/biodiv/img" + speciesData.getResourceData().get(index+1), document);
 						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 						float image2Height = boxWidth * aspectRatio;
 						if (image2Height>maxHeight) {
