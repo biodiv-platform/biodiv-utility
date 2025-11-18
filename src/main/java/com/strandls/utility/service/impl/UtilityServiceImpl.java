@@ -2422,7 +2422,8 @@ public class UtilityServiceImpl implements UtilityService {
 				.replaceAll("</h5>", "\n").replaceAll("<h6[^>]*>", "\n<h>").replaceAll("</h6>", "\n");
 
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
-				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n");
+				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")  // Remove opening span
+	            .replaceAll("</span>", "");
 
 		return decodeHtmlEntities(html);
 	}
@@ -3358,21 +3359,31 @@ public class UtilityServiceImpl implements UtilityService {
 				File imageFile = new File("/app/data/biodiv/img" + speciesData.getResourceData().get(index));
 				float maxHeight = boxWidth;
 				if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
-					PDImageXObject pdImage = PDImageXObject.createFromFile(
-							"/app/data/biodiv/img" + speciesData.getResourceData().get(index), document);
-					float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
-					maxHeight = boxWidth * aspectRatio;
+					try {
+						PDImageXObject pdImage = PDImageXObject.createFromFile(
+								"/app/data/biodiv/img" + speciesData.getResourceData().get(index), document);
+						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
+						maxHeight = boxWidth * aspectRatio;
+					} catch (IOException e) {
+						logger.error("Failed to load image (actual format may differ from extension): "
+								+ imageFile.getPath());
+					}
 				}
 
 				if ((index + 1) < totalValues) {
 					imageFile = new File("/app/data/biodiv/img" + speciesData.getResourceData().get(index + 1));
 					if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
-						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								"/app/data/biodiv/img" + speciesData.getResourceData().get(index + 1), document);
-						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
-						float image2Height = boxWidth * aspectRatio;
-						if (image2Height > maxHeight) {
-							maxHeight = image2Height;
+						try {
+							PDImageXObject pdImage = PDImageXObject.createFromFile(
+									"/app/data/biodiv/img" + speciesData.getResourceData().get(index + 1), document);
+							float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
+							float image2Height = boxWidth * aspectRatio;
+							if (image2Height > maxHeight) {
+								maxHeight = image2Height;
+							}
+						} catch (IOException e) {
+							logger.error("Failed to load image (actual format may differ from extension): "
+									+ imageFile.getPath());
 						}
 					}
 				}
