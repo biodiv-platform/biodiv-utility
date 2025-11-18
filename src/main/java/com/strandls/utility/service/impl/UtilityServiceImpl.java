@@ -1487,7 +1487,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	public static void addImage(PDDocument document, PDPage page, String imagePath, float x, float y, float height,
-			Boolean fallback, Boolean align, float maxWidth) throws IOException {
+			Boolean fallback, Boolean align, float maxWidth, Boolean fixedWidth) throws IOException {
 
 		File imageFile = new File(imagePath);
 
@@ -1500,6 +1500,10 @@ public class UtilityServiceImpl implements UtilityService {
 					PDImageXObject pdImage = PDImageXObject.createFromFile(imagePath, document);
 					float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 					float width = (float) height / aspectRatio;
+					if (fixedWidth) {
+						width = maxWidth;
+						height = width*aspectRatio;
+					}
 					if (align) {
 						x = x + (maxWidth - width) / 2;
 					}
@@ -1564,7 +1568,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		// Adding Logo
 		addImage(document, page, "/app/data/biodiv/logo/IBP.png", MARGIN, currentY - 70, 60, true, false,
-				CONTENT_WIDTH);
+				CONTENT_WIDTH, false);
 
 		// Adding portal name
 		cs.setNonStrokingColor(new Color(33, 37, 41));
@@ -1610,7 +1614,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Adding species group image
 		addImage(document, page,
 				"/app/data/biodiv/sgroup/speciesGroups/" + speciesData.getSpeciesGroup().toLowerCase() + ".png", 40,
-				currentY - 50, 40, false, false, CONTENT_WIDTH);
+				currentY - 50, 40, false, false, CONTENT_WIDTH, false);
 
 		currentY = PAGE_HEIGHT - bannerHeight;
 
@@ -2151,7 +2155,7 @@ public class UtilityServiceImpl implements UtilityService {
 			 */
 			// Adding main gallery image
 			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(0), MARGIN, galleryY + 20,
-					galleryHeight - 20, true, true, CONTENT_WIDTH);
+					galleryHeight - 20, true, true, CONTENT_WIDTH, false);
 		}
 		/*
 		 * else { float galleryHeight = 360; float images =
@@ -2758,7 +2762,7 @@ public class UtilityServiceImpl implements UtilityService {
 								if (text.split("\\|").length > 1) {
 
 									addImage(document, page, "/app/data/biodiv/traits" + text.split("\\|")[1], boxX,
-											y - 43 + 15, 38, true, true, 45);
+											y - 43 + 15, 38, true, true, 45, false);
 								}
 							}
 						}
@@ -3412,7 +3416,7 @@ public class UtilityServiceImpl implements UtilityService {
 					cs.setNonStrokingColor(BLACK);
 
 					addImage(document, page, "/app/data/biodiv/img" + speciesData.getResourceData().get(index), boxX,
-							boxY - 5, maxHeight, true, true, boxWidth);
+							boxY - 5, maxHeight, true, true, boxWidth, true);
 
 					index = index + 1;
 				}
