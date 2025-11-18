@@ -6,6 +6,7 @@ import java.util.Map;
 public class SpeciesDownload {
 
 	private String url;
+	private Long languageId;
 	private String title;
 	private String speciesGroup;
 	private String badge;
@@ -44,6 +45,14 @@ public class SpeciesDownload {
 
 	public void setUrl(String url) {
 		this.url = url;
+	}
+	
+	public Long getLanguageId() {
+		return languageId;
+	}
+
+	public void setLanguageId(Long languageId) {
+		this.languageId = languageId;
 	}
 	
 	public String getTitle() {

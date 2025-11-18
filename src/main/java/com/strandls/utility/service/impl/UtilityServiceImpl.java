@@ -1397,7 +1397,7 @@ public class UtilityServiceImpl implements UtilityService {
 			for (int i = 0; i < speciesData.getFieldData().size(); i++) {
 				ctx = addSpeciesFieldSection(document, contentStream, page, speciesData.getFieldData().get(i),
 						currentLeftY, speciesData.getObservationMap(), speciesData.getDocumentMetaList(),
-						speciesData.getUrl());
+						speciesData.getUrl(), speciesData.getLanguageId());
 				contentStream = ctx.contentStream;
 				page = ctx.page;
 				currentLeftY = ctx.yPosition;
@@ -2422,8 +2422,10 @@ public class UtilityServiceImpl implements UtilityService {
 				.replaceAll("</h5>", "\n").replaceAll("<h6[^>]*>", "\n<h>").replaceAll("</h6>", "\n");
 
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
-				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")  // Remove opening span
-	            .replaceAll("</span>", "");
+				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "") // Remove
+																											// opening
+																											// span
+				.replaceAll("</span>", "");
 
 		return decodeHtmlEntities(html);
 	}
@@ -2436,8 +2438,8 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	private static PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
-			SpeciesField speciesField, float currentLeftY, String Map, List<DocumentMeta> documentList, String url)
-			throws Exception {
+			SpeciesField speciesField, float currentLeftY, String Map, List<DocumentMeta> documentList, String url,
+			Long languageId) throws Exception {
 		float y = currentLeftY - 40;
 		float sectionStartY = currentLeftY;
 
@@ -2475,7 +2477,8 @@ public class UtilityServiceImpl implements UtilityService {
 			y = y - 10;
 		}
 
-		PageContext ctx = addSpeciesFieldGroup(document, cs, page, speciesField, 0, y, Map, documentList, url);
+		PageContext ctx = addSpeciesFieldGroup(document, cs, page, speciesField, 0, y, Map, documentList, url,
+				languageId);
 		cs = ctx.contentStream;
 		page = ctx.page;
 		y = ctx.yPosition;
@@ -2492,7 +2495,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 	private static PageContext addSpeciesFieldGroup(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesField speciesField, int level, float currentLeftY, String Map, List<DocumentMeta> documentList,
-			String url) throws Exception {
+			String url, Long languageId) throws Exception {
 		float width = CONTENT_WIDTH;
 		float y = currentLeftY;
 		float[] titleSize = { 15, 12, 10 };
@@ -2788,157 +2791,161 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			for (int i = 0; i < speciesField.getValues().size(); i++) {
-				cs.setStrokingColor(new Color(222, 226, 230));
-				cs.setLineWidth(0.5f);
-				cs.moveTo(MARGIN + 15, y + 15);
-				cs.lineTo(MARGIN + width - 15, y + 15);
-				cs.stroke();
-				String plainText = convertHtmlToText(speciesField.getValues().get(i).getDescription());
-				String[] paragraphs = plainText.split("\n");
-				for (String paragraph : paragraphs) {
-					if (!paragraph.isEmpty()) {
-						PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-								paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
-								paragraph.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA, 11,
-								MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null,
-								level, null);
-						page = context.page;
-						cs = context.contentStream;
-						y = context.yPosition;
-					}
-				}
-
-				y = y + 5;
-
-				cs.setStrokingColor(new Color(222, 226, 230));
-				cs.setLineWidth(1);
-				cs.setLineCapStyle(1); // Round cap
-				cs.setLineDashPattern(new float[] { 2, 3 }, 0);
-				cs.moveTo(MARGIN + 15, y + 15);
-				cs.lineTo(MARGIN + width - 15, y + 15);
-				cs.stroke();
-
-				cs.setLineDashPattern(new float[] {}, 0);
-				// Adding attributions
-				List<String> attributionLines = splitTextIntoLines(speciesField.getValues().get(i).getAttributions(),
-						PDType1Font.HELVETICA, 9, width - 175);
-				int contributorLines = 0;
-				for (String contributor : speciesField.getValues().get(i).getContributor()) {
-					List<String> contriLines = splitTextIntoLines(contributor, PDType1Font.HELVETICA, 9, width - 175);
-					contributorLines += contriLines.size();
-				}
-
-				List<String> licenseLines = splitTextIntoLines(speciesField.getValues().get(i).getLicense(),
-						PDType1Font.HELVETICA, 9, width - 175);
-
-				if (y - (attributionLines.size() * 16) - 10 - ((16 + 10) * contributorLines)
-						- (licenseLines.size() * 16) - 20 < 0) {
-					cs.setNonStrokingColor(new Color(240, 245, 250));
-					cs.addRect(MARGIN, 0, CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.fill();
-					cs.setNonStrokingColor(WHITE);
-					cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.fill();
-
+				if (speciesField.getValues().get(i).getLanguageId().equals(languageId)) {
 					cs.setStrokingColor(new Color(222, 226, 230));
-					cs.setLineWidth(1);
-					cs.moveTo(MARGIN + 15, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.lineTo(MARGIN + 15, 0);
+					cs.setLineWidth(0.5f);
+					cs.moveTo(MARGIN + 15, y + 15);
+					cs.lineTo(MARGIN + width - 15, y + 15);
 					cs.stroke();
-
-					cs.setStrokingColor(new Color(222, 226, 230));
-					cs.setLineWidth(1);
-					cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
-					cs.stroke();
-
-					if (level != 0) {
-						cs.setStrokingColor(new Color(222, 226, 230));
-						cs.setLineWidth(1);
-						cs.moveTo(MARGIN + 10, y - 5 + 14 + (i == 0 ? 5 : 0));
-						cs.lineTo(MARGIN + 10, 0);
-						cs.stroke();
-
-						cs.setStrokingColor(new Color(222, 226, 230));
-						cs.setLineWidth(1);
-						cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y - 5 + 14 + (i == 0 ? 5 : 0));
-						cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
-						cs.stroke();
-
-						if (level != 1) {
-							cs.setStrokingColor(new Color(222, 226, 230));
-							cs.setLineWidth(1);
-							cs.moveTo(MARGIN + 13, y - 5 + 14 + (i == 0 ? 5 : 0));
-							cs.lineTo(MARGIN + 13, 0);
-							cs.stroke();
-
-							cs.setStrokingColor(new Color(222, 226, 230));
-							cs.setLineWidth(1);
-							cs.moveTo(MARGIN + CONTENT_WIDTH - 13, y - 5 + 14 + (i == 0 ? 5 : 0));
-							cs.lineTo(MARGIN + CONTENT_WIDTH - 13, 0);
-							cs.stroke();
+					String plainText = convertHtmlToText(speciesField.getValues().get(i).getDescription());
+					String[] paragraphs = plainText.split("\n");
+					for (String paragraph : paragraphs) {
+						if (!paragraph.isEmpty()) {
+							PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
+									paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
+									paragraph.startsWith("<h>") ? PDType1Font.HELVETICA_BOLD : PDType1Font.HELVETICA,
+									11, MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250), null, 10, true, false,
+									null, level, null);
+							page = context.page;
+							cs = context.contentStream;
+							y = context.yPosition;
 						}
 					}
 
-					cs.setStrokingColor(new Color(222, 226, 230));
-					cs.setLineWidth(1);
-					cs.moveTo(MARGIN, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.lineTo(MARGIN, 0);
-					cs.stroke();
+					y = y + 5;
 
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setLineWidth(1);
-					cs.moveTo(MARGIN + CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
-					cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+					cs.setLineCapStyle(1); // Round cap
+					cs.setLineDashPattern(new float[] { 2, 3 }, 0);
+					cs.moveTo(MARGIN + 15, y + 15);
+					cs.lineTo(MARGIN + width - 15, y + 15);
 					cs.stroke();
-					cs.close();
-					PDPage newPage = new PDPage(PDRectangle.A4);
-					document.addPage(newPage);
-					page = newPage;
-					y = PAGE_HEIGHT - 16;
-					cs = new PDPageContentStream(document, newPage);
-					cs.setNonStrokingColor(new Color(246, 250, 252));
-					cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
-					cs.fill();
-				}
 
-				PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-						speciesField.getValues().get(i).getAttributions(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
-						width - 175, 16, new Color(240, 245, 250), "*Attributions", 5, true, false, null, level, null);
-				page = context.page;
-				cs = context.contentStream;
-				y = context.yPosition;
+					cs.setLineDashPattern(new float[] {}, 0);
+					// Adding attributions
+					List<String> attributionLines = splitTextIntoLines(
+							speciesField.getValues().get(i).getAttributions(), PDType1Font.HELVETICA, 9, width - 175);
+					int contributorLines = 0;
+					for (String contributor : speciesField.getValues().get(i).getContributor()) {
+						List<String> contriLines = splitTextIntoLines(contributor, PDType1Font.HELVETICA, 9,
+								width - 175);
+						contributorLines += contriLines.size();
+					}
 
-				float j = 0;
-				// Adding Contributors
-				for (String contributor : speciesField.getValues().get(i).getContributor()) {
-					context = drawTextWithWordWrapAndOverflow(cs, document, page, contributor, PDType1Font.HELVETICA, 9,
-							MARGIN + 155, y, width - 175, 16, new Color(240, 245, 250), j == 0 ? "*Contributors" : "",
-							5, true, false, null, level, null);
+					List<String> licenseLines = splitTextIntoLines(speciesField.getValues().get(i).getLicense(),
+							PDType1Font.HELVETICA, 9, width - 175);
+
+					if (y - (attributionLines.size() * 16) - 10 - ((16 + 10) * contributorLines)
+							- (licenseLines.size() * 16) - 20 < 0) {
+						cs.setNonStrokingColor(new Color(240, 245, 250));
+						cs.addRect(MARGIN, 0, CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.fill();
+						cs.setNonStrokingColor(WHITE);
+						cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.fill();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + 15, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + 15, 0);
+						cs.stroke();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
+						cs.stroke();
+
+						if (level != 0) {
+							cs.setStrokingColor(new Color(222, 226, 230));
+							cs.setLineWidth(1);
+							cs.moveTo(MARGIN + 10, y - 5 + 14 + (i == 0 ? 5 : 0));
+							cs.lineTo(MARGIN + 10, 0);
+							cs.stroke();
+
+							cs.setStrokingColor(new Color(222, 226, 230));
+							cs.setLineWidth(1);
+							cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y - 5 + 14 + (i == 0 ? 5 : 0));
+							cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+							cs.stroke();
+
+							if (level != 1) {
+								cs.setStrokingColor(new Color(222, 226, 230));
+								cs.setLineWidth(1);
+								cs.moveTo(MARGIN + 13, y - 5 + 14 + (i == 0 ? 5 : 0));
+								cs.lineTo(MARGIN + 13, 0);
+								cs.stroke();
+
+								cs.setStrokingColor(new Color(222, 226, 230));
+								cs.setLineWidth(1);
+								cs.moveTo(MARGIN + CONTENT_WIDTH - 13, y - 5 + 14 + (i == 0 ? 5 : 0));
+								cs.lineTo(MARGIN + CONTENT_WIDTH - 13, 0);
+								cs.stroke();
+							}
+						}
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN, 0);
+						cs.stroke();
+
+						cs.setStrokingColor(new Color(222, 226, 230));
+						cs.setLineWidth(1);
+						cs.moveTo(MARGIN + CONTENT_WIDTH, y - 5 + 14 + (i == 0 ? 5 : 0));
+						cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+						cs.stroke();
+						cs.close();
+						PDPage newPage = new PDPage(PDRectangle.A4);
+						document.addPage(newPage);
+						page = newPage;
+						y = PAGE_HEIGHT - 16;
+						cs = new PDPageContentStream(document, newPage);
+						cs.setNonStrokingColor(new Color(246, 250, 252));
+						cs.addRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
+						cs.fill();
+					}
+
+					PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
+							speciesField.getValues().get(i).getAttributions(), PDType1Font.HELVETICA, 9, MARGIN + 155,
+							y, width - 175, 16, new Color(240, 245, 250), "*Attributions", 5, true, false, null, level,
+							null);
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;
-					j = j + 1;
+
+					float j = 0;
+					// Adding Contributors
+					for (String contributor : speciesField.getValues().get(i).getContributor()) {
+						context = drawTextWithWordWrapAndOverflow(cs, document, page, contributor,
+								PDType1Font.HELVETICA, 9, MARGIN + 155, y, width - 175, 16, new Color(240, 245, 250),
+								j == 0 ? "*Contributors" : "", 5, true, false, null, level, null);
+						page = context.page;
+						cs = context.contentStream;
+						y = context.yPosition;
+						j = j + 1;
+					}
+
+					// Adding License
+					context = drawTextWithWordWrapAndOverflow(cs, document, page,
+							speciesField.getValues().get(i).getLicense(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
+							width - 175, 16, new Color(240, 245, 250), "*License", 15, true, true, null, level, null);
+					page = context.page;
+					cs = context.contentStream;
+					y = context.yPosition;
+
+					cs.setStrokingColor(new Color(222, 226, 230));
+					cs.setLineWidth(1);
+					cs.moveTo(MARGIN + 15, y + 25);
+					cs.lineTo(MARGIN + width - 15, y + 25);
+					cs.stroke();
 				}
-
-				// Adding License
-				context = drawTextWithWordWrapAndOverflow(cs, document, page,
-						speciesField.getValues().get(i).getLicense(), PDType1Font.HELVETICA, 9, MARGIN + 155, y,
-						width - 175, 16, new Color(240, 245, 250), "*License", 15, true, true, null, level, null);
-				page = context.page;
-				cs = context.contentStream;
-				y = context.yPosition;
-
-				cs.setStrokingColor(new Color(222, 226, 230));
-				cs.setLineWidth(1);
-				cs.moveTo(MARGIN + 15, y + 25);
-				cs.lineTo(MARGIN + width - 15, y + 25);
-				cs.stroke();
 			}
 
 			for (int i = 0; i < speciesField.getChildField().size(); i++) {
 				PageContext ctx = addSpeciesFieldGroup(document, cs, page, speciesField.getChildField().get(i),
-						level + 1, y, Map, documentList, url);
+						level + 1, y, Map, documentList, url, languageId);
 				cs = ctx.contentStream;
 				page = ctx.page;
 				y = ctx.yPosition;
