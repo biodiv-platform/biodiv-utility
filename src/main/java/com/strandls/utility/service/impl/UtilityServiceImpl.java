@@ -74,7 +74,6 @@ import com.strandls.utility.dao.TagLinksDao;
 import com.strandls.utility.dao.TagsDao;
 import com.strandls.utility.pojo.Announcement;
 import com.strandls.utility.pojo.DocumentMeta;
-import com.strandls.utility.pojo.FieldData;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
@@ -95,7 +94,6 @@ import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMapping;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.pojo.Trait;
-import com.strandls.utility.pojo.TraitValue;
 import com.strandls.utility.pojo.Translation;
 import com.strandls.utility.service.UtilityService;
 
@@ -108,22 +106,7 @@ import net.minidev.json.JSONArray;
 public class UtilityServiceImpl implements UtilityService {
 
 	private static final Logger logger = LoggerFactory.getLogger(UtilityServiceImpl.class);
-	String storageBasePath = null;
 
-	private static final Color PRIMARY_BLUE = new Color(59, 130, 246);
-	private static final Color DARK_BLUE = new Color(30, 58, 138);
-	private static final Color LIGHT_BLUE = new Color(239, 246, 255);
-	private static final Color GRAY_50 = new Color(249, 250, 251);
-	private static final Color GRAY_100 = new Color(243, 244, 246);
-	private static final Color GRAY_200 = new Color(229, 231, 235);
-	private static final Color GRAY_600 = new Color(75, 85, 99);
-	private static final Color GRAY_700 = new Color(55, 65, 81);
-	private static final Color GRAY_800 = new Color(31, 41, 55);
-	private static final Color GREEN_50 = new Color(236, 253, 245);
-	private static final Color GREEN_100 = new Color(209, 250, 229);
-	private static final Color GREEN_700 = new Color(4, 120, 87);
-	private static final Color GREEN_CIRCLE = new Color(16, 185, 129);
-	private static final Color RED = new Color(255, 0, 0);
 	private static final Color WHITE = Color.WHITE;
 	private static final Color BLACK = Color.BLACK;
 
@@ -1205,7 +1188,6 @@ public class UtilityServiceImpl implements UtilityService {
 
 	@Override
 	public List<Announcement> getAnnouncementData(HttpServletRequest request) {
-		System.out.println("Hi");
 		try {
 			List<Announcement> announcementData = new ArrayList<>();
 			Map<Long, Integer> announcementIndexMapping = new HashMap<>();
@@ -1329,6 +1311,8 @@ public class UtilityServiceImpl implements UtilityService {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			document = new PDDocument();
 
+			
+			//Free Serif fallback font for other languages
 			File fontFile = new File("/usr/share/fonts/truetype/freefont/FreeSerif.ttf");
 
 			fallbackFont = PDType0Font.load(document, fontFile);
@@ -1360,6 +1344,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 			float currentLeftY = currentY;
 
+			//Adding view more for hyperlinking it to extra images
 			if (speciesData.getResourceData() != null && speciesData.getResourceData().size() > 1) {
 				contentStream.setNonStrokingColor(WHITE);
 				contentStream.beginText();
@@ -1435,18 +1420,19 @@ public class UtilityServiceImpl implements UtilityService {
 			document.close();
 			return baos.toByteArray();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error while generating pdf : {}", e.getMessage(), e);
 			if (document != null) {
 				try {
 					document.close();
 				} catch (Exception ex) {
-					ex.printStackTrace();
+					logger.error("Couldn't close document : {}", ex.getMessage(), ex);
 				}
 			}
 			return null;
 		}
 	}
 
+	//For tracking current page, contentStream and position of y
 	private static class PageContext {
 		PDPage page;
 		PDPageContentStream contentStream;
@@ -1465,6 +1451,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 	}
 
+	//To check if new page is needed
 	private static PageContext checkAndCreateNewPage(PDDocument document, PDPage currentPage,
 			PDPageContentStream currentStream, float neededSpace) throws Exception {
 		if (currentY - neededSpace < 0) {
@@ -1486,6 +1473,7 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(currentPage, currentStream);
 	}
 
+	//Code for adding images
 	public static void addImage(PDDocument document, PDPage page, String imagePath, float x, float y, float height,
 			Boolean fallback, Boolean align, float maxWidth, Boolean fixedWidth) throws IOException {
 
@@ -1520,7 +1508,7 @@ public class UtilityServiceImpl implements UtilityService {
 					}
 				}
 			} else {
-				// Draw fallback if file doesn't exist
+				//fallback if file doesn't exist
 				logger.error("Image file doesn't exist: " + imagePath);
 				if (fallback) {
 					if (align) {
@@ -1532,7 +1520,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 	}
 
-	// Draw a simple rectangle with text as fallback
+	//simple rectangle with text as fallback
 	private static void drawFallbackRectangle(PDPageContentStream contentStream, float x, float y, float width,
 			float height, String text) throws IOException {
 
@@ -1549,7 +1537,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Center text approximately
 		float textWidth = PDType1Font.HELVETICA_BOLD.getStringWidth(text) / 1000 * 10;
 		float textX = x + (width - textWidth) / 2;
-		float textY = y + (height / 2) - 4; // Roughly center vertically
+		float textY = y + (height / 2) - 4;
 
 		contentStream.newLineAtOffset(textX, textY);
 		contentStream.showText(text);
@@ -1622,11 +1610,11 @@ public class UtilityServiceImpl implements UtilityService {
 		return currentY;
 	}
 
+	//For maintaining different kinds of text: bold, italic and normal
 	public static String convertHtmlToWordLevelMarkers(String text) {
 		if (text == null)
 			return null;
 
-		// Process bold first, then italic
 		String step1 = processFormatting(text, "b", "strong", "**");
 		String step2 = processFormatting(step1, "i", null, "*");
 
@@ -1706,7 +1694,7 @@ public class UtilityServiceImpl implements UtilityService {
 				logger.warn("Primary font failed, using fallback: " + e.getMessage());
 
 				try {
-					// Try with fallback font
+					//fallback font
 					float testWidth = fallbackFont.getStringWidth(testLineWithoutMarkers) / 1000 * fontSize;
 					if (testWidth < maxWidth) {
 						if (currentLine.length() > 0) {
@@ -1722,7 +1710,7 @@ public class UtilityServiceImpl implements UtilityService {
 						}
 					}
 				} catch (IllegalArgumentException e2) {
-					// Fallback font also failed, use placeholder or skip
+					// Fallback font also failed
 					logger.error("Both fonts failed for: " + word + " - " + e2.getMessage());
 				}
 			}
@@ -2109,26 +2097,23 @@ public class UtilityServiceImpl implements UtilityService {
 			SpeciesDownload species) throws Exception {
 
 		float galleryY = currentY - 360;
-		// Dark background - changed color
+
 		cs.setNonStrokingColor(new Color(45, 55, 70));
 		cs.addRect(MARGIN, currentY - 360, CONTENT_WIDTH, 360);
 		cs.fill();
 
 		if (species.getResourceData() == null || species.getResourceData().size() < 1) {
-			// Main circle placeholder
+
 			float circleRadius = 100;
 			float circleCenterX = PAGE_WIDTH / 2;
 			float circleCenterY = currentY - 150;
 
-			// Draw green circle - changed color
 			cs.setNonStrokingColor(new Color(97, 142, 74));
 			drawCircle(cs, circleCenterX, circleCenterY, circleRadius);
 
-			// Inner circle - changed color
 			cs.setNonStrokingColor(new Color(161, 201, 57));
 			drawCircle(cs, circleCenterX, circleCenterY, circleRadius * 0.7f);
 
-			// Draw "?" in center - changed color
 			cs.setNonStrokingColor(new Color(97, 142, 74));
 			cs.beginText();
 			cs.setFont(PDType1Font.HELVETICA_BOLD, 80);
@@ -2136,7 +2121,6 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.showText("?");
 			cs.endText();
 
-			// Caption - changed color
 			cs.setNonStrokingColor(new Color(160, 170, 180));
 			cs.beginText();
 			cs.setFont(PDType1Font.HELVETICA_OBLIQUE, 10);
@@ -2149,44 +2133,11 @@ public class UtilityServiceImpl implements UtilityService {
 			currentY = galleryY - 10;
 		} else {
 			float galleryHeight = 360;
-			galleryY = currentY - galleryHeight - 10; // Adding black background
-			/*
-			 * cs.setNonStrokingColor(BLACK); cs.addRect(MARGIN, galleryY+70, CONTENT_WIDTH,
-			 * galleryHeight); cs.fill();
-			 */
+			galleryY = currentY - galleryHeight - 10;
 			// Adding main gallery image
 			addImage(document, page, "/app/data/biodiv/img" + species.getResourceData().get(0), MARGIN, galleryY + 20,
 					galleryHeight - 20, true, true, CONTENT_WIDTH, false);
 		}
-		/*
-		 * else { float galleryHeight = 360; float images =
-		 * species.getResourceData().size(); galleryY = currentY - galleryHeight - 60 -
-		 * 10; // Adding black background cs.setNonStrokingColor(BLACK);
-		 * cs.addRect(MARGIN, galleryY, CONTENT_WIDTH, galleryHeight + 80); cs.fill();
-		 * // Adding main gallery image addImage(document, page, "/app/data/biodiv/img"
-		 * + species.getResourceData().get(0), MARGIN, galleryY + 80, galleryHeight,
-		 * true, true, CONTENT_WIDTH);
-		 * 
-		 * // Thumbnail grid (4x1) float thumbWidth = 100; float thumbHeight = 60; float
-		 * thumbSpacing = 10; float gridWidth = (thumbWidth * Math.min(images, 4)) +
-		 * (thumbSpacing * (Math.min(images, 4) - 1)); float gridStartX = (PAGE_WIDTH -
-		 * gridWidth) / 2; float gridY = galleryY + 80;
-		 * 
-		 * // Changed thumbnail colors cs.setNonStrokingColor(BLACK);
-		 * cs.setStrokingColor(new Color(45, 55, 70));
-		 * 
-		 * for (int col = 0; col < Math.min(images, 4); col++) { float thumbX =
-		 * gridStartX + (col * (thumbWidth + thumbSpacing)); float thumbY = gridY -
-		 * ((thumbHeight + thumbSpacing));
-		 * 
-		 * // Adding Background colour cs.addRect(thumbX, thumbY, thumbWidth,
-		 * thumbHeight); cs.fill();
-		 * 
-		 * addImage(document, page, "/app/data/biodiv/img" +
-		 * species.getResourceData().get(col), thumbX, thumbY, thumbHeight, true, true,
-		 * thumbWidth); } }
-		 */
-
 		currentY = galleryY - 10;
 	}
 
@@ -2422,9 +2373,7 @@ public class UtilityServiceImpl implements UtilityService {
 				.replaceAll("</h5>", "\n").replaceAll("<h6[^>]*>", "\n<h>").replaceAll("</h6>", "\n");
 
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
-				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "") // Remove
-																											// opening
-																											// span
+				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")
 				.replaceAll("</span>", "");
 
 		return decodeHtmlEntities(html);
@@ -2600,18 +2549,6 @@ public class UtilityServiceImpl implements UtilityService {
 							PDType1Font.HELVETICA_BOLD, 13, MARGIN + 25, y, width - 50, 16, new Color(240, 245, 250),
 							null, 30, true, false, null, 1, url + "/document/show/" + doc.getId());
 
-					/*
-					 * PDAnnotationLink link = new PDAnnotationLink();
-					 * 
-					 * PDRectangle position = new PDRectangle(MARGIN + 25, context.yPosition + 15 +
-					 * 30, width - 50, y - context.yPosition - 35); link.setRectangle(position);
-					 * 
-					 * PDActionURI action = new PDActionURI();
-					 * action.setURI("http://localhost:3000/species/show/31369");
-					 * link.setAction(action);
-					 * 
-					 * page.getAnnotations().add(link);
-					 */
 					page = context.page;
 					cs = context.contentStream;
 					y = context.yPosition;
@@ -2636,7 +2573,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 				// Grid layout for trait values
 				float boxWidth = (CONTENT_WIDTH - 50 - 20) / 3;
-				float boxHeight = 30;
+				float boxHeight = 48;
 				float boxSpacing = 10;
 				float gridStartX = MARGIN + 25;
 
@@ -2644,7 +2581,7 @@ public class UtilityServiceImpl implements UtilityService {
 				int rows = (int) Math.ceil(totalValues / 3.0);
 
 				for (int row = 0; row < rows; row++) {
-					if (y - 48 - 10 < 0) {
+					if (y - boxHeight - 10 < 0) {
 						cs.setNonStrokingColor(new Color(240, 245, 250));
 						cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 						cs.fill();
@@ -2685,19 +2622,19 @@ public class UtilityServiceImpl implements UtilityService {
 					}
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setNonStrokingColor(new Color(240, 245, 250));
-					cs.addRect(MARGIN, y - 58 + 15, CONTENT_WIDTH, 58);
+					cs.addRect(MARGIN, y - boxHeight -10 + 15, CONTENT_WIDTH, 58);
 					cs.fill();
 
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setLineWidth(1);
 					cs.moveTo(MARGIN + 10, y + 15);
-					cs.lineTo(MARGIN + 10, y - 58 + 15);
+					cs.lineTo(MARGIN + 10, y - boxHeight -10 + 15);
 					cs.stroke();
 
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setLineWidth(1);
 					cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 15);
-					cs.lineTo(MARGIN + CONTENT_WIDTH - 10, y - 58 + 15);
+					cs.lineTo(MARGIN + CONTENT_WIDTH - 10, y - boxHeight -10 + 15);
 					cs.stroke();
 
 					for (int col = 0; col < 3; col++) {
@@ -2708,25 +2645,25 @@ public class UtilityServiceImpl implements UtilityService {
 						if (trait.getDataType().equals("COLOR")) {
 							String rgbValue = trait.getValues().get(valueIndex).getValue();
 							String values = rgbValue.split("rgb\\(")[1];
-							values = values.split("\\)")[0]; // Remove the
+							values = values.split("\\)")[0];
 							String[] parts = values.split(",");
 							int r = Integer.parseInt(parts[0].trim());
 							int g = Integer.parseInt(parts[1].trim());
 							int b = Integer.parseInt(parts[2].trim());
 							float boxX = gridStartX + (col * (boxWidth + boxSpacing));
-							float boxY = y - 48 + 15;
+							float boxY = y - boxHeight + 15;
 							cs.setNonStrokingColor(new Color(r, g, b));
-							cs.addRect(boxX, boxY, boxWidth, 48);
+							cs.addRect(boxX, boxY, boxWidth, boxHeight);
 							cs.fill();
 						} else {
 							cs.setStrokingColor(new Color(222, 226, 230));
 							float boxX = gridStartX + (col * (boxWidth + boxSpacing));
-							float boxY = y - 48 + 15;
-							cs.addRect(boxX, boxY, boxWidth, 48);
+							float boxY = y - boxHeight + 15;
+							cs.addRect(boxX, boxY, boxWidth, boxHeight);
 							cs.stroke();
 
 							cs.setNonStrokingColor(WHITE);
-							cs.addRect(boxX, boxY, boxWidth, 48);
+							cs.addRect(boxX, boxY, boxWidth, boxHeight);
 							cs.fill();
 
 							String text = "";
@@ -2755,7 +2692,7 @@ public class UtilityServiceImpl implements UtilityService {
 										boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0));
 							}
 
-							float textY = y - (48 - (Math.min(lines.size(), 3) * 16)) / 2;
+							float textY = y - (boxHeight - (Math.min(lines.size(), 3) * 16)) / 2;
 
 							cs.setNonStrokingColor(new Color(33, 37, 41));
 
@@ -2767,23 +2704,23 @@ public class UtilityServiceImpl implements UtilityService {
 								if (text.split("\\|").length > 1) {
 
 									addImage(document, page, "/app/data/biodiv/traits" + text.split("\\|")[1], boxX,
-											y - 43 + 15, 38, true, true, 45, false);
+											y - 43 + 15, boxHeight-10, true, true, 45, false);
 								}
 							}
 						}
 					}
 
-					y = y - 48 - 10;
+					y = y - boxHeight - 10;
 
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setLineWidth(1);
-					cs.moveTo(MARGIN, y + 58 + 15);
+					cs.moveTo(MARGIN, y + boxHeight+10 + 15);
 					cs.lineTo(MARGIN, y + 15);
 					cs.stroke();
 
 					cs.setStrokingColor(new Color(222, 226, 230));
 					cs.setLineWidth(1);
-					cs.moveTo(MARGIN + CONTENT_WIDTH, y + 58 + 15);
+					cs.moveTo(MARGIN + CONTENT_WIDTH, y + boxHeight+10+ 15);
 					cs.lineTo(MARGIN + CONTENT_WIDTH, y + 15);
 					cs.stroke();
 				}
@@ -3119,7 +3056,6 @@ public class UtilityServiceImpl implements UtilityService {
 				byte[] imageBytes = Base64.getDecoder().decode(imageData);
 				PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "chart");
 
-				// Calculate height maintaining aspect ratio
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 				float imageWidth = CONTENT_WIDTH - 30;
 				float height = aspectRatio * imageWidth;
@@ -3236,7 +3172,6 @@ public class UtilityServiceImpl implements UtilityService {
 				byte[] imageBytes = Base64.getDecoder().decode(imageData);
 				PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, imageBytes, "chart");
 
-				// Calculate height maintaining aspect ratio
 				float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 				float imageWidth = CONTENT_WIDTH - 30;
 				float height = aspectRatio * imageWidth;
@@ -3352,7 +3287,6 @@ public class UtilityServiceImpl implements UtilityService {
 		sourcePage.getAnnotations().add(link);
 
 		float boxWidth = (CONTENT_WIDTH - 50 - 10) / 2;
-		float boxHeight = 30;
 		float boxSpacing = 10;
 		float gridStartX = MARGIN + 25;
 
@@ -3484,31 +3418,29 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 				try {
-// Load the image
 					PDImageXObject pdImage = PDImageXObject.createFromFile(imagePath, document);
 
-// Calculate position (convert center coordinates to bottom-left)
+
 					float x = centerX - diameter / 2;
 					float y = centerY - diameter / 2;
 
-// Save graphics state for clipping
+
 					contentStream.saveGraphicsState();
 
-// Create circular clipping path
+
 					createCircularClip(contentStream, centerX, centerY, diameter / 2);
 
-// Draw the image (will be clipped to circle)
+
 					contentStream.drawImage(pdImage, x, y, diameter, diameter);
 
-// Restore graphics state
+
 					contentStream.restoreGraphicsState();
 
 				} catch (Exception e) {
-// If image loading fails, draw fallback circle
+
 					drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, name);
 				}
 			} else {
-// Draw fallback if file doesn't exist
 				drawFallbackCircle(contentStream, centerX, centerY, diameter / 2, name);
 			}
 		}
@@ -3517,7 +3449,7 @@ public class UtilityServiceImpl implements UtilityService {
 //Helper method to create circular clipping path
 	private static void createCircularClip(PDPageContentStream contentStream, float centerX, float centerY,
 			float radius) throws IOException {
-		final float k = 0.552284749831f; // Circle approximation constant
+		final float k = 0.552284749831f;
 
 		contentStream.moveTo(centerX - radius, centerY);
 
@@ -3537,21 +3469,21 @@ public class UtilityServiceImpl implements UtilityService {
 		contentStream.clip();
 	}
 
-//Fallback method for circular placeholder
+
 	private static void drawFallbackCircle(PDPageContentStream contentStream, float centerX, float centerY,
 			float radius, String text) throws IOException {
-// Draw circle background
+
 		contentStream.setNonStrokingColor(Color.LIGHT_GRAY);
 		createCircularPath(contentStream, centerX, centerY, radius);
 		contentStream.fill();
 
-// Draw circle border
+
 		contentStream.setStrokingColor(Color.DARK_GRAY);
 		contentStream.setLineWidth(1);
 		createCircularPath(contentStream, centerX, centerY, radius);
 		contentStream.stroke();
 
-// Draw text in center
+
 		text = text.length() < 3 ? text : text.substring(0, 2);
 		contentStream.setNonStrokingColor(Color.DARK_GRAY);
 		contentStream.beginText();
@@ -3561,7 +3493,7 @@ public class UtilityServiceImpl implements UtilityService {
 		contentStream.endText();
 	}
 
-//Helper method to create circular path without clipping
+
 	private static void createCircularPath(PDPageContentStream contentStream, float centerX, float centerY,
 			float radius) throws IOException {
 		final float k = 0.552284749831f;

@@ -1,34 +1,55 @@
 package com.strandls.utility.pojo;
 
 import java.util.List;
-import java.util.ArrayList;
 
 public class SpeciesField {
 	private Long id;
-    private String name;
-    private List<SpeciesField> childField;
-    private List<FieldValue> values;
-    private List<Trait> traits;
+	private String name;
+	private List<SpeciesField> childField;
+	private List<FieldValue> values;
+	private List<Trait> traits;
 
-    // Constructors
-    public SpeciesField() {
-        super();
-    }
+	public SpeciesField() {
+		super();
+	}
 
-    // Getters and Setters
-    
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+	public Long getId() {
+		return id;
+	}
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public List<SpeciesField> getChildField() { return childField; }
-    public void setChildField(List<SpeciesField> childField) { this.childField = childField; }
+	public String getName() {
+		return name;
+	}
 
-    public List<FieldValue> getValues() { return values; }
-    public void setValues(List<FieldValue> values) { this.values = values; }
-    
-    public List<Trait> getTraits() { return traits; }
-    public void setTraits(List<Trait> traits) { this.traits = traits; }
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<SpeciesField> getChildField() {
+		return childField;
+	}
+
+	public void setChildField(List<SpeciesField> childField) {
+		this.childField = childField;
+	}
+
+	public List<FieldValue> getValues() {
+		return values;
+	}
+
+	public void setValues(List<FieldValue> values) {
+		this.values = values;
+	}
+
+	public List<Trait> getTraits() {
+		return traits;
+	}
+
+	public void setTraits(List<Trait> traits) {
+		this.traits = traits;
+	}
 }

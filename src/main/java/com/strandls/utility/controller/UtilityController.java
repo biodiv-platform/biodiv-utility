@@ -3,12 +3,6 @@
  */
 package com.strandls.utility.controller;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -28,14 +22,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.StreamingOutput;
-
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.util.Matrix;
 import org.pac4j.core.profile.CommonProfile;
 
 import com.strandls.activity.pojo.MailData;
@@ -800,7 +786,6 @@ public class UtilityController {
 		        .build();
 
 	    } catch (Exception e) {
-	        e.printStackTrace();
 	        return Response.status(500).entity("Error: " + e.getMessage()).build();
 	    }
 

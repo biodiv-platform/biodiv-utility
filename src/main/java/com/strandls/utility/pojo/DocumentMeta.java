@@ -1,8 +1,5 @@
 package com.strandls.utility.pojo;
 
-import java.util.List;
-import java.util.Map;
-
 public class DocumentMeta {
     private String title;
     private String user;

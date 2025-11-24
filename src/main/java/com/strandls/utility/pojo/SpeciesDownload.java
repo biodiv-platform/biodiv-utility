@@ -23,21 +23,9 @@ public class SpeciesDownload {
 	private List<DocumentMeta> documentMetaList;
 	private List<String> commonReferences;
 
-	/**
-	 * 
-	 */
 	public SpeciesDownload() {
 		super();
 	}
-
-	/**
-	 * @param species
-	 * @param observation
-	 * @param maps
-	 * @param documents
-	 * @param discussions
-	 * @param activeUser
-	 */
 
 	public String getUrl() {
 		return url;
@@ -46,7 +34,7 @@ public class SpeciesDownload {
 	public void setUrl(String url) {
 		this.url = url;
 	}
-	
+
 	public Long getLanguageId() {
 		return languageId;
 	}
@@ -54,7 +42,7 @@ public class SpeciesDownload {
 	public void setLanguageId(Long languageId) {
 		this.languageId = languageId;
 	}
-	
+
 	public String getTitle() {
 		return title;
 	}
@@ -62,7 +50,7 @@ public class SpeciesDownload {
 	public void setTitle(String title) {
 		this.title = title;
 	}
-	
+
 	public String getSpeciesGroup() {
 		return speciesGroup;
 	}
@@ -70,7 +58,7 @@ public class SpeciesDownload {
 	public void setSpeciesGroup(String speciesGroup) {
 		this.speciesGroup = speciesGroup;
 	}
-	
+
 	public String getBadge() {
 		return badge;
 	}
@@ -78,7 +66,7 @@ public class SpeciesDownload {
 	public void setBadge(String badge) {
 		this.badge = badge;
 	}
-	
+
 	public List<String> getSynonyms() {
 		return synonyms;
 	}
@@ -86,7 +74,7 @@ public class SpeciesDownload {
 	public void setSynonyms(List<String> synonyms) {
 		this.synonyms = synonyms;
 	}
-	
+
 	public List<BreadCrumb> getTaxonomy() {
 		return taxonomy;
 	}
@@ -94,7 +82,7 @@ public class SpeciesDownload {
 	public void setTaxonomy(List<BreadCrumb> taxonomy) {
 		this.taxonomy = taxonomy;
 	}
-	
+
 	public Map<String, List<String>> getCommonNames() {
 		return commonNames;
 	}
@@ -102,7 +90,7 @@ public class SpeciesDownload {
 	public void setCommonNames(Map<String, List<String>> commonNames) {
 		this.commonNames = commonNames;
 	}
-	
+
 	public List<String> getConceptNames() {
 		return conceptNames;
 	}
@@ -110,7 +98,7 @@ public class SpeciesDownload {
 	public void setConceptNames(List<String> conceptNames) {
 		this.conceptNames = conceptNames;
 	}
-	
+
 	public List<SpeciesField> getFieldData() {
 		return fieldData;
 	}
@@ -126,52 +114,52 @@ public class SpeciesDownload {
 	public void setReferences(Map<String, List<String>> references) {
 		this.references = references;
 	}
-	
+
 	public String getChartImage() {
-        return chartImage;
-    }
-    
-    public void setChartImage(String chartImage) {
-        this.chartImage = chartImage;
-    }
-    
-    public String getTraitsChart() {
-        return traitsChart;
-    }
-    
-    public void setTraitsChart(String traitsChart) {
-        this.traitsChart = traitsChart;
-    }
-    
-    public String getObservationMap() {
-        return observationMap;
-    }
-    
-    public void setObservationMap(String observationMap) {
-        this.observationMap = observationMap;
-    }
-    
-    public List<String> getResourceData() {
-        return resourceData;
-    }
-    
-    public void setResourceData(List<String> resourceData) {
-        this.resourceData = resourceData;
-    }
-    
-    public List<DocumentMeta> getDocumentMetaList() {
-        return documentMetaList;
-    }
-    
-    public void setDocumentMetaList(List<DocumentMeta> documentMetaList) {
-        this.documentMetaList = documentMetaList;
-    }
-    
-    public List<String> getCommonReferences() {
-        return commonReferences;
-    }
-    
-    public void setCommonReferences(List<String> commonReferences) {
-        this.commonReferences = commonReferences;
-    }
+		return chartImage;
+	}
+
+	public void setChartImage(String chartImage) {
+		this.chartImage = chartImage;
+	}
+
+	public String getTraitsChart() {
+		return traitsChart;
+	}
+
+	public void setTraitsChart(String traitsChart) {
+		this.traitsChart = traitsChart;
+	}
+
+	public String getObservationMap() {
+		return observationMap;
+	}
+
+	public void setObservationMap(String observationMap) {
+		this.observationMap = observationMap;
+	}
+
+	public List<String> getResourceData() {
+		return resourceData;
+	}
+
+	public void setResourceData(List<String> resourceData) {
+		this.resourceData = resourceData;
+	}
+
+	public List<DocumentMeta> getDocumentMetaList() {
+		return documentMetaList;
+	}
+
+	public void setDocumentMetaList(List<DocumentMeta> documentMetaList) {
+		this.documentMetaList = documentMetaList;
+	}
+
+	public List<String> getCommonReferences() {
+		return commonReferences;
+	}
+
+	public void setCommonReferences(List<String> commonReferences) {
+		this.commonReferences = commonReferences;
+	}
 }
