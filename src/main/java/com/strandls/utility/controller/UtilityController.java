@@ -22,7 +22,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import org.pac4j.core.profile.CommonProfile;
 
 import com.strandls.activity.pojo.MailData;
@@ -42,6 +41,7 @@ import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
+import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.service.UtilityService;
@@ -364,7 +364,8 @@ public class UtilityController {
 	@ApiOperation(value = "Get home page data", notes = "Return home page data", response = HomePageData.class)
 	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getHomePageData(@Context HttpServletRequest request,
-			@DefaultValue("false") @QueryParam("adminList") Boolean adminList, @DefaultValue("-1") @QueryParam("languageId") Long languageId) {
+			@DefaultValue("false") @QueryParam("adminList") Boolean adminList,
+			@DefaultValue("-1") @QueryParam("languageId") Long languageId) {
 		try {
 			HomePageData result = utilityService.getHomePageData(request, adminList, languageId);
 			return Response.status(Status.OK).entity(result).build();
@@ -380,12 +381,14 @@ public class UtilityController {
 	@ValidateUser
 
 	@ApiOperation(value = "Creates a new mini gallery", notes = "Return created mini gallery", response = Map.class)
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class)})
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "Unable to create mini gallery", response = String.class) })
 
-	public Response createMiniGallery(@Context HttpServletRequest request, @ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
+	public Response createMiniGallery(@Context HttpServletRequest request,
+			@ApiParam(name = "miniGalleryData") GalleryConfig miniGalleryData) {
 		try {
 			GalleryConfig result = utilityService.createMiniGallery(request, miniGalleryData);
-			if (result!=null)
+			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
 
@@ -665,7 +668,7 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@POST
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.ANNOUNCEMENT + ApiConstants.CREATE)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -673,12 +676,14 @@ public class UtilityController {
 	@ValidateUser
 
 	@ApiOperation(value = "Creates an announcement", notes = "Return created announcement", response = Map.class)
-	@ApiResponses(value = { @ApiResponse(code = 400, message = "Unable to create announcement", response = String.class)})
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "Unable to create announcement", response = String.class) })
 
-	public Response createAnnouncement(@Context HttpServletRequest request, @ApiParam(name = "announcementData") Announcement announcementData) {
+	public Response createAnnouncement(@Context HttpServletRequest request,
+			@ApiParam(name = "announcementData") Announcement announcementData) {
 		try {
 			Announcement result = utilityService.createAnnouncement(request, announcementData);
-			if (result!=null)
+			if (result != null)
 				return Response.status(Status.OK).entity(result).build();
 			return Response.status(Status.NOT_FOUND).build();
 
@@ -686,13 +691,13 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@GET
-	@Path(ApiConstants.ANNOUNCEMENT+ApiConstants.ALL)
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.ALL)
 	@Produces(MediaType.APPLICATION_JSON)
 
 	@ApiOperation(value = "Get announcements data", notes = "Return announcements data", response = List.class)
-	@ApiResponses(value = { @ApiResponse(code =	 400, message = "unable to fetch the data", response = String.class) })
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getAnnouncementData(@Context HttpServletRequest request) {
 		try {
 			List<Announcement> result = utilityService.getAnnouncementData(request);
@@ -701,7 +706,7 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@DELETE
 	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.REMOVE + "/{announcementId}")
 	@Consumes(MediaType.TEXT_PLAIN)
@@ -710,10 +715,10 @@ public class UtilityController {
 	@ValidateUser
 
 	@ApiOperation(value = "Delete announcement data", notes = "return if success", response = Boolean.class)
-	@ApiResponses(value = {
-			@ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to delete the data", response = String.class) })
 
-	public Response removeAnnouncementData(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId) {
+	public Response removeAnnouncementData(@Context HttpServletRequest request,
+			@PathParam("announcementId") String announcementId) {
 		try {
 			Long aId = Long.parseLong(announcementId);
 			Boolean result = utilityService.removeAnnouncement(request, aId);
@@ -725,7 +730,7 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@PUT
 	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.EDIT + "/{announcementId}")
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -737,8 +742,8 @@ public class UtilityController {
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
-	public Response editAnnouncement(@Context HttpServletRequest request, @PathParam("announcementId") String announcementId,
-			@ApiParam(name = "editData") Announcement editData) {
+	public Response editAnnouncement(@Context HttpServletRequest request,
+			@PathParam("announcementId") String announcementId, @ApiParam(name = "editData") Announcement editData) {
 		try {
 			if (announcementId == null) {
 				return Response.status(Status.BAD_REQUEST).entity("announcemnt Id cannot be null").build();
@@ -753,13 +758,13 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@GET
-	@Path(ApiConstants.ANNOUNCEMENT+ApiConstants.ACTIVE)
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.ACTIVE)
 	@Produces(MediaType.APPLICATION_JSON)
 
 	@ApiOperation(value = "Get active announcement", notes = "Return announcement data", response = List.class)
-	@ApiResponses(value = { @ApiResponse(code =	 400, message = "unable to fetch the data", response = String.class) })
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
 	public Response getActiveAnnouncement(@Context HttpServletRequest request) {
 		try {
 			List<Announcement> result = utilityService.getActiveAnnouncement(request);
@@ -769,5 +774,25 @@ public class UtilityController {
 		}
 	}
 
+	@POST
+	@Path(ApiConstants.DOWNLOAD)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces("application/pdf")
+	@ValidateUser
+	public Response download(@Context HttpServletRequest request,
+			@ApiParam(name = "speciesData") SpeciesDownload speciesData) {
+
+		try {
+
+			byte[] pdfBytes = utilityService.download(request, speciesData);
+
+			return Response.ok(pdfBytes).type("application/pdf")
+					.header("Content-Disposition", "attachment; filename=\"simple.pdf\"").build();
+
+		} catch (Exception e) {
+			return Response.status(500).entity("Error: " + e.getMessage()).build();
+		}
+
+	}
 
 }

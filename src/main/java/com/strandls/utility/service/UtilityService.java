@@ -4,8 +4,6 @@
 package com.strandls.utility.service;
 
 import java.util.List;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.pac4j.core.profile.CommonProfile;
@@ -24,6 +22,7 @@ import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
+import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
 
@@ -88,8 +87,7 @@ public interface UtilityService {
 
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 
-	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId,
-			MiniGallerySlider editData);
+	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId, MiniGallerySlider editData);
 
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
 
@@ -104,4 +102,6 @@ public interface UtilityService {
 	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement editData);
 
 	public List<Announcement> getActiveAnnouncement(HttpServletRequest request);
+
+	public byte[] download(HttpServletRequest request, SpeciesDownload speciesData);
 }
