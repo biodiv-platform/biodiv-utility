@@ -131,13 +131,13 @@ public class UtilityServiceImpl implements UtilityService {
 	// ============================================================================
 
 	private static final String FALLBACK_FONT_PATH = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
-	private static String LOGO_PATH = PropertyFileUtil.fetchProperty("config.properties", "logo_path");
-	private static String SPECIES_GROUP_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
+	private String LOGO_PATH = PropertyFileUtil.fetchProperty("config.properties", "logo_path");
+	private String SPECIES_GROUP_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
 			"species_group_image_path");
-	private static String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
+	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
 			"species_image_path");
-	private static String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
-	private static String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
+	private String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
+	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -1586,7 +1586,7 @@ public class UtilityServiceImpl implements UtilityService {
 		contentStream.endText();
 	}
 
-	private static float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
+	private float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData) throws Exception {
 		// Divides text into lines based on width available
 		// 32 is fontSize, 35 is line height and 170 is space required for other banner
@@ -2180,7 +2180,7 @@ public class UtilityServiceImpl implements UtilityService {
 		currentY = cardY;
 	}
 
-	private static void addImageGallery(PDDocument document, PDPage page, PDPageContentStream cs,
+	private void addImageGallery(PDDocument document, PDPage page, PDPageContentStream cs,
 			SpeciesDownload species) throws Exception {
 
 		float galleryY = currentY - 360;
@@ -2492,7 +2492,7 @@ public class UtilityServiceImpl implements UtilityService {
 				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"");
 	}
 
-	private static PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
+	private PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesField speciesField, float currentLeftY, String Map, List<DocumentMeta> documentList, String url,
 			Long languageId) throws Exception {
 		float y = currentLeftY - 40;
@@ -2546,7 +2546,7 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
-	private static PageContext addSpeciesFieldGroup(PDDocument document, PDPageContentStream cs, PDPage page,
+	private PageContext addSpeciesFieldGroup(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesField speciesField, int level, float currentLeftY, String Map, List<DocumentMeta> documentList,
 			String url, Long languageId) throws Exception {
 		float width = CONTENT_WIDTH;
@@ -3327,7 +3327,7 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
-	private static PageContext addAdditionalImages(PDDocument document, PDPageContentStream cs, PDPage page,
+	private PageContext addAdditionalImages(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesDownload speciesData, float currentLeftY, PDAnnotationLink link, PDPage sourcePage)
 			throws Exception {
 		float width = CONTENT_WIDTH;
