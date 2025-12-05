@@ -131,11 +131,11 @@ public class UtilityServiceImpl implements UtilityService {
 	// ============================================================================
 
 	private static final String FALLBACK_FONT_PATH = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
-	private static final String LOGO_PATH =  PropertyFileUtil.fetchProperty("config.properties", "logoPath");
-	private static final String SPECIES_GROUP_IMAGE_PATH =  PropertyFileUtil.fetchProperty("config.properties", "speciesGroupImagePath");
-	private static final String	SPECIES_IMAGE_PATH =  PropertyFileUtil.fetchProperty("config.properties", "speciesImagePath");
-	private static final String USER_IMAGE =  PropertyFileUtil.fetchProperty("config.properties", "userImage");
-	private static final String TRAITS_IMAGE =  PropertyFileUtil.fetchProperty("config.properties", "traitsImage");
+	private static final String LOGO_PATH =  PropertyFileUtil.fetchProperty("config.properties", "logo_path");
+	private static final String SPECIES_GROUP_IMAGE_PATH =  PropertyFileUtil.fetchProperty("config.properties", "species_group_image_path");
+	private static final String	SPECIES_IMAGE_PATH =  PropertyFileUtil.fetchProperty("config.properties", "species_image_path");
+	private static final String USER_IMAGE =  PropertyFileUtil.fetchProperty("config.properties", "user_image");
+	private static final String TRAITS_IMAGE =  PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 
 
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
