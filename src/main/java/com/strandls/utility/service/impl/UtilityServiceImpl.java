@@ -130,12 +130,11 @@ public class UtilityServiceImpl implements UtilityService {
 	// CONSTANTS & CONFIGURATION
 	// ============================================================================
 
-	private static final String FALLBACK_FONT_PATH = "/usr/share/fonts/truetype/freefont/FreeSerif.ttf";
+	private String FALLBACK_FONT_PATH = PropertyFileUtil.fetchProperty("config.properties", "fallback_font_path");
 	private String LOGO_PATH = PropertyFileUtil.fetchProperty("config.properties", "logo_path");
 	private String SPECIES_GROUP_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
 			"species_group_image_path");
-	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
-			"species_image_path");
+	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties", "species_image_path");
 	private String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 
@@ -1586,8 +1585,8 @@ public class UtilityServiceImpl implements UtilityService {
 		contentStream.endText();
 	}
 
-	private float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page,
-			SpeciesDownload speciesData) throws Exception {
+	private float addHeaderBanner(PDDocument document, PDPageContentStream cs, PDPage page, SpeciesDownload speciesData)
+			throws Exception {
 		// Divides text into lines based on width available
 		// 32 is fontSize, 35 is line height and 170 is space required for other banner
 		// details
@@ -2180,8 +2179,8 @@ public class UtilityServiceImpl implements UtilityService {
 		currentY = cardY;
 	}
 
-	private void addImageGallery(PDDocument document, PDPage page, PDPageContentStream cs,
-			SpeciesDownload species) throws Exception {
+	private void addImageGallery(PDDocument document, PDPage page, PDPageContentStream cs, SpeciesDownload species)
+			throws Exception {
 
 		float galleryY = currentY - 360;
 
