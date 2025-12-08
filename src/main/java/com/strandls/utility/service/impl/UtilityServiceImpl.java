@@ -2479,6 +2479,8 @@ public class UtilityServiceImpl implements UtilityService {
 		if (html == null || html.trim().isEmpty()) {
 			return "";
 		}
+		
+		html = fixTagPlacement(html);
 
 		// Replaces all heading tags with new line
 		html = html.replaceAll("<h1[^>]*>", "\n<h>").replaceAll("</h1>", "\n").replaceAll("<h2[^>]*>", "\n<h>")
@@ -2487,11 +2489,32 @@ public class UtilityServiceImpl implements UtilityService {
 				.replaceAll("</h5>", "\n").replaceAll("<h6[^>]*>", "\n<h>").replaceAll("</h6>", "\n");
 
 		// Replaces paragraphs and divs with new line
-		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "")
+		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
 				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")
 				.replaceAll("</span>", "");
 
 		return decodeHtmlEntities(html);
+	}
+	
+	private static String fixTagPlacement(String html) {
+	    // Pattern to match opening tag followed immediately by <br>
+	    // Example: <strong><br> or <b><br> or <em><br> etc.
+	    Pattern pattern = Pattern.compile(
+	        "<(strong|b|em|i|u|span)([^>]*)>\\s*<br\\s*/?>",
+	        Pattern.CASE_INSENSITIVE
+	    );
+	    
+	    Matcher matcher = pattern.matcher(html);
+	    StringBuffer result = new StringBuffer();
+	    
+	    while (matcher.find()) {
+	        // Move the tag after the <br>
+	        String replacement = "<br><" + matcher.group(1) + matcher.group(2) + ">";
+	        matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+	    }
+	    matcher.appendTail(result);
+	    
+	    return result.toString();
 	}
 
 	private static String decodeHtmlEntities(String text) {
