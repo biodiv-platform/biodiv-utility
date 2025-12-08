@@ -1617,6 +1617,8 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.newLineAtOffset(MARGIN + 158, currentY - 45);
 		cs.showText("India Biodiversity Portal");
 		cs.endText();
+		drawTextWithWordWrap(cs, speciesData.getTitle(), primaryFont, fontSize, MARGIN + 158, currentY - 45, MARGIN + CONTENT_WIDTH - 90,
+				16, null);
 
 		// Adding date of download
 		cs.beginText();
