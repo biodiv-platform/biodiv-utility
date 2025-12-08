@@ -1611,6 +1611,7 @@ public class UtilityServiceImpl implements UtilityService {
 		fontSize = 14;
 
 		// Adding portal name
+		cs.setNonStrokingColor(new Color(33, 37, 41));
 		drawTextWithWordWrap(cs, SITENAME, primaryFont, fontSize, MARGIN + 158, currentY - 43, CONTENT_WIDTH - 90 - 158,
 				16, null);
 
