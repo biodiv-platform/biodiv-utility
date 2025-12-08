@@ -1846,41 +1846,55 @@ public class UtilityServiceImpl implements UtilityService {
 		List<TextSegment> segments = new ArrayList<>();
 
 		// This pattern matches: **bold**, *italic*, or any text without asterisks
-		Pattern pattern = Pattern.compile("(\\*\\*(.*?)\\*\\*)|(\\*([^*]+)\\*)|([^*]+)");
-		Matcher matcher = pattern.matcher(line);
+		Pattern pattern = Pattern.compile("(\\*\\*\\*(.+?)\\*\\*\\*)|" + // ***bold italic*** - groups 1 & 2
+				"(\\*\\*(.+?)\\*\\*)|" + // **bold** - groups 3 & 4
+				"(\\*([^*]+)\\*)|" + // *italic* - groups 5 & 6
+				"([^*]+)" // plain text - group 7
+		);
 
+		Matcher matcher = pattern.matcher(line);
+		
 		PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
-		while (matcher.find()) {
-			String boldText = matcher.group(2);
-			String italicText = matcher.group(4);
-			String normalText = matcher.group(5);
 
-			String segmentText;
+		while (matcher.find()) {
+			String segmentText = null;
 			PDFont segmentFont = baseFont;
 
-			if (boldText != null) {
-				segmentText = boldText;
+			// Check in order of specificity (bold-italic first)
+			if (matcher.group(1) != null) {
+				// ***bold italic***
+				segmentText = matcher.group(2);
+				segmentFont = boldItalicFont;
+			} else if (matcher.group(3) != null) {
+				// **bold**
+				segmentText = matcher.group(4);
 				segmentFont = boldFont;
-			} else if (italicText != null) {
-				segmentText = italicText;
-				segmentFont = baseFont.equals(boldFont) ? boldItalicFont : italicFont;
-			} else {
-				segmentText = normalText;
+			} else if (matcher.group(5) != null) {
+				// *italic*
+				segmentText = matcher.group(6);
+				segmentFont = italicFont;
+			} else if (matcher.group(7) != null) {
+				// plain text
+				segmentText = matcher.group(7);
+				segmentFont = baseFont;
 			}
 
 			// Skip empty segments
-			if (segmentText != null && !segmentText.isEmpty()) {
-				// Calculate width for this segment
-
+			if (segmentText != null && !segmentText.trim().isEmpty()) {
 				try {
-					segmentFont.getStringWidth(segmentText);
-				} catch (IllegalArgumentException e) {
-					logger.warn("Font cannot render text, using fallback: " + segmentText);
-					segmentFont = fallbackFont;
+					// Calculate width
+					float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
+					segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
+				} catch (IOException e) {
+					// Fallback for encoding issues
+					logger.warn("Cannot encode text with font " + segmentFont.getName() + ", using base font for: "
+							+ segmentText);
+
+					// Try with base font
+					float segmentWidth = baseFont.getStringWidth(segmentText) * fontSize / 1000f;
+					segments.add(new TextSegment(segmentText, baseFont, segmentWidth));
 				}
-				float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
-				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
 			}
 		}
 
