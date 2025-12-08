@@ -1675,7 +1675,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Step 1 formats text for bold tag and strong tag
 		String step1 = processFormatting(text, "b", "strong", "**");
 		// Step 2 formats the processed text for italic tag
-		String step2 = processFormatting(step1, "i", null, "*");
+		String step2 = processFormatting(step1, "i", "em", "*");
 
 		return step2;
 	}
