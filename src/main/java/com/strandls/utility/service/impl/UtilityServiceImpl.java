@@ -137,6 +137,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties", "species_image_path");
 	private String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
+	private String SITENAME = PropertyFileUtil.fetchProperty("config.properties", "siteName");
 
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -1611,12 +1612,8 @@ public class UtilityServiceImpl implements UtilityService {
 
 		// Adding portal name
 		cs.setNonStrokingColor(new Color(33, 37, 41));
-		cs.beginText();
-		cs.setFont(primaryFont, fontSize);
-		// (x, y)
-		cs.newLineAtOffset(MARGIN + 158, currentY - 45);
-		cs.showText("India Biodiversity Portal");
-		cs.endText();
+		drawTextWithWordWrap(cs, SITENAME, primaryFont, fontSize, MARGIN + 158, currentY - 43, CONTENT_WIDTH - 90 - 158,
+				16, null);
 
 		// Adding date of download
 		cs.beginText();
@@ -1675,7 +1672,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Step 1 formats text for bold tag and strong tag
 		String step1 = processFormatting(text, "b", "strong", "**");
 		// Step 2 formats the processed text for italic tag
-		String step2 = processFormatting(step1, "i", null, "*");
+		String step2 = processFormatting(step1, "i", "em", "*");
 
 		return step2;
 	}
@@ -1846,20 +1843,28 @@ public class UtilityServiceImpl implements UtilityService {
 		List<TextSegment> segments = new ArrayList<>();
 
 		// This pattern matches: **bold**, *italic*, or any text without asterisks
-		Pattern pattern = Pattern.compile("(\\*\\*(.*?)\\*\\*)|(\\*([^*]+)\\*)|([^*]+)");
+		Pattern pattern = Pattern.compile("(\\*\\*\\*(.+?)\\*\\*\\*)|" + // ***bold italic*** - groups 1 & 2
+				"(\\*\\*(.+?)\\*\\*)|" + // **bold** - groups 3 & 4
+				"(\\*([^*]+)\\*)|" + // *italic* - groups 5 & 6
+				"([^*]+)" // plain text - group 7
+		);
 		Matcher matcher = pattern.matcher(line);
 
 		PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
 		while (matcher.find()) {
-			String boldText = matcher.group(2);
-			String italicText = matcher.group(4);
-			String normalText = matcher.group(5);
+			String boldItalicText = matcher.group(2);
+			String boldText = matcher.group(4);
+			String italicText = matcher.group(6);
+			String normalText = matcher.group(7);
 
 			String segmentText;
 			PDFont segmentFont = baseFont;
 
-			if (boldText != null) {
+			if (boldItalicText != null) {
+				segmentText = boldItalicText;
+				segmentFont = boldItalicFont;
+			} else if (boldText != null) {
 				segmentText = boldText;
 				segmentFont = boldFont;
 			} else if (italicText != null) {
@@ -2472,6 +2477,8 @@ public class UtilityServiceImpl implements UtilityService {
 			return "";
 		}
 
+		html = fixTagPlacement(html);
+
 		// Replaces all heading tags with new line
 		html = html.replaceAll("<h1[^>]*>", "\n<h>").replaceAll("</h1>", "\n").replaceAll("<h2[^>]*>", "\n<h>")
 				.replaceAll("</h2>", "\n").replaceAll("<h3[^>]*>", "\n<h>").replaceAll("</h3>", "\n")
@@ -2484,6 +2491,24 @@ public class UtilityServiceImpl implements UtilityService {
 				.replaceAll("</span>", "");
 
 		return decodeHtmlEntities(html);
+	}
+
+	private static String fixTagPlacement(String html) {
+		// Pattern to match opening tag followed immediately by <br>
+		// Example: <strong><br> or <b><br> or <em><br> etc.
+		Pattern pattern = Pattern.compile("<(strong|b|em|i|u|span)([^>]*)>\\s*<br\\s*/?>", Pattern.CASE_INSENSITIVE);
+
+		Matcher matcher = pattern.matcher(html);
+		StringBuffer result = new StringBuffer();
+
+		while (matcher.find()) {
+			// Move the tag after the <br>
+			String replacement = "<br><" + matcher.group(1) + matcher.group(2) + ">";
+			matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+		}
+		matcher.appendTail(result);
+
+		return result.toString();
 	}
 
 	private static String decodeHtmlEntities(String text) {
