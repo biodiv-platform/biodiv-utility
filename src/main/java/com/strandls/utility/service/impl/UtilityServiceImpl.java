@@ -1916,9 +1916,11 @@ public class UtilityServiceImpl implements UtilityService {
 			float lineHeight, Color color, String leftText, float paddingBottom, boolean speciesField,
 			boolean contributor, Color traitColor, float level, String url) throws IOException {
 		List<String> lines = List.of("");
+		List<String> leftLines = List.of("");
 		if (text != null && !text.isEmpty()) {
 			// Split text into lines
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
+			leftLines = splitTextIntoLines(leftText, font, fontSize, speciesField? x -MARGIN -35: x-MARGIN -25);
 			if (lines == null) {
 				lines = List.of("");
 			}
@@ -2120,7 +2122,7 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") ? leftText.substring(1) : leftText);
+				cs.showText(leftText.startsWith("*") ? leftLines.get(0).substring(1) : leftLines.get(0));
 				cs.endText();
 			}
 
@@ -2488,7 +2490,10 @@ public class UtilityServiceImpl implements UtilityService {
 		String cleanedText = text.replace("\t", "");
 		return cleanedText.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
 				.replace("&#39;", "'").replace("&nbsp;", " ").replace("&copy;", "(c)").replace("&reg;", "(r)")
-				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"");
+				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"").replace("&agrave;", "à")
+				.replace("&egrave;", "è").replace("&eacute;", "é").replace("&ecirc;", "ê").replace("&Eacute;", "É")
+				.replace("&icirc;", "î").replace("&ocirc;", "ô").replace("&ucirc;", "û").replace("&ccedil;", "ç")
+				.replace("&Ccedil;", "Ç").replace("&Agrave;", "À").replace("&Egrave;", "È");
 	}
 
 	private PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
