@@ -1925,7 +1925,10 @@ public class UtilityServiceImpl implements UtilityService {
 		if (text != null && !text.isEmpty()) {
 			// Split text into lines
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
-			leftLines = splitTextIntoLines(leftText, font, fontSize, speciesField? x -MARGIN -35: x-MARGIN -25);
+			if (leftText != null) {
+				leftLines = splitTextIntoLines(leftText, font, fontSize,
+						speciesField ? x - MARGIN - 35 : x - MARGIN - 25);
+			}
 			if (lines == null) {
 				lines = List.of("");
 			}
