@@ -2155,7 +2155,7 @@ public class UtilityServiceImpl implements UtilityService {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") ? leftLines.get(0).substring(1) : leftLines.get(0));
+				cs.showText(leftText.startsWith("*") ? leftLines.get(0) : leftLines.get(0));
 				cs.endText();
 			}
 
