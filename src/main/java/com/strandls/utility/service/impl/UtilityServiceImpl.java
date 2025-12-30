@@ -1720,6 +1720,9 @@ public class UtilityServiceImpl implements UtilityService {
 			throws IOException {
 		List<String> lines = new ArrayList<>();
 
+		Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
+		text = pattern.matcher(text).replaceAll("<a href='$1'>$2</a>");
+
 		// Convert HTML tags to word-level markers first
 		String markdownText = convertHtmlToWordLevelMarkers(text);
 
@@ -1736,7 +1739,8 @@ public class UtilityServiceImpl implements UtilityService {
 			String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
 
 			// Calculate width without asterisks for accurate measurement
-			String testLineWithoutMarkers = testLine.replaceAll("\\*", "");
+			String testLineWithoutMarkers = testLine.replaceAll("\\*", "").replaceAll("<a[^>]*>", "").replaceAll("</a>",
+					"");
 			try {
 				// Trying with helvetica font
 				float testWidth = font.getStringWidth(testLineWithoutMarkers) / 1000 * fontSize;
@@ -1821,6 +1825,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		try {
 			for (TextSegment segment : segments) {
+				cs.setNonStrokingColor(segment.getLinkUrl() != null ? new Color(0, 0, 255) : BLACK);
 				cs.beginText();
 				cs.setFont(segment.getFont(), fontSize);
 				cs.newLineAtOffset(currentX, y);
@@ -1843,20 +1848,29 @@ public class UtilityServiceImpl implements UtilityService {
 		List<TextSegment> segments = new ArrayList<>();
 
 		// This pattern matches: **bold**, *italic*, or any text without asterisks
-		Pattern pattern = Pattern.compile("(\\*\\*\\*(.+?)\\*\\*\\*)|" + // ***bold italic*** - groups 1 & 2
-				"(\\*\\*(.+?)\\*\\*)|" + // **bold** - groups 3 & 4
-				"(\\*([^*]+)\\*)|" + // *italic* - groups 5 & 6
-				"([^*]+)" // plain text - group 7
-		);
+		Pattern pattern = Pattern.compile("(<a\\s+[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>(.*?)</a>)|" + // Groups
+																											// 1,2,3
+				"(\\*\\*\\*(.+?)\\*\\*\\*)|" + // Groups 4,5
+				"(\\*\\*(.+?)\\*\\*)|" + // Groups 6,7
+				"(\\*([^*]+)\\*)|" + // Groups 8,9
+				"([^*<]+|$)" // Group 10 - plain text or end
+				, Pattern.DOTALL);
+
 		Matcher matcher = pattern.matcher(line);
 
 		PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
 		while (matcher.find()) {
-			String boldItalicText = matcher.group(2);
-			String boldText = matcher.group(4);
-			String italicText = matcher.group(6);
-			String normalText = matcher.group(7);
+			String linkText = null;
+			String linkUrl = null;
+			if (matcher.group(1) != null) {
+				linkUrl = matcher.group(2);
+				linkText = matcher.group(3);
+			}
+			String boldItalicText = matcher.group(5);
+			String boldText = matcher.group(7);
+			String italicText = matcher.group(9);
+			String normalText = matcher.group(10);
 
 			String segmentText;
 			PDFont segmentFont = baseFont;
@@ -1864,6 +1878,9 @@ public class UtilityServiceImpl implements UtilityService {
 			if (boldItalicText != null) {
 				segmentText = boldItalicText;
 				segmentFont = boldItalicFont;
+			} else if (linkText != null) {
+				segmentText = linkText;
+				segmentFont = primaryFont;
 			} else if (boldText != null) {
 				segmentText = boldText;
 				segmentFont = boldFont;
@@ -1885,7 +1902,7 @@ public class UtilityServiceImpl implements UtilityService {
 					segmentFont = fallbackFont;
 				}
 				float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
-				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
+				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth, linkUrl));
 			}
 		}
 
@@ -1896,11 +1913,13 @@ public class UtilityServiceImpl implements UtilityService {
 		private String text;
 		private PDFont font;
 		private float width;
+		private String linkUrl;
 
-		public TextSegment(String text, PDFont font, float width) {
+		public TextSegment(String text, PDFont font, float width, String linkUrl) {
 			this.text = text;
 			this.font = font;
 			this.width = width;
+			this.linkUrl = linkUrl;
 		}
 
 		public String getText() {
@@ -1913,6 +1932,10 @@ public class UtilityServiceImpl implements UtilityService {
 
 		public float getWidth() {
 			return width;
+		}
+
+		public String getLinkUrl() {
+			return linkUrl;
 		}
 	}
 
@@ -2126,11 +2149,11 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.setNonStrokingColor(BLACK);
 
 			// Adding left text
-			if (leftText != null && i == 0) {
+			if (leftText != null && i == 0 && leftLines.size() > 0) {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") ? leftLines.get(0) : leftLines.get(0));
+				cs.showText(leftText.startsWith("*") ? leftLines.get(0).substring(1) : leftLines.get(0));
 				cs.endText();
 			}
 
@@ -2481,6 +2504,21 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 
 		html = fixTagPlacement(html);
+		html = html.replaceAll("(:)\\s*\\n\\s*", "$1"); // Fix "height:\n18px"
+
+		// Step 2: Replace all whitespace with single spaces
+		html = html.replaceAll("\\s+", " ");
+
+		// Step 3: Remove spaces between table tags (but preserve spaces in content)
+		html = html.replaceAll("(<table[^>]*>)\\s+(<colgroup>)", "$1$2")
+				.replaceAll("(</colgroup>)\\s+(<tbody>)", "$1$2").replaceAll("(<tbody>)\\s+(<tr)", "$1$2")
+				.replaceAll("(</tr>)\\s+(<tr)", "$1$2").replaceAll("(<tr[^>]*>)\\s+(<td)", "$1$2")
+				.replaceAll("(</td>)\\s+(<td)", "$1$2").replaceAll("(</td>)\\s+(</tr>)", "$1$2")
+				.replaceAll("(</tr>)\\s+(</tbody>)", "$1$2").replaceAll("(</tbody>)\\s+(</table>)", "$1$2");
+
+		// Step 4: Remove spaces after opening tags and before closing tags
+		html = html.replaceAll("(<[^>]+>)\\s+", "$1") // After opening tags
+				.replaceAll("\\s+(</[^>]+>)", "$1"); // Before closing tags
 
 		// Replaces all heading tags with new line
 		html = html.replaceAll("<h1[^>]*>", "\n<h>").replaceAll("</h1>", "\n").replaceAll("<h2[^>]*>", "\n<h>")
@@ -2491,7 +2529,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Replaces paragraphs and divs with new line
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
 				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")
-				.replaceAll("</span>", "");
+				.replaceAll("</span>", "").replaceAll("<table[^>]*>", "\n<table>").replaceAll("</table>", "\n");
 
 		return decodeHtmlEntities(html);
 	}
@@ -2874,13 +2912,69 @@ public class UtilityServiceImpl implements UtilityService {
 					String[] paragraphs = plainText.split("\n");
 					for (String paragraph : paragraphs) {
 						if (!paragraph.isEmpty()) {
-							PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-									paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
-									paragraph.startsWith("<h>") ? boldFont : primaryFont, 11, MARGIN + 25, y,
-									width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null, level, null);
-							page = context.page;
-							cs = context.contentStream;
-							y = context.yPosition;
+							if (paragraph.startsWith("<table")) {
+								Pattern rowPattern = Pattern.compile("<tr[^>]*>(.*?)</tr>", Pattern.DOTALL);
+								Matcher rowMatcher = rowPattern.matcher(paragraph);
+
+								while (rowMatcher.find()) {
+									String rowHtml = rowMatcher.group(1);
+									List<String> rowCells = new ArrayList<>();
+									float maxLength = 0;
+									float maxIndex = 0;
+									float index = 0;
+
+									Pattern cellPattern = Pattern.compile("<(?:td|th)[^>]*>(.*?)</(?:td|th)>",
+											Pattern.DOTALL);
+									Matcher cellMatcher = cellPattern.matcher(rowHtml);
+
+									while (cellMatcher.find()) {
+										String cellContent = cellMatcher.group(1);
+										rowCells.add(cellContent);
+										if (cellContent.length() > maxLength) {
+											maxLength = cellContent.length();
+											maxIndex = index;
+										}
+										index = index + 1;
+									}
+
+									index = 0;
+									float cellWidth = (width - 50) / rowCells.size();
+									PageContext maxContext = new PageContext(page, cs, y);
+
+									for (String cells : rowCells) {
+
+										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
+												primaryFont, 11, MARGIN + 25 + (cellWidth * index), y, cellWidth, 16,
+												index == 0 ? new Color(240, 245, 250) : null, null, 10,
+												index == 0 ? true : false, false, null, level, null);
+										if (index == maxIndex) {
+											maxContext = context;
+										}
+
+										index = index + 1;
+									}
+
+									page = maxContext.page;
+									cs = maxContext.contentStream;
+									y = maxContext.yPosition;
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + 25, y + 15);
+									cs.lineTo(MARGIN + width - 25, y + 15);
+									cs.stroke();
+								}
+
+							} else {
+								PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
+										paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
+										paragraph.startsWith("<h>") ? boldFont : primaryFont, 11, MARGIN + 25, y,
+										width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null, level,
+										null);
+								page = context.page;
+								cs = context.contentStream;
+								y = context.yPosition;
+							}
 						}
 					}
 
