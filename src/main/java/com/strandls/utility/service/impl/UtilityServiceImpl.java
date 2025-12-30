@@ -1719,13 +1719,11 @@ public class UtilityServiceImpl implements UtilityService {
 	public static List<String> splitTextIntoLines(String text, PDFont font, float fontSize, float maxWidth)
 			throws IOException {
 		List<String> lines = new ArrayList<>();
-		
-		if (text == null || text.trim().isEmpty()) {
-	        return lines; // Return empty list
-	    }
 
-		Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
-		text = pattern.matcher(text).replaceAll("<a href='$1'>$2</a>");
+		if (text != null) {
+			Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
+			text = pattern.matcher(text).replaceAll("<a href='$1'>$2</a>");
+		}
 
 		// Convert HTML tags to word-level markers first
 		String markdownText = convertHtmlToWordLevelMarkers(text);
