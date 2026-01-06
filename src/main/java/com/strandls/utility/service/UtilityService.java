@@ -88,6 +88,8 @@ public interface UtilityService {
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId, MiniGallerySlider editData);
+	
+	public HomePageData insertMiniHomePage(HttpServletRequest request, MiniGallerySlider editData);
 
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
 

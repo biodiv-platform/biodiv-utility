@@ -891,6 +891,52 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	@Override
+	public HomePageData insertMiniHomePage(HttpServletRequest request, MiniGallerySlider editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
+				Long sliderId = null;
+				for (Translation translation : editData.getTranslations()) {
+					MiniGallerySlider gallerySliderEntity = new MiniGallerySlider();
+					gallerySliderEntity.setId(null);
+					gallerySliderEntity.setAuthorId(editData.getAuthorId());
+					gallerySliderEntity.setCustomDescripition(translation.getDescription());
+					gallerySliderEntity.setFileName(editData.getFileName());
+					gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+					gallerySliderEntity.setObservationId(editData.getObservationId());
+					gallerySliderEntity.setTitle(translation.getTitle());
+					gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+					gallerySliderEntity.setTruncated(editData.getTruncated());
+					gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+					gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+					gallerySliderEntity.setLanguageId(translation.getLanguageId());
+					gallerySliderEntity.setGalleryId(editData.getGalleryId());
+					gallerySliderEntity.setColor(editData.getColor());
+					gallerySliderEntity.setBgColor(editData.getBgColor());
+
+					if (sliderId != null) {
+						gallerySliderEntity.setSliderId(sliderId);
+					}
+
+					gallerySliderEntity = miniGallerySliderDao.save(gallerySliderEntity);
+
+					if (sliderId == null) {
+						sliderId = gallerySliderEntity.getId();
+						gallerySliderEntity.setSliderId(sliderId);
+						miniGallerySliderDao.update(gallerySliderEntity);
+					}
+				}
+				return getHomePageData(request, true, (long) -1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
+	
+	@Override
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long galleryId) {
 		try {
 			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
