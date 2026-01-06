@@ -500,6 +500,30 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+	
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ValidateUser
+
+	@ApiOperation(value = "Edit homepage gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiResponses(value = {
+			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
+
+	public Response insertHomePage(@Context HttpServletRequest request,
+			@ApiParam(name = "editData") GallerySlider editData) {
+		try {
+			HomePageData result = utilityService.insertGallerySlider(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
 
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER + "/{galleryId}")

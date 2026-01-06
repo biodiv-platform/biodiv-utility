@@ -836,6 +836,50 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
+	
+	@Override
+	public HomePageData insertGallerySlider(HttpServletRequest request, GallerySlider editData) {
+		try {
+			CommonProfile profile = AuthUtil.getProfileFromRequest(request);
+			JSONArray roles = (JSONArray) profile.getAttribute(ROLES);
+			if (roles.contains(ROLE_ADMIN)) {
+				Long sliderId = null;
+				for (Translation translation : editData.getTranslations()) {
+					GallerySlider gallerySliderEntity = new GallerySlider();
+					gallerySliderEntity.setId(null);
+					gallerySliderEntity.setAuthorId(editData.getAuthorId());
+					gallerySliderEntity.setCustomDescripition(translation.getDescription());
+					gallerySliderEntity.setFileName(editData.getFileName());
+					gallerySliderEntity.setMoreLinks(editData.getMoreLinks());
+					gallerySliderEntity.setObservationId(editData.getObservationId());
+					gallerySliderEntity.setTitle(translation.getTitle());
+					gallerySliderEntity.setDisplayOrder(editData.getDisplayOrder());
+					gallerySliderEntity.setTruncated(editData.getTruncated());
+					gallerySliderEntity.setReadMoreText(translation.getReadMoreText());
+					gallerySliderEntity.setGallerySidebar(editData.getGallerySidebar());
+					gallerySliderEntity.setReadMoreUIType(editData.getReadMoreUIType());
+					gallerySliderEntity.setLanguageId(translation.getLanguageId());
+
+					if (sliderId != null) {
+						gallerySliderEntity.setSliderId(sliderId);
+					}
+
+					gallerySliderEntity = gallerySliderDao.save(gallerySliderEntity);
+
+					if (sliderId == null) {
+						sliderId = gallerySliderEntity.getId();
+						gallerySliderEntity.setSliderId(sliderId);
+						gallerySliderDao.update(gallerySliderEntity);
+					}
+				}
+				return getHomePageData(request, true, (long) -1);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
+	}
 
 	@Override
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long galleryId, MiniGallerySlider editData) {
@@ -1034,21 +1078,6 @@ public class UtilityServiceImpl implements UtilityService {
 
 			if (roles != null && roles.contains(ROLE_ADMIN)) {
 				editHomePageData(request, editData);
-
-				// Save GallerySlider
-				List<GallerySlider> galleryData = editData.getGallerySlider();
-				if (galleryData != null && !galleryData.isEmpty() && galleryData.size() > 0) {
-					galleryData.forEach(languageMap -> saveGallerySliderTranslations(languageMap));
-				}
-
-				// Save MiniGallerySlider
-				for (GalleryConfig miniGallery : editData.getMiniGallery()) {
-					if (miniGallery.getGallerySlider() != null && !miniGallery.getGallerySlider().isEmpty()
-							&& miniGallery.getGallerySlider().size() > 0) {
-						miniGallery.getGallerySlider()
-								.forEach(languageMap -> saveMiniGallerySliderTranslations(languageMap));
-					}
-				}
 
 				return getHomePageData(request, true, (long) -1);
 			}

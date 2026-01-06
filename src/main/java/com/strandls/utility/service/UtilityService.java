@@ -72,6 +72,8 @@ public interface UtilityService {
 	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
 
 	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
+	
+	public HomePageData insertGallerySlider(HttpServletRequest request, GallerySlider editData);
 
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
 
