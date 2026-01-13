@@ -40,5 +40,8 @@ public class ApiConstants {
 	public static final String FIELD_HEADER = "/fieldHeader";
 	public static final String MINI_GALLERY = "/miniGallery";
 	public static final String MINI_SLIDER = "/miniSlider";
+	public static final String ANNOUNCEMENT = "/announcement";
+	public static final String ACTIVE = "/active";
+	public static final String DOWNLOAD = "/download";
 
 }
