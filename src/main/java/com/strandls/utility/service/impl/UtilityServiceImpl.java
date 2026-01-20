@@ -1722,7 +1722,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		if (text != null) {
 			Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
-			text = pattern.matcher(text).replaceAll("<a href='$1'>$2</a>");
+			text = pattern.matcher(text).replaceAll("<ahref='$1'>$2</a>");
 		}
 
 		// Convert HTML tags to word-level markers first
@@ -1850,7 +1850,7 @@ public class UtilityServiceImpl implements UtilityService {
 		List<TextSegment> segments = new ArrayList<>();
 
 		// This pattern matches: **bold**, *italic*, or any text without asterisks
-		Pattern pattern = Pattern.compile("(<a\\s+[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>(.*?)</a>)|" + // Groups
+		Pattern pattern = Pattern.compile("(<a+[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>(.*?)</a>)|" + // Groups
 																											// 1,2,3
 				"(\\*\\*\\*(.+?)\\*\\*\\*)|" + // Groups 4,5
 				"(\\*\\*(.+?)\\*\\*)|" + // Groups 6,7
@@ -2500,27 +2500,35 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
+	public static List<String> extractTables(String html) {
+		if (html == null || html.trim().isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		List<String> tables = new ArrayList<>();
+
+		// Find all table tags
+		Pattern tablePattern = Pattern.compile("<table[^>]*>(.*?)</table>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		Matcher tableMatcher = tablePattern.matcher(html);
+
+		while (tableMatcher.find()) {
+			String tableHtml = tableMatcher.group(0);
+			tableHtml = fixTagPlacement(tableHtml);
+			tableHtml = tableHtml.replaceAll("<p[^>]*>", " ").replaceAll("</p>", " ").replaceAll("<br[^>]*>", " ")
+					.replaceAll("<div[^>]*>", " ").replaceAll("</div>", " ").replaceAll("<span[^>]*>", "")
+					.replaceAll("</span>", "");
+			tables.add(decodeHtmlEntities(tableHtml));
+		}
+
+		return tables;
+	}
+
 	public static String convertHtmlToText(String html) {
 		if (html == null || html.trim().isEmpty()) {
 			return "";
 		}
 
 		html = fixTagPlacement(html);
-		html = html.replaceAll("(:)\\s*\\n\\s*", "$1"); // Fix "height:\n18px"
-
-		// Step 2: Replace all whitespace with single spaces
-		html = html.replaceAll("\\s+", " ");
-
-		// Step 3: Remove spaces between table tags (but preserve spaces in content)
-		html = html.replaceAll("(<table[^>]*>)\\s+(<colgroup>)", "$1$2")
-				.replaceAll("(</colgroup>)\\s+(<tbody>)", "$1$2").replaceAll("(<tbody>)\\s+(<tr)", "$1$2")
-				.replaceAll("(</tr>)\\s+(<tr)", "$1$2").replaceAll("(<tr[^>]*>)\\s+(<td)", "$1$2")
-				.replaceAll("(</td>)\\s+(<td)", "$1$2").replaceAll("(</td>)\\s+(</tr>)", "$1$2")
-				.replaceAll("(</tr>)\\s+(</tbody>)", "$1$2").replaceAll("(</tbody>)\\s+(</table>)", "$1$2");
-
-		// Step 4: Remove spaces after opening tags and before closing tags
-		html = html.replaceAll("(<[^>]+>)\\s+", "$1") // After opening tags
-				.replaceAll("\\s+(</[^>]+>)", "$1"); // Before closing tags
 
 		// Replaces all heading tags with new line
 		html = html.replaceAll("<h1[^>]*>", "\n<h>").replaceAll("</h1>", "\n").replaceAll("<h2[^>]*>", "\n<h>")
@@ -2531,7 +2539,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Replaces paragraphs and divs with new line
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
 				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")
-				.replaceAll("</span>", "").replaceAll("<table[^>]*>", "\n<table>").replaceAll("</table>", "\n");
+				.replaceAll("</span>", "").replaceAll("(?s)<table[^>]*>.*?</table>", "\n<table>\n");
 
 		return decodeHtmlEntities(html);
 	}
@@ -2561,7 +2569,8 @@ public class UtilityServiceImpl implements UtilityService {
 				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"").replace("&agrave;", "à")
 				.replace("&egrave;", "è").replace("&eacute;", "é").replace("&ecirc;", "ê").replace("&Eacute;", "É")
 				.replace("&icirc;", "î").replace("&ocirc;", "ô").replace("&ucirc;", "û").replace("&ccedil;", "ç")
-				.replace("&Ccedil;", "Ç").replace("&Agrave;", "À").replace("&Egrave;", "È");
+				.replace("&Ccedil;", "Ç").replace("&Agrave;", "À").replace("&Egrave;", "È").replace("&acirc;", "â")
+				.replace("&iuml;", "ï").replace("&rsquo;", "’").replace("&ugrave;", "ù").replace("&acirc;", "â");
 	}
 
 	private PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
@@ -2910,30 +2919,39 @@ public class UtilityServiceImpl implements UtilityService {
 					cs.moveTo(MARGIN + 15, y + 15);
 					cs.lineTo(MARGIN + width - 15, y + 15);
 					cs.stroke();
+					List<String> tables = extractTables(speciesField.getValues().get(i).getDescription());
+					int t = 0;
 					String plainText = convertHtmlToText(speciesField.getValues().get(i).getDescription());
 					String[] paragraphs = plainText.split("\n");
 					for (String paragraph : paragraphs) {
-						if (!paragraph.isEmpty()) {
+						if (!paragraph.isEmpty() && paragraph != null) {
 							if (paragraph.startsWith("<table")) {
-								Pattern rowPattern = Pattern.compile("<tr[^>]*>(.*?)</tr>", Pattern.DOTALL);
-								Matcher rowMatcher = rowPattern.matcher(paragraph);
+								Pattern tbodyPattern = Pattern.compile("<tbody[^>]*>(.*?)</tbody>",
+										Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+								Matcher tbodyMatcher = tbodyPattern.matcher(tables.get(t));
+								String rowsHtml = tbodyMatcher.find() ? tbodyMatcher.group(1) : tables.get(t);
 
+								Pattern rowPattern = Pattern.compile("<tr[^>]*>(.*?)</tr>",
+										Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+								Matcher rowMatcher = rowPattern.matcher(rowsHtml);
+								t = t + 1;
 								while (rowMatcher.find()) {
 									String rowHtml = rowMatcher.group(1);
+
 									List<String> rowCells = new ArrayList<>();
 									float maxLength = 0;
 									float maxIndex = 0;
 									float index = 0;
 
-									Pattern cellPattern = Pattern.compile("<(?:td|th)[^>]*>(.*?)</(?:td|th)>",
-											Pattern.DOTALL);
+									Pattern cellPattern = Pattern.compile("<t[dh][^>]*>(.*?)</t[dh]>",
+											Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 									Matcher cellMatcher = cellPattern.matcher(rowHtml);
 
 									while (cellMatcher.find()) {
 										String cellContent = cellMatcher.group(1);
 										rowCells.add(cellContent);
-										if (cellContent.length() > maxLength) {
-											maxLength = cellContent.length();
+										if (cellContent.replaceAll("<[^>]+>", "").length() > maxLength) {
+											maxLength = cellContent.replaceAll("<[^>]+>", "").length();
 											maxIndex = index;
 										}
 										index = index + 1;
@@ -2942,17 +2960,90 @@ public class UtilityServiceImpl implements UtilityService {
 									index = 0;
 									float cellWidth = (width - 50) / rowCells.size();
 									PageContext maxContext = new PageContext(page, cs, y);
+									float rowHeight = splitTextIntoLines(rowCells.get((int) maxIndex), primaryFont, 11, cellWidth-10).size() * 16;
+									if (y - rowHeight -15 - 10 < 0) {
+										cs.setNonStrokingColor(new Color(240, 245, 250));
+										cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
+										cs.fill();
+										
+										cs.setNonStrokingColor(WHITE);
+										cs.addRect(MARGIN+15, 0, CONTENT_WIDTH-30, y + 14);
+										cs.fill();
 
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN, y + 14);
+										cs.lineTo(MARGIN, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + 10, y + 14);
+										cs.lineTo(MARGIN + 10, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+										cs.stroke();
+										
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + 15, y + 14);
+										cs.lineTo(MARGIN + 15, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
+										cs.stroke();
+
+										cs.close();
+										PDPage newPage = new PDPage(PDRectangle.A4);
+										document.addPage(newPage);
+										page = newPage;
+										y = PAGE_HEIGHT - 10;
+										cs = new PDPageContentStream(document, newPage);
+										addPageBackground(cs);
+									}
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setNonStrokingColor(new Color(240, 245, 250));
+									cs.addRect(MARGIN, y - rowHeight -15 - 10 + 15, CONTENT_WIDTH, rowHeight+15);
+									cs.fill();
+									
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setNonStrokingColor(WHITE);
+									cs.addRect(MARGIN+15, y - rowHeight -15 - 10 + 15, CONTENT_WIDTH-30, rowHeight+15);
+									cs.fill();
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + 15, y + 15);
+									cs.lineTo(MARGIN + 15, y - rowHeight -15 - 10 + 15);
+									cs.stroke();
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 15);
+									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight -15 - 10 + 15);
+									cs.stroke();
 									for (String cells : rowCells) {
 
 										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
-												primaryFont, 11, MARGIN + 25 + (cellWidth * index), y, cellWidth, 16,
+												primaryFont, 11, MARGIN + 25 + (cellWidth * index)+5, y, cellWidth-10, 16,
 												index == 0 ? new Color(240, 245, 250) : null, null, 10,
 												index == 0 ? true : false, false, null, level, null);
 										if (index == maxIndex) {
 											maxContext = context;
 										}
-
 										index = index + 1;
 									}
 
