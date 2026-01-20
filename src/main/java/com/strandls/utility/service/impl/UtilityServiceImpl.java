@@ -134,7 +134,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private String LOGO_PATH = PropertyFileUtil.fetchProperty("config.properties", "logo_path");
 	private String SPECIES_GROUP_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
 			"species_group_image_path");
-	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties", "species_image_path");
+	private String STORAGE_DIR = PropertyFileUtil.fetchProperty("config.properties", "storage_dir");
 	private String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 	private String SITENAME = PropertyFileUtil.fetchProperty("config.properties", "siteName");
@@ -2261,7 +2261,7 @@ public class UtilityServiceImpl implements UtilityService {
 			float galleryHeight = 360;
 			galleryY = currentY - galleryHeight - 10;
 			// Adding main gallery image
-			addImage(document, page, SPECIES_IMAGE_PATH + species.getResourceData().get(0), MARGIN, galleryY + 20,
+			addImage(document, page, STORAGE_DIR + species.getResourceData().get(0), MARGIN, galleryY + 20,
 					galleryHeight - 20, true, true, CONTENT_WIDTH, false);
 		}
 		currentY = galleryY - 10;
@@ -3601,12 +3601,12 @@ public class UtilityServiceImpl implements UtilityService {
 			int index = row * 2;
 
 			if (index < totalValues) {
-				File imageFile = new File(SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index));
+				File imageFile = new File(STORAGE_DIR + speciesData.getResourceData().get(index));
 				float maxHeight = boxWidth;
 				if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 					try {
 						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index), document);
+								STORAGE_DIR + speciesData.getResourceData().get(index), document);
 						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 						maxHeight = boxWidth * aspectRatio;
 					} catch (IOException e) {
@@ -3616,11 +3616,11 @@ public class UtilityServiceImpl implements UtilityService {
 				}
 
 				if ((index + 1) < totalValues) {
-					imageFile = new File(SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index + 1));
+					imageFile = new File(STORAGE_DIR + speciesData.getResourceData().get(index + 1));
 					if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 						try {
 							PDImageXObject pdImage = PDImageXObject.createFromFile(
-									SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index + 1), document);
+									STORAGE_DIR + speciesData.getResourceData().get(index + 1), document);
 							float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 							float image2Height = boxWidth * aspectRatio;
 							if (image2Height > maxHeight) {
@@ -3670,7 +3670,7 @@ public class UtilityServiceImpl implements UtilityService {
 					float boxY = y - maxHeight + 15;
 					cs.setNonStrokingColor(BLACK);
 
-					addImage(document, page, SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index), boxX,
+					addImage(document, page, STORAGE_DIR + speciesData.getResourceData().get(index), boxX,
 							boxY - 5, maxHeight, true, true, boxWidth, true);
 
 					index = index + 1;
