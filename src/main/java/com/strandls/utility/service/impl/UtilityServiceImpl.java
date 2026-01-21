@@ -3081,8 +3081,8 @@ public class UtilityServiceImpl implements UtilityService {
 									for (String cells : rowCells) {
 										if (bgColors.get((int) index) != null) {
 											cs.setNonStrokingColor(bgColors.get((int) index));
-											cs.addRect(MARGIN+25, y - rowHeight - 15 - 10 + 15, cellWidth,
-													rowHeight + 15);
+											cs.addRect(MARGIN + 25 + (cellWidth * index), y - rowHeight - 15 + 15,
+													cellWidth, rowHeight + 15);
 											cs.fill();
 										}
 
