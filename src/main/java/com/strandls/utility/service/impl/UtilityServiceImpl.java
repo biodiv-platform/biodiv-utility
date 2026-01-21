@@ -3058,25 +3058,25 @@ public class UtilityServiceImpl implements UtilityService {
 									}
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setNonStrokingColor(new Color(240, 245, 250));
-									cs.addRect(MARGIN, y - rowHeight - 15 - 10 + 15, CONTENT_WIDTH, rowHeight + 15);
+									cs.addRect(MARGIN, y - rowHeight - 15 + 15, CONTENT_WIDTH, rowHeight + 15);
 									cs.fill();
 
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setNonStrokingColor(WHITE);
-									cs.addRect(MARGIN + 15, y - rowHeight - 15 - 10 + 15, CONTENT_WIDTH - 30,
+									cs.addRect(MARGIN + 15, y - rowHeight - 15 + 15, CONTENT_WIDTH - 30,
 											rowHeight + 15);
 									cs.fill();
 
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setLineWidth(1);
 									cs.moveTo(MARGIN + 15, y + 15);
-									cs.lineTo(MARGIN + 15, y - rowHeight - 15 - 10 + 15);
+									cs.lineTo(MARGIN + 15, y - rowHeight - 15 + 15);
 									cs.stroke();
 
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setLineWidth(1);
 									cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 15);
-									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight - 15 - 10 + 15);
+									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight - 15 + 15);
 									cs.stroke();
 									for (String cells : rowCells) {
 										if (bgColors.get((int) index) != null) {
@@ -3088,8 +3088,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
 												primaryFont, 11, MARGIN + 25 + (cellWidth * index) + 5, y,
-												cellWidth - 10, 16, index == 0 ? new Color(240, 245, 250) : null, null,
-												10, index == 0 ? true : false, false, null, level, null);
+												cellWidth - 10, 16, null, null, 10, false, false, null, level, null);
 										if (index == maxIndex) {
 											maxContext = context;
 										}
