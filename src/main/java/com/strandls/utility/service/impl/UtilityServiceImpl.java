@@ -1528,7 +1528,7 @@ public class UtilityServiceImpl implements UtilityService {
 					float width = (float) height / aspectRatio;
 
 					// Aligning the image
-					if (fixedWidth) {
+					if (fixedWidth || width > maxWidth) {
 						width = maxWidth;
 						y = y + (height - width * aspectRatio) / 2;
 						height = width * aspectRatio;
@@ -1613,7 +1613,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Adding portal name
 		cs.setNonStrokingColor(new Color(33, 37, 41));
 		drawTextWithWordWrap(cs, SITENAME, primaryFont, fontSize, MARGIN + 158, currentY - 43, CONTENT_WIDTH - 90 - 158,
-				16, null);
+				16, null, page);
 
 		// Adding date of download
 		cs.beginText();
@@ -1629,7 +1629,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float x = 40;
 		float y = PAGE_HEIGHT - 110;
 		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), boldFont, fontSize, x, y, PAGE_WIDTH - 80,
-				lineHeight, null);
+				lineHeight, null, page);
 
 		float badgeX = 40;
 		float badgeY = currentY;
@@ -1722,7 +1722,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		if (text != null) {
 			Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
-			text = pattern.matcher(text).replaceAll("<ahref='$1'>$2</a>");
+			text = pattern.matcher(text).replaceAll("<ahref='$1'>$2</a> ");
 		}
 
 		// Convert HTML tags to word-level markers first
@@ -1794,7 +1794,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	public static float drawTextWithWordWrap(PDPageContentStream cs, String text, PDFont font, float fontSize, float x,
-			float y, float maxWidth, float lineHeight, Color color) throws IOException {
+			float y, float maxWidth, float lineHeight, Color color, PDPage page) throws IOException {
 		// Splits text into lines for managing overflow
 		List<String> lines = splitTextIntoLines(text, font, fontSize, maxWidth);
 
@@ -1809,7 +1809,7 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			// Adds formatting and draws each line
-			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth);
+			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth, page);
 
 			currentYPos -= lineHeight;
 		}
@@ -1818,7 +1818,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	private static void drawFormattedLine(PDPageContentStream cs, String line, PDFont baseFont, float fontSize,
-			float startX, float y, float maxWidth) throws IOException {
+			float startX, float y, float maxWidth, PDPage currentPage) throws IOException {
 
 		// Parse the line for formatting markers: **bold** and *italic*
 		List<TextSegment> segments = parseFormattedSegments(line, baseFont, fontSize);
@@ -1827,6 +1827,24 @@ public class UtilityServiceImpl implements UtilityService {
 
 		try {
 			for (TextSegment segment : segments) {
+
+				if (segment.getLinkUrl() != null) {
+					PDAnnotationLink link = new PDAnnotationLink();
+
+					PDRectangle position = new PDRectangle(currentX, y - 16 + 10, segment.getWidth(), 16);
+					link.setRectangle(position);
+
+					link.setBorderStyle(new PDBorderStyleDictionary());
+					link.getBorderStyle().setWidth(0);
+
+					PDActionURI action = new PDActionURI();
+					action.setURI(segment.getLinkUrl());
+					link.setAction(action);
+
+					currentPage.getAnnotations().add(link);
+
+				}
+
 				cs.setNonStrokingColor(segment.getLinkUrl() != null ? new Color(0, 0, 255) : BLACK);
 				cs.beginText();
 				cs.setFont(segment.getFont(), fontSize);
@@ -2151,16 +2169,16 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.setNonStrokingColor(BLACK);
 
 			// Adding left text
-			if (leftText != null && i == 0 && leftLines.size() > 0) {
+			if (leftText != null && i == 0 && leftLines.size() > 0 && leftText!="*") {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") ? leftLines.get(0) : leftLines.get(0));
+				cs.showText(leftText.startsWith("*") ? leftLines.get(0).substring(1) : leftLines.get(0));
 				cs.endText();
 			}
 
 			// Adding original text
-			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth);
+			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth, currentPage);
 
 			// Adding box borders
 			cs.setStrokingColor(new Color(222, 226, 230));
@@ -2740,7 +2758,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 					// Adding author name
 					// Here fontSIze is 11 x is MARGIN+50 AND y is y+30
-					drawFormattedLine(cs, doc.getUser(), primaryFont, 11, MARGIN + 50, y + 30, width - 30);
+					drawFormattedLine(cs, doc.getUser(), primaryFont, 11, MARGIN + 50, y + 30, width - 30, page);
 					// Adding author image
 					addCircularImage(document, page, USER_IMAGE + doc.getPic(), MARGIN + 35, y + 34, lineHeight,
 							getInitials(doc.getUser()));
@@ -2884,7 +2902,7 @@ public class UtilityServiceImpl implements UtilityService {
 							for (int l = 0; l < (Math.min(lines.size(), 3)); l++) {
 								drawFormattedLine(cs, lines.get(l), primaryFont, 11,
 										boxX + 5 + (text.split("\\|").length > 1 ? 45 : 0), textY + 3.5f - l * 16,
-										boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0));
+										boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0), page);
 
 								if (text.split("\\|").length > 1) {
 
@@ -2960,14 +2978,15 @@ public class UtilityServiceImpl implements UtilityService {
 									index = 0;
 									float cellWidth = (width - 50) / rowCells.size();
 									PageContext maxContext = new PageContext(page, cs, y);
-									float rowHeight = splitTextIntoLines(rowCells.get((int) maxIndex), primaryFont, 11, cellWidth-10).size() * 16;
-									if (y - rowHeight -15 - 10 < 0) {
+									float rowHeight = splitTextIntoLines(rowCells.get((int) maxIndex), primaryFont, 11,
+											cellWidth - 10).size() * 16;
+									if (y - rowHeight - 15 - 10 < 0) {
 										cs.setNonStrokingColor(new Color(240, 245, 250));
 										cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
 										cs.fill();
-										
+
 										cs.setNonStrokingColor(WHITE);
-										cs.addRect(MARGIN+15, 0, CONTENT_WIDTH-30, y + 14);
+										cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, y + 14);
 										cs.fill();
 
 										cs.setStrokingColor(new Color(222, 226, 230));
@@ -2993,7 +3012,7 @@ public class UtilityServiceImpl implements UtilityService {
 										cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 14);
 										cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
 										cs.stroke();
-										
+
 										cs.setStrokingColor(new Color(222, 226, 230));
 										cs.setLineWidth(1);
 										cs.moveTo(MARGIN + 15, y + 14);
@@ -3016,31 +3035,32 @@ public class UtilityServiceImpl implements UtilityService {
 									}
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setNonStrokingColor(new Color(240, 245, 250));
-									cs.addRect(MARGIN, y - rowHeight -15 - 10 + 15, CONTENT_WIDTH, rowHeight+15);
+									cs.addRect(MARGIN, y - rowHeight - 15 - 10 + 15, CONTENT_WIDTH, rowHeight + 15);
 									cs.fill();
-									
+
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setNonStrokingColor(WHITE);
-									cs.addRect(MARGIN+15, y - rowHeight -15 - 10 + 15, CONTENT_WIDTH-30, rowHeight+15);
+									cs.addRect(MARGIN + 15, y - rowHeight - 15 - 10 + 15, CONTENT_WIDTH - 30,
+											rowHeight + 15);
 									cs.fill();
 
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setLineWidth(1);
 									cs.moveTo(MARGIN + 15, y + 15);
-									cs.lineTo(MARGIN + 15, y - rowHeight -15 - 10 + 15);
+									cs.lineTo(MARGIN + 15, y - rowHeight - 15 - 10 + 15);
 									cs.stroke();
 
 									cs.setStrokingColor(new Color(222, 226, 230));
 									cs.setLineWidth(1);
 									cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 15);
-									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight -15 - 10 + 15);
+									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight - 15 - 10 + 15);
 									cs.stroke();
 									for (String cells : rowCells) {
 
 										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
-												primaryFont, 11, MARGIN + 25 + (cellWidth * index)+5, y, cellWidth-10, 16,
-												index == 0 ? new Color(240, 245, 250) : null, null, 10,
-												index == 0 ? true : false, false, null, level, null);
+												primaryFont, 11, MARGIN + 25 + (cellWidth * index) + 5, y,
+												cellWidth - 10, 16, index == 0 ? new Color(240, 245, 250) : null, null,
+												10, index == 0 ? true : false, false, null, level, null);
 										if (index == maxIndex) {
 											maxContext = context;
 										}
@@ -3605,8 +3625,8 @@ public class UtilityServiceImpl implements UtilityService {
 				float maxHeight = boxWidth;
 				if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 					try {
-						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								STORAGE_DIR + speciesData.getResourceData().get(index), document);
+						PDImageXObject pdImage = PDImageXObject
+								.createFromFile(STORAGE_DIR + speciesData.getResourceData().get(index), document);
 						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 						maxHeight = boxWidth * aspectRatio;
 					} catch (IOException e) {
@@ -3670,8 +3690,8 @@ public class UtilityServiceImpl implements UtilityService {
 					float boxY = y - maxHeight + 15;
 					cs.setNonStrokingColor(BLACK);
 
-					addImage(document, page, STORAGE_DIR + speciesData.getResourceData().get(index), boxX,
-							boxY - 5, maxHeight, true, true, boxWidth, true);
+					addImage(document, page, STORAGE_DIR + speciesData.getResourceData().get(index), boxX, boxY - 5,
+							maxHeight, true, true, boxWidth, true);
 
 					index = index + 1;
 				}
