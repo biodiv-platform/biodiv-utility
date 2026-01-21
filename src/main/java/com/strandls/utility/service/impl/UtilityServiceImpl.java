@@ -2169,11 +2169,12 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.setNonStrokingColor(BLACK);
 
 			// Adding left text
-			if (leftText != null && i == 0 && leftLines.size() > 0 && leftText!="*") {
+			if (leftText != null && i == 0 && leftLines.size() > 0 && leftText != "*") {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") && leftLines.get(0).length() > 1 ? leftLines.get(0).substring(1) : leftLines.get(0));
+				cs.showText(leftText.startsWith("*") && leftLines.get(0).length() > 1 ? leftLines.get(0).substring(1)
+						: leftLines.get(0));
 				cs.endText();
 			}
 
@@ -2645,6 +2646,22 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
+	private Color extractBackgroundColor(String html) {
+		// Match background-color: rgb(r, g, b)
+		Pattern bgPattern = Pattern.compile(
+				"background-color:\\s*rgb\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)", Pattern.CASE_INSENSITIVE);
+		Matcher bgMatcher = bgPattern.matcher(html);
+
+		if (bgMatcher.find()) {
+			int r = Integer.parseInt(bgMatcher.group(1));
+			int g = Integer.parseInt(bgMatcher.group(2));
+			int b = Integer.parseInt(bgMatcher.group(3));
+			return new Color(r, g, b);
+		}
+
+		return null; // No background color
+	}
+
 	private PageContext addSpeciesFieldGroup(PDDocument document, PDPageContentStream cs, PDPage page,
 			SpeciesField speciesField, int level, float currentLeftY, String Map, List<DocumentMeta> documentList,
 			String url, Long languageId) throws Exception {
@@ -2960,13 +2977,19 @@ public class UtilityServiceImpl implements UtilityService {
 									float maxLength = 0;
 									float maxIndex = 0;
 									float index = 0;
+									List<Color> bgColors = new ArrayList<>();
 
 									Pattern cellPattern = Pattern.compile("<t[dh][^>]*>(.*?)</t[dh]>",
 											Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
 									Matcher cellMatcher = cellPattern.matcher(rowHtml);
 
 									while (cellMatcher.find()) {
+										String fullCell = cellMatcher.group(0);
 										String cellContent = cellMatcher.group(1);
+
+										Color bgColor = extractBackgroundColor(fullCell);
+										bgColors.add(bgColor);
+
 										rowCells.add(cellContent);
 										if (cellContent.replaceAll("<[^>]+>", "").length() > maxLength) {
 											maxLength = cellContent.replaceAll("<[^>]+>", "").length();
@@ -3056,6 +3079,12 @@ public class UtilityServiceImpl implements UtilityService {
 									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight - 15 - 10 + 15);
 									cs.stroke();
 									for (String cells : rowCells) {
+										if (bgColors.get((int) index) != null) {
+											cs.setNonStrokingColor(bgColors.get((int) index));
+											cs.addRect(MARGIN+25, y - rowHeight - 15 - 10 + 15, cellWidth,
+													rowHeight + 15);
+											cs.fill();
+										}
 
 										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
 												primaryFont, 11, MARGIN + 25 + (cellWidth * index) + 5, y,
