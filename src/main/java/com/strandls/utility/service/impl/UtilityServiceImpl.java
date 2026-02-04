@@ -134,7 +134,7 @@ public class UtilityServiceImpl implements UtilityService {
 	private String LOGO_PATH = PropertyFileUtil.fetchProperty("config.properties", "logo_path");
 	private String SPECIES_GROUP_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties",
 			"species_group_image_path");
-	private String SPECIES_IMAGE_PATH = PropertyFileUtil.fetchProperty("config.properties", "species_image_path");
+	private String STORAGE_DIR = PropertyFileUtil.fetchProperty("config.properties", "storage_dir");
 	private String USER_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "user_image");
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 	private String SITENAME = PropertyFileUtil.fetchProperty("config.properties", "siteName");
@@ -1603,7 +1603,7 @@ public class UtilityServiceImpl implements UtilityService {
 					float width = (float) height / aspectRatio;
 
 					// Aligning the image
-					if (fixedWidth) {
+					if (fixedWidth || width > maxWidth) {
 						width = maxWidth;
 						y = y + (height - width * aspectRatio) / 2;
 						height = width * aspectRatio;
@@ -1688,7 +1688,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Adding portal name
 		cs.setNonStrokingColor(new Color(33, 37, 41));
 		drawTextWithWordWrap(cs, SITENAME, primaryFont, fontSize, MARGIN + 158, currentY - 43, CONTENT_WIDTH - 90 - 158,
-				16, null);
+				16, null, page);
 
 		// Adding date of download
 		cs.beginText();
@@ -1704,7 +1704,7 @@ public class UtilityServiceImpl implements UtilityService {
 		float x = 40;
 		float y = PAGE_HEIGHT - 110;
 		currentY = drawTextWithWordWrap(cs, speciesData.getTitle(), boldFont, fontSize, x, y, PAGE_WIDTH - 80,
-				lineHeight, null);
+				lineHeight, null, page);
 
 		float badgeX = 40;
 		float badgeY = currentY;
@@ -1795,6 +1795,11 @@ public class UtilityServiceImpl implements UtilityService {
 			throws IOException {
 		List<String> lines = new ArrayList<>();
 
+		if (text != null) {
+			Pattern pattern = Pattern.compile("<a[^>]*href\\s*=\\s*['\"]([^'\"]*)['\"][^>]*>(.*?)</a>", Pattern.DOTALL);
+			text = pattern.matcher(text).replaceAll("<ahref='$1'>$2</a> ");
+		}
+
 		// Convert HTML tags to word-level markers first
 		String markdownText = convertHtmlToWordLevelMarkers(text);
 
@@ -1811,7 +1816,8 @@ public class UtilityServiceImpl implements UtilityService {
 			String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
 
 			// Calculate width without asterisks for accurate measurement
-			String testLineWithoutMarkers = testLine.replaceAll("\\*", "");
+			String testLineWithoutMarkers = testLine.replaceAll("\\*", "").replaceAll("<a[^>]*>", "").replaceAll("</a>",
+					"");
 			try {
 				// Trying with helvetica font
 				float testWidth = font.getStringWidth(testLineWithoutMarkers) / 1000 * fontSize;
@@ -1863,7 +1869,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	public static float drawTextWithWordWrap(PDPageContentStream cs, String text, PDFont font, float fontSize, float x,
-			float y, float maxWidth, float lineHeight, Color color) throws IOException {
+			float y, float maxWidth, float lineHeight, Color color, PDPage page) throws IOException {
 		// Splits text into lines for managing overflow
 		List<String> lines = splitTextIntoLines(text, font, fontSize, maxWidth);
 
@@ -1878,7 +1884,7 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			// Adds formatting and draws each line
-			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth);
+			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth, page);
 
 			currentYPos -= lineHeight;
 		}
@@ -1887,7 +1893,7 @@ public class UtilityServiceImpl implements UtilityService {
 	}
 
 	private static void drawFormattedLine(PDPageContentStream cs, String line, PDFont baseFont, float fontSize,
-			float startX, float y, float maxWidth) throws IOException {
+			float startX, float y, float maxWidth, PDPage currentPage) throws IOException {
 
 		// Parse the line for formatting markers: **bold** and *italic*
 		List<TextSegment> segments = parseFormattedSegments(line, baseFont, fontSize);
@@ -1896,6 +1902,25 @@ public class UtilityServiceImpl implements UtilityService {
 
 		try {
 			for (TextSegment segment : segments) {
+
+				if (segment.getLinkUrl() != null) {
+					PDAnnotationLink link = new PDAnnotationLink();
+
+					PDRectangle position = new PDRectangle(currentX, y - 16 + 10, segment.getWidth(), 16);
+					link.setRectangle(position);
+
+					link.setBorderStyle(new PDBorderStyleDictionary());
+					link.getBorderStyle().setWidth(0);
+
+					PDActionURI action = new PDActionURI();
+					action.setURI(segment.getLinkUrl());
+					link.setAction(action);
+
+					currentPage.getAnnotations().add(link);
+
+				}
+
+				cs.setNonStrokingColor(segment.getLinkUrl() != null ? new Color(0, 0, 255) : BLACK);
 				cs.beginText();
 				cs.setFont(segment.getFont(), fontSize);
 				cs.newLineAtOffset(currentX, y);
@@ -1918,20 +1943,29 @@ public class UtilityServiceImpl implements UtilityService {
 		List<TextSegment> segments = new ArrayList<>();
 
 		// This pattern matches: **bold**, *italic*, or any text without asterisks
-		Pattern pattern = Pattern.compile("(\\*\\*\\*(.+?)\\*\\*\\*)|" + // ***bold italic*** - groups 1 & 2
-				"(\\*\\*(.+?)\\*\\*)|" + // **bold** - groups 3 & 4
-				"(\\*([^*]+)\\*)|" + // *italic* - groups 5 & 6
-				"([^*]+)" // plain text - group 7
-		);
+		Pattern pattern = Pattern.compile("(<a+[^>]*href\\s*=\\s*[\"']([^\"']*)[\"'][^>]*>(.*?)</a>)|" + // Groups
+																											// 1,2,3
+				"(\\*\\*\\*(.+?)\\*\\*\\*)|" + // Groups 4,5
+				"(\\*\\*(.+?)\\*\\*)|" + // Groups 6,7
+				"(\\*([^*]+)\\*)|" + // Groups 8,9
+				"([^*<]+|$)" // Group 10 - plain text or end
+				, Pattern.DOTALL);
+
 		Matcher matcher = pattern.matcher(line);
 
 		PDFont boldItalicFont = PDType1Font.HELVETICA_BOLD_OBLIQUE;
 
 		while (matcher.find()) {
-			String boldItalicText = matcher.group(2);
-			String boldText = matcher.group(4);
-			String italicText = matcher.group(6);
-			String normalText = matcher.group(7);
+			String linkText = null;
+			String linkUrl = null;
+			if (matcher.group(1) != null) {
+				linkUrl = matcher.group(2);
+				linkText = matcher.group(3);
+			}
+			String boldItalicText = matcher.group(5);
+			String boldText = matcher.group(7);
+			String italicText = matcher.group(9);
+			String normalText = matcher.group(10);
 
 			String segmentText;
 			PDFont segmentFont = baseFont;
@@ -1939,6 +1973,9 @@ public class UtilityServiceImpl implements UtilityService {
 			if (boldItalicText != null) {
 				segmentText = boldItalicText;
 				segmentFont = boldItalicFont;
+			} else if (linkText != null) {
+				segmentText = linkText;
+				segmentFont = primaryFont;
 			} else if (boldText != null) {
 				segmentText = boldText;
 				segmentFont = boldFont;
@@ -1960,7 +1997,7 @@ public class UtilityServiceImpl implements UtilityService {
 					segmentFont = fallbackFont;
 				}
 				float segmentWidth = segmentFont.getStringWidth(segmentText) * fontSize / 1000f;
-				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth));
+				segments.add(new TextSegment(segmentText, segmentFont, segmentWidth, linkUrl));
 			}
 		}
 
@@ -1971,11 +2008,13 @@ public class UtilityServiceImpl implements UtilityService {
 		private String text;
 		private PDFont font;
 		private float width;
+		private String linkUrl;
 
-		public TextSegment(String text, PDFont font, float width) {
+		public TextSegment(String text, PDFont font, float width, String linkUrl) {
 			this.text = text;
 			this.font = font;
 			this.width = width;
+			this.linkUrl = linkUrl;
 		}
 
 		public String getText() {
@@ -1989,6 +2028,10 @@ public class UtilityServiceImpl implements UtilityService {
 		public float getWidth() {
 			return width;
 		}
+
+		public String getLinkUrl() {
+			return linkUrl;
+		}
 	}
 
 	public static PageContext drawTextWithWordWrapAndOverflow(PDPageContentStream cs, PDDocument document,
@@ -1996,9 +2039,14 @@ public class UtilityServiceImpl implements UtilityService {
 			float lineHeight, Color color, String leftText, float paddingBottom, boolean speciesField,
 			boolean contributor, Color traitColor, float level, String url) throws IOException {
 		List<String> lines = List.of("");
+		List<String> leftLines = List.of("");
 		if (text != null && !text.isEmpty()) {
 			// Split text into lines
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
+			if (leftText != null) {
+				leftLines = splitTextIntoLines(leftText, font, fontSize,
+						speciesField ? x - MARGIN - 35 : x - MARGIN - 25);
+			}
 			if (lines == null) {
 				lines = List.of("");
 			}
@@ -2196,16 +2244,17 @@ public class UtilityServiceImpl implements UtilityService {
 			cs.setNonStrokingColor(BLACK);
 
 			// Adding left text
-			if (leftText != null && i == 0) {
+			if (leftText != null && i == 0 && leftLines.size() > 0 && leftText != "*") {
 				cs.beginText();
 				cs.setFont(leftText.startsWith("*") ? boldFont : font, fontSize);
 				cs.newLineAtOffset(speciesField ? MARGIN + 25 : MARGIN + 15, currentYPos + 1.5f);
-				cs.showText(leftText.startsWith("*") ? leftText.substring(1) : leftText);
+				cs.showText(leftText.startsWith("*") && leftLines.get(0).length() > 1 ? leftLines.get(0).substring(1)
+						: leftLines.get(0));
 				cs.endText();
 			}
 
 			// Adding original text
-			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth);
+			drawFormattedLine(cs, line, font, fontSize, x, currentYPos + 1.5f, maxWidth, currentPage);
 
 			// Adding box borders
 			cs.setStrokingColor(new Color(222, 226, 230));
@@ -2306,7 +2355,7 @@ public class UtilityServiceImpl implements UtilityService {
 			float galleryHeight = 360;
 			galleryY = currentY - galleryHeight - 10;
 			// Adding main gallery image
-			addImage(document, page, SPECIES_IMAGE_PATH + species.getResourceData().get(0), MARGIN, galleryY + 20,
+			addImage(document, page, STORAGE_DIR + species.getResourceData().get(0), MARGIN, galleryY + 20,
 					galleryHeight - 20, true, true, CONTENT_WIDTH, false);
 		}
 		currentY = galleryY - 10;
@@ -2545,6 +2594,29 @@ public class UtilityServiceImpl implements UtilityService {
 		return new PageContext(page, cs, y - 10);
 	}
 
+	public static List<String> extractTables(String html) {
+		if (html == null || html.trim().isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		List<String> tables = new ArrayList<>();
+
+		// Find all table tags
+		Pattern tablePattern = Pattern.compile("<table[^>]*>(.*?)</table>", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+		Matcher tableMatcher = tablePattern.matcher(html);
+
+		while (tableMatcher.find()) {
+			String tableHtml = tableMatcher.group(0);
+			tableHtml = fixTagPlacement(tableHtml);
+			tableHtml = tableHtml.replaceAll("<p[^>]*>", " ").replaceAll("</p>", " ").replaceAll("<br[^>]*>", " ")
+					.replaceAll("<div[^>]*>", " ").replaceAll("</div>", " ").replaceAll("<span[^>]*>", "")
+					.replaceAll("</span>", "");
+			tables.add(decodeHtmlEntities(tableHtml));
+		}
+
+		return tables;
+	}
+
 	public static String convertHtmlToText(String html) {
 		if (html == null || html.trim().isEmpty()) {
 			return "";
@@ -2561,7 +2633,7 @@ public class UtilityServiceImpl implements UtilityService {
 		// Replaces paragraphs and divs with new line
 		html = html.replaceAll("<p[^>]*>", "\n").replaceAll("</p>", "\n").replaceAll("<br[^>]*>", "\n")
 				.replaceAll("<div[^>]*>", "\n").replaceAll("</div>", "\n").replaceAll("<span[^>]*>", "")
-				.replaceAll("</span>", "");
+				.replaceAll("</span>", "").replaceAll("(?s)<table[^>]*>.*?</table>", "\n<table>\n");
 
 		return decodeHtmlEntities(html);
 	}
@@ -2587,8 +2659,12 @@ public class UtilityServiceImpl implements UtilityService {
 	private static String decodeHtmlEntities(String text) {
 		String cleanedText = text.replace("\t", "");
 		return cleanedText.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
-				.replace("&#39;", "'").replace("&nbsp;", "").replace("&copy;", "(c)").replace("&reg;", "(r)")
-				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"");
+				.replace("&#39;", "'").replace("&nbsp;", " ").replace("&copy;", "(c)").replace("&reg;", "(r)")
+				.replace("&#8217;", "'").replace("&#8220;", "\"").replace("&#8221;", "\"").replace("&agrave;", "à")
+				.replace("&egrave;", "è").replace("&eacute;", "é").replace("&ecirc;", "ê").replace("&Eacute;", "É")
+				.replace("&icirc;", "î").replace("&ocirc;", "ô").replace("&ucirc;", "û").replace("&ccedil;", "ç")
+				.replace("&Ccedil;", "Ç").replace("&Agrave;", "À").replace("&Egrave;", "È").replace("&acirc;", "â")
+				.replace("&iuml;", "ï").replace("&rsquo;", "’").replace("&ugrave;", "ù").replace("&acirc;", "â");
 	}
 
 	private PageContext addSpeciesFieldSection(PDDocument document, PDPageContentStream cs, PDPage page,
@@ -2643,6 +2719,22 @@ public class UtilityServiceImpl implements UtilityService {
 		cs.stroke();
 
 		return new PageContext(page, cs, y - 10);
+	}
+
+	private Color extractBackgroundColor(String html) {
+		// Match background-color: rgb(r, g, b)
+		Pattern bgPattern = Pattern.compile(
+				"background-color:\\s*rgb\\(\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*\\)", Pattern.CASE_INSENSITIVE);
+		Matcher bgMatcher = bgPattern.matcher(html);
+
+		if (bgMatcher.find()) {
+			int r = Integer.parseInt(bgMatcher.group(1));
+			int g = Integer.parseInt(bgMatcher.group(2));
+			int b = Integer.parseInt(bgMatcher.group(3));
+			return new Color(r, g, b);
+		}
+
+		return null; // No background color
 	}
 
 	private PageContext addSpeciesFieldGroup(PDDocument document, PDPageContentStream cs, PDPage page,
@@ -2758,7 +2850,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 					// Adding author name
 					// Here fontSIze is 11 x is MARGIN+50 AND y is y+30
-					drawFormattedLine(cs, doc.getUser(), primaryFont, 11, MARGIN + 50, y + 30, width - 30);
+					drawFormattedLine(cs, doc.getUser(), primaryFont, 11, MARGIN + 50, y + 30, width - 30, page);
 					// Adding author image
 					addCircularImage(document, page, USER_IMAGE + doc.getPic(), MARGIN + 35, y + 34, lineHeight,
 							getInitials(doc.getUser()));
@@ -2902,7 +2994,7 @@ public class UtilityServiceImpl implements UtilityService {
 							for (int l = 0; l < (Math.min(lines.size(), 3)); l++) {
 								drawFormattedLine(cs, lines.get(l), primaryFont, 11,
 										boxX + 5 + (text.split("\\|").length > 1 ? 45 : 0), textY + 3.5f - l * 16,
-										boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0));
+										boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0), page);
 
 								if (text.split("\\|").length > 1) {
 
@@ -2937,17 +3029,168 @@ public class UtilityServiceImpl implements UtilityService {
 					cs.moveTo(MARGIN + 15, y + 15);
 					cs.lineTo(MARGIN + width - 15, y + 15);
 					cs.stroke();
+					List<String> tables = extractTables(speciesField.getValues().get(i).getDescription());
+					int t = 0;
 					String plainText = convertHtmlToText(speciesField.getValues().get(i).getDescription());
 					String[] paragraphs = plainText.split("\n");
 					for (String paragraph : paragraphs) {
-						if (!paragraph.isEmpty()) {
-							PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
-									paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
-									paragraph.startsWith("<h>") ? boldFont : primaryFont, 11, MARGIN + 25, y,
-									width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null, level, null);
-							page = context.page;
-							cs = context.contentStream;
-							y = context.yPosition;
+						if (!paragraph.isEmpty() && paragraph != null) {
+							if (paragraph.startsWith("<table")) {
+								Pattern tbodyPattern = Pattern.compile("<tbody[^>]*>(.*?)</tbody>",
+										Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+								Matcher tbodyMatcher = tbodyPattern.matcher(tables.get(t));
+								String rowsHtml = tbodyMatcher.find() ? tbodyMatcher.group(1) : tables.get(t);
+
+								Pattern rowPattern = Pattern.compile("<tr[^>]*>(.*?)</tr>",
+										Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+								Matcher rowMatcher = rowPattern.matcher(rowsHtml);
+								t = t + 1;
+								while (rowMatcher.find()) {
+									String rowHtml = rowMatcher.group(1);
+
+									List<String> rowCells = new ArrayList<>();
+									float maxLength = 0;
+									float maxIndex = 0;
+									float index = 0;
+									List<Color> bgColors = new ArrayList<>();
+
+									Pattern cellPattern = Pattern.compile("<t[dh][^>]*>(.*?)</t[dh]>",
+											Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+									Matcher cellMatcher = cellPattern.matcher(rowHtml);
+
+									while (cellMatcher.find()) {
+										String fullCell = cellMatcher.group(0);
+										String cellContent = cellMatcher.group(1);
+
+										Color bgColor = extractBackgroundColor(fullCell);
+										bgColors.add(bgColor);
+
+										rowCells.add(cellContent);
+										if (cellContent.replaceAll("<[^>]+>", "").length() > maxLength) {
+											maxLength = cellContent.replaceAll("<[^>]+>", "").length();
+											maxIndex = index;
+										}
+										index = index + 1;
+									}
+
+									index = 0;
+									float cellWidth = (width - 50) / rowCells.size();
+									PageContext maxContext = new PageContext(page, cs, y);
+									float rowHeight = splitTextIntoLines(rowCells.get((int) maxIndex), primaryFont, 11,
+											cellWidth - 10).size() * 16;
+									if (y - rowHeight - 15 - 10 < 0) {
+										cs.setNonStrokingColor(new Color(240, 245, 250));
+										cs.addRect(MARGIN, 0, CONTENT_WIDTH, y + 14);
+										cs.fill();
+
+										cs.setNonStrokingColor(WHITE);
+										cs.addRect(MARGIN + 15, 0, CONTENT_WIDTH - 30, y + 14);
+										cs.fill();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN, y + 14);
+										cs.lineTo(MARGIN, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + 10, y + 14);
+										cs.lineTo(MARGIN + 10, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH - 10, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH - 10, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + 15, y + 14);
+										cs.lineTo(MARGIN + 15, 0);
+										cs.stroke();
+
+										cs.setStrokingColor(new Color(222, 226, 230));
+										cs.setLineWidth(1);
+										cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 14);
+										cs.lineTo(MARGIN + CONTENT_WIDTH - 15, 0);
+										cs.stroke();
+
+										cs.close();
+										PDPage newPage = new PDPage(PDRectangle.A4);
+										document.addPage(newPage);
+										page = newPage;
+										y = PAGE_HEIGHT - 10;
+										cs = new PDPageContentStream(document, newPage);
+										addPageBackground(cs);
+									}
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setNonStrokingColor(new Color(240, 245, 250));
+									cs.addRect(MARGIN, y - rowHeight - 15 + 15, CONTENT_WIDTH, rowHeight + 15);
+									cs.fill();
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setNonStrokingColor(WHITE);
+									cs.addRect(MARGIN + 15, y - rowHeight - 15 + 15, CONTENT_WIDTH - 30,
+											rowHeight + 15);
+									cs.fill();
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + 15, y + 15);
+									cs.lineTo(MARGIN + 15, y - rowHeight - 15 + 15);
+									cs.stroke();
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + CONTENT_WIDTH - 15, y + 15);
+									cs.lineTo(MARGIN + CONTENT_WIDTH - 15, y - rowHeight - 15 + 15);
+									cs.stroke();
+									for (String cells : rowCells) {
+										if (bgColors.get((int) index) != null) {
+											cs.setNonStrokingColor(bgColors.get((int) index));
+											cs.addRect(MARGIN + 25 + (cellWidth * index), y - rowHeight - 15 + 15,
+													cellWidth, rowHeight + 15);
+											cs.fill();
+										}
+
+										PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page, cells,
+												primaryFont, 11, MARGIN + 25 + (cellWidth * index) + 5, y,
+												cellWidth - 10, 16, null, null, 10, false, false, null, level, null);
+										if (index == maxIndex) {
+											maxContext = context;
+										}
+										index = index + 1;
+									}
+
+									page = maxContext.page;
+									cs = maxContext.contentStream;
+									y = maxContext.yPosition;
+
+									cs.setStrokingColor(new Color(222, 226, 230));
+									cs.setLineWidth(1);
+									cs.moveTo(MARGIN + 25, y + 15);
+									cs.lineTo(MARGIN + width - 25, y + 15);
+									cs.stroke();
+								}
+
+							} else {
+								PageContext context = drawTextWithWordWrapAndOverflow(cs, document, page,
+										paragraph.startsWith("<h>") ? paragraph.substring(3) : paragraph,
+										paragraph.startsWith("<h>") ? boldFont : primaryFont, 11, MARGIN + 25, y,
+										width - 50, 16, new Color(240, 245, 250), null, 10, true, false, null, level,
+										null);
+								page = context.page;
+								cs = context.contentStream;
+								y = context.yPosition;
+							}
 						}
 					}
 
@@ -3481,12 +3724,12 @@ public class UtilityServiceImpl implements UtilityService {
 			int index = row * 2;
 
 			if (index < totalValues) {
-				File imageFile = new File(SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index));
+				File imageFile = new File(STORAGE_DIR + speciesData.getResourceData().get(index));
 				float maxHeight = boxWidth;
 				if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 					try {
-						PDImageXObject pdImage = PDImageXObject.createFromFile(
-								SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index), document);
+						PDImageXObject pdImage = PDImageXObject
+								.createFromFile(STORAGE_DIR + speciesData.getResourceData().get(index), document);
 						float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 						maxHeight = boxWidth * aspectRatio;
 					} catch (IOException e) {
@@ -3496,11 +3739,11 @@ public class UtilityServiceImpl implements UtilityService {
 				}
 
 				if ((index + 1) < totalValues) {
-					imageFile = new File(SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index + 1));
+					imageFile = new File(STORAGE_DIR + speciesData.getResourceData().get(index + 1));
 					if (imageFile.exists() && imageFile.canRead() && imageFile.length() > 0) {
 						try {
 							PDImageXObject pdImage = PDImageXObject.createFromFile(
-									SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index + 1), document);
+									STORAGE_DIR + speciesData.getResourceData().get(index + 1), document);
 							float aspectRatio = (float) pdImage.getHeight() / pdImage.getWidth();
 							float image2Height = boxWidth * aspectRatio;
 							if (image2Height > maxHeight) {
@@ -3550,8 +3793,8 @@ public class UtilityServiceImpl implements UtilityService {
 					float boxY = y - maxHeight + 15;
 					cs.setNonStrokingColor(BLACK);
 
-					addImage(document, page, SPECIES_IMAGE_PATH + speciesData.getResourceData().get(index), boxX,
-							boxY - 5, maxHeight, true, true, boxWidth, true);
+					addImage(document, page, STORAGE_DIR + speciesData.getResourceData().get(index), boxX, boxY - 5,
+							maxHeight, true, true, boxWidth, true);
 
 					index = index + 1;
 				}
