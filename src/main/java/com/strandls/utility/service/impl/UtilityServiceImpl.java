@@ -836,7 +836,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
-	
+
 	@Override
 	public HomePageData insertGallerySlider(HttpServletRequest request, GallerySlider editData) {
 		try {
@@ -979,7 +979,7 @@ public class UtilityServiceImpl implements UtilityService {
 
 		return null;
 	}
-	
+
 	@Override
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long galleryId) {
 		try {

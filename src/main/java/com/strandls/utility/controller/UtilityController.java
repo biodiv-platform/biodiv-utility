@@ -500,7 +500,7 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.CREATE)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -508,7 +508,7 @@ public class UtilityController {
 
 	@ValidateUser
 
-	@ApiOperation(value = "Edit homepage gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiOperation(value = "Create homepage gallery data", notes = "return home page data", response = HomePageData.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 
@@ -549,7 +549,7 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
-	
+
 	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT + ApiConstants.MINI_SLIDER)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -557,7 +557,7 @@ public class UtilityController {
 
 	@ValidateUser
 
-	@ApiOperation(value = "Edit homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
+	@ApiOperation(value = "Create homepage mini gallery data", notes = "return home page data", response = HomePageData.class)
 	@ApiResponses(value = {
 			@ApiResponse(code = 400, message = "unable to retrieve the data", response = String.class) })
 

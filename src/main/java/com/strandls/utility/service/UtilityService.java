@@ -72,7 +72,7 @@ public interface UtilityService {
 	public HomePageData removeHomePage(HttpServletRequest request, Long gId);
 
 	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
-	
+
 	public HomePageData insertGallerySlider(HttpServletRequest request, GallerySlider editData);
 
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
@@ -90,7 +90,7 @@ public interface UtilityService {
 	public Boolean removeMiniGallery(HttpServletRequest request, Long gId);
 
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId, MiniGallerySlider editData);
-	
+
 	public HomePageData insertMiniHomePage(HttpServletRequest request, MiniGallerySlider editData);
 
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
