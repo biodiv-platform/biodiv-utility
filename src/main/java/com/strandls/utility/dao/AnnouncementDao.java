@@ -21,7 +21,7 @@ import com.strandls.utility.util.AbstractDAO;
  */
 public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 
-	private final Logger logger = LoggerFactory.getLogger(MiniGallerySliderDao.class);
+	private final Logger logger = LoggerFactory.getLogger(AnnouncementDao.class);
 
 	/**
 	 * @param sessionFactory
@@ -48,7 +48,7 @@ public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 	@SuppressWarnings("unchecked")
 	public List<Announcement> getActiveAnnouncemntInfo() {
 		List<Announcement> result = null;
-		String qry = "from  Announcement where enabled is true";
+		String qry = "from Announcement where enabled is true";
 		Session session = sessionFactory.openSession();
 		try {
 			Query<Announcement> query = session.createQuery(qry);

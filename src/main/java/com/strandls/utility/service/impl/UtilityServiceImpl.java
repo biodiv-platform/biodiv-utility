@@ -1286,6 +1286,9 @@ public class UtilityServiceImpl implements UtilityService {
 			List<Announcement> announcementData = new ArrayList<>();
 			Map<Long, Integer> announcementIndexMapping = new HashMap<>();
 			List<Announcement> announcements = announcementDao.getActiveAnnouncemntInfo();
+			if (announcements == null) {
+				return announcementData;
+			}
 			for (Announcement announcement : announcements) {
 				Long aId = announcement.getAnnouncementId();
 				if (!announcementIndexMapping.keySet().contains(aId)) {
