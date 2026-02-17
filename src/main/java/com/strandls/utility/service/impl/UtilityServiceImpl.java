@@ -556,25 +556,25 @@ public class UtilityServiceImpl implements UtilityService {
 			// IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
 
-			result = homePageDao.findById(1L);
-
 			List<HomePageData> homePageTranslations = homePageDao.findAll();
 
 			List<Translation> translationList = new ArrayList<>();
 
-			for (HomePageData hp : homePageTranslations) {
+			for (HomePageData homePageData : homePageTranslations) {
 
-				Translation translation = new Translation(hp.getId(), hp.getTitle(), hp.getLanguageId(),
-						hp.getDescription(), null);
+				if (homePageData.getId() == 1 && result == null) {
+					result = homePageData;
+				}
+
+				Translation translation = new Translation(homePageData.getId(), homePageData.getTitle(), homePageData.getLanguageId(),
+						homePageData.getDescription(), null);
 
 				translationList.add(translation);
 
-			}
-
-			if (languageId != defaultLanguageId) {
-				HomePageData translated = homePageDao.findByLanguageId(languageId);
-				result.setTitle(translated.getTitle());
-				result.setDescription(translated.getDescription());
+				if (languageId != defaultLanguageId && homePageData.getLanguageId().equals(languageId) && result != null) {
+					result.setTitle(homePageData.getTitle());
+					result.setDescription(homePageData.getDescription());
+				}
 			}
 
 			result.setGallerySlider(groupedBySliderId);
