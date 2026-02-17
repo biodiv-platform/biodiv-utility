@@ -571,6 +571,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 			}
 
+			if (languageId != defaultLanguageId) {
+				HomePageData translated = homePageDao.findByLanguageId(languageId);
+				result.setTitle(translated.getTitle());
+				result.setDescription(translated.getDescription());
+			}
+
 			result.setGallerySlider(groupedBySliderId);
 			result.setMiniGallery(miniGalleryConfig);
 			result.setStats(homePageStats);
@@ -1034,10 +1040,13 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowGridMap(editData.getShowGridMap());
 				homePageDataEntity.setShowGallery(editData.getShowGallery());
 				homePageDataEntity.setShowDesc(editData.getShowDesc());
+
 				homePageDataEntity.setTitle(editData.getTitle());
 				homePageDataEntity.setLanguageId(defaultLanguageId);
 				homePageDataEntity.setDescription(editData.getDescription());
-				homePageDao.update(homePageDataEntity);
+				homePageDataEntity.setLogoPath(editData.getLogoPath());
+				homePageDataEntity.setFavPath(editData.getFavPath());
+				homePageDataEntity = homePageDao.update(homePageDataEntity);
 
 				if (editData.getTranslations() != null) {
 
@@ -1050,15 +1059,8 @@ public class UtilityServiceImpl implements UtilityService {
 							translationEntity.setLanguageId(translation.getLanguageId());
 							translationEntity.setDescription(translation.getDescription());
 
-							translationEntity.setShowStats(editData.getShowStats());
-							translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
-							translationEntity.setShowPartners(editData.getShowPartners());
-							translationEntity.setShowSponsors(editData.getShowSponsors());
-							translationEntity.setShowDonors(editData.getShowDonors());
-							translationEntity.setShowGridMap(editData.getShowGridMap());
-							translationEntity.setShowGallery(editData.getShowGallery());
-							translationEntity.setShowDesc(editData.getShowDesc());
-							translationEntity.setDescription(editData.getDescription());
+							translationEntity.setLogoPath(homePageDataEntity.getLogoPath());
+							translationEntity.setFavPath(homePageDataEntity.getFavPath());
 
 							homePageDao.update(translationEntity);
 						}
@@ -1071,15 +1073,8 @@ public class UtilityServiceImpl implements UtilityService {
 							translationEntity.setLanguageId(translation.getLanguageId());
 							translationEntity.setDescription(translation.getDescription());
 
-							translationEntity.setShowStats(editData.getShowStats());
-							translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
-							translationEntity.setShowPartners(editData.getShowPartners());
-							translationEntity.setShowSponsors(editData.getShowSponsors());
-							translationEntity.setShowDonors(editData.getShowDonors());
-							translationEntity.setShowGridMap(editData.getShowGridMap());
-							translationEntity.setShowGallery(editData.getShowGallery());
-							translationEntity.setShowDesc(editData.getShowDesc());
-							translationEntity.setDescription(editData.getDescription());
+							translationEntity.setLogoPath(homePageDataEntity.getLogoPath());
+							translationEntity.setFavPath(homePageDataEntity.getFavPath());
 
 							homePageDao.save(translationEntity);
 
