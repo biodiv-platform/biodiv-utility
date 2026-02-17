@@ -414,14 +414,14 @@ public class UtilityServiceImpl implements UtilityService {
 			Long objectId = tagsMapping.getObjectId();
 			List<TagLinks> previousTags = tagLinkDao.findObjectTags(objectType, objectId);
 			List<Tags> newTags = tagsMapping.getTags();
-//			DELETE THE TAGS THAT ARE REMOVED
+			// DELETE THE TAGS THAT ARE REMOVED
 			for (TagLinks tagLinks : previousTags) {
 				Tags tag = tagsDao.findById(tagLinks.getTagId());
 				if (!(newTags.contains(tag))) {
 					tagLinkDao.delete(tagLinks);
 				}
 			}
-//			ADD OR CREATE THE NEW TAGS ADDED
+			// ADD OR CREATE THE NEW TAGS ADDED
 			for (Tags tag : newTags) {
 
 				if (tag.getId() != null) {
@@ -550,13 +550,28 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			HomePageStats homePageStats;
-//				IBP home page DATA
+			// IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
 
 			result = homePageDao.findById(1L);
+
+			List<HomePageData> homePageTranslations = homePageDao.findAll();
+
+			List<Translation> translationList = new ArrayList<>();
+
+			for (HomePageData hp : homePageTranslations) {
+
+				Translation translation = new Translation(hp.getId(), hp.getTitle(), hp.getLanguageId(),
+						hp.getDescription(), null);
+
+				translationList.add(translation);
+
+			}
+
 			result.setGallerySlider(groupedBySliderId);
 			result.setMiniGallery(miniGalleryConfig);
 			result.setStats(homePageStats);
+			result.setTranslations(translationList);
 
 			return result;
 		} catch (Exception e) {
@@ -1018,6 +1033,30 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowDesc(editData.getShowDesc());
 				homePageDataEntity.setDescription(editData.getDescription());
 				homePageDao.update(homePageDataEntity);
+
+				if (editData.getTranslations() != null) {
+
+					for (Translation translation : editData.getTranslations()) {
+						HomePageData translationEntity = homePageDao.findById(translation.getId());
+
+						translationEntity.setTitle(translation.getTitle());
+						translationEntity.setLanguageId(translation.getLanguageId());
+						translationEntity.setDescription(translation.getDescription());
+
+						translationEntity.setShowStats(editData.getShowStats());
+						translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
+						translationEntity.setShowPartners(editData.getShowPartners());
+						translationEntity.setShowSponsors(editData.getShowSponsors());
+						translationEntity.setShowDonors(editData.getShowDonors());
+						translationEntity.setShowGridMap(editData.getShowGridMap());
+						translationEntity.setShowGallery(editData.getShowGallery());
+						translationEntity.setShowDesc(editData.getShowDesc());
+						translationEntity.setDescription(editData.getDescription());
+
+						homePageDao.save(translationEntity);
+					}
+				}
+
 				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
@@ -3866,7 +3905,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 	}
 
-//Helper method to create circular clipping path
+	// Helper method to create circular clipping path
 	private static void createCircularClip(PDPageContentStream contentStream, float centerX, float centerY,
 			float radius) throws IOException {
 		final float k = 0.552284749831f;

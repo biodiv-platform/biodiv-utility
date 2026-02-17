@@ -34,12 +34,19 @@ public class HomePageData {
 	private Boolean showSponsors;
 	private Boolean showDonors;
 	private Boolean showDesc;
+
 	private HomePageStats stats;
 	private List<GallerySlider> gallerySlider;
 	private List<GalleryConfig> miniGallery;
 	private List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider;
-	private String ugDescription;
 	private String description;
+	private String ugDescription;
+
+	private String title;
+	private String logoPath;
+	private String favPath;
+	private Long languageId;
+	private List<Translation> translations;
 
 	/**
 	 * 
@@ -60,9 +67,9 @@ public class HomePageData {
 	 */
 	public HomePageData(Long id, Boolean showGallery, Boolean showStats, Boolean showRecentObservation,
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
-			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription,
-			String description, List<GalleryConfig> miniGallery,
-			List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider) {
+			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description,
+			List<GalleryConfig> miniGallery, List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider,
+			String title, String logoPath, String favPath, Long languageId, List<Translation> translations) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -79,6 +86,11 @@ public class HomePageData {
 		this.ugDescription = ugDescription;
 		this.description = description;
 		this.miniGallerySlider = miniGallerySlider;
+		this.title = title;
+		this.logoPath = logoPath;
+		this.favPath = favPath;
+		this.languageId = languageId;
+		this.translations = translations;
 	}
 
 	@Id
@@ -215,6 +227,51 @@ public class HomePageData {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Column(name = "title")
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	@Column(name = "logo_path")
+	public String getLogoPath() {
+		return logoPath;
+	}
+
+	public void setLogoPath(String logoPath) {
+		this.logoPath = logoPath;
+	}
+
+	@Column(name = "fav_path")
+	public String getFavPath() {
+		return favPath;
+	}
+
+	public void setFavPath(String favPath) {
+		this.favPath = favPath;
+	}
+
+	@Column(name = "language_id")
+	public Long getLanguageId() {
+		return languageId;
+	}
+
+	public void setLanguageId(Long languageId) {
+		this.languageId = languageId;
+	}
+
+	@Transient
+	public List<Translation> getTranslations() {
+		return translations;
+	}
+
+	public void setTranslations(List<Translation> translations) {
+		this.translations = translations;
 	}
 
 }
