@@ -139,6 +139,9 @@ public class UtilityServiceImpl implements UtilityService {
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 	private String SITENAME = PropertyFileUtil.fetchProperty("config.properties", "siteName");
 
+	private Long defaultLanguageId = Long
+			.parseLong(PropertyFileUtil.fetchProperty("config.properties", "defaultLanguageId"));
+
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
 	private static final String ROLE_ADMIN = "ROLE_ADMIN";
@@ -1031,29 +1034,56 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowGridMap(editData.getShowGridMap());
 				homePageDataEntity.setShowGallery(editData.getShowGallery());
 				homePageDataEntity.setShowDesc(editData.getShowDesc());
+				homePageDataEntity.setTitle(editData.getTitle());
+				homePageDataEntity.setLanguageId(defaultLanguageId);
 				homePageDataEntity.setDescription(editData.getDescription());
 				homePageDao.update(homePageDataEntity);
 
 				if (editData.getTranslations() != null) {
 
 					for (Translation translation : editData.getTranslations()) {
-						HomePageData translationEntity = homePageDao.findById(translation.getId());
 
-						translationEntity.setTitle(translation.getTitle());
-						translationEntity.setLanguageId(translation.getLanguageId());
-						translationEntity.setDescription(translation.getDescription());
+						if (translation.getId() != null) {
+							HomePageData translationEntity = homePageDao.findById(translation.getId());
 
-						translationEntity.setShowStats(editData.getShowStats());
-						translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
-						translationEntity.setShowPartners(editData.getShowPartners());
-						translationEntity.setShowSponsors(editData.getShowSponsors());
-						translationEntity.setShowDonors(editData.getShowDonors());
-						translationEntity.setShowGridMap(editData.getShowGridMap());
-						translationEntity.setShowGallery(editData.getShowGallery());
-						translationEntity.setShowDesc(editData.getShowDesc());
-						translationEntity.setDescription(editData.getDescription());
+							translationEntity.setTitle(translation.getTitle());
+							translationEntity.setLanguageId(translation.getLanguageId());
+							translationEntity.setDescription(translation.getDescription());
 
-						homePageDao.save(translationEntity);
+							translationEntity.setShowStats(editData.getShowStats());
+							translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
+							translationEntity.setShowPartners(editData.getShowPartners());
+							translationEntity.setShowSponsors(editData.getShowSponsors());
+							translationEntity.setShowDonors(editData.getShowDonors());
+							translationEntity.setShowGridMap(editData.getShowGridMap());
+							translationEntity.setShowGallery(editData.getShowGallery());
+							translationEntity.setShowDesc(editData.getShowDesc());
+							translationEntity.setDescription(editData.getDescription());
+
+							homePageDao.update(translationEntity);
+						}
+
+						else {
+							HomePageData translationEntity = new HomePageData();
+
+							translationEntity.setId(null);
+							translationEntity.setTitle(translation.getTitle());
+							translationEntity.setLanguageId(translation.getLanguageId());
+							translationEntity.setDescription(translation.getDescription());
+
+							translationEntity.setShowStats(editData.getShowStats());
+							translationEntity.setShowRecentObservation(editData.getShowRecentObservation());
+							translationEntity.setShowPartners(editData.getShowPartners());
+							translationEntity.setShowSponsors(editData.getShowSponsors());
+							translationEntity.setShowDonors(editData.getShowDonors());
+							translationEntity.setShowGridMap(editData.getShowGridMap());
+							translationEntity.setShowGallery(editData.getShowGallery());
+							translationEntity.setShowDesc(editData.getShowDesc());
+							translationEntity.setDescription(editData.getDescription());
+
+							homePageDao.save(translationEntity);
+
+						}
 					}
 				}
 
