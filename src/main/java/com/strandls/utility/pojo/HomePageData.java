@@ -43,8 +43,8 @@ public class HomePageData {
 	private String ugDescription;
 
 	private String title;
-	private String logoPath;
-	private String favPath;
+	private String siteLogo;
+	private String favIcon;
 	private Long languageId;
 	private List<Translation> translations;
 
@@ -69,7 +69,7 @@ public class HomePageData {
 			Boolean showGridMap, Boolean showPartners, Boolean showSponsors, Boolean showDonors, Boolean showDesc,
 			HomePageStats stats, List<GallerySlider> gallerySlider, String ugDescription, String description,
 			List<GalleryConfig> miniGallery, List<Map<String, Map<Long, List<MiniGallerySlider>>>> miniGallerySlider,
-			String title, String logoPath, String favPath, Long languageId, List<Translation> translations) {
+			String title, String siteLogo, String favIcon, Long languageId, List<Translation> translations) {
 		super();
 		this.id = id;
 		this.showGallery = showGallery;
@@ -87,8 +87,8 @@ public class HomePageData {
 		this.description = description;
 		this.miniGallerySlider = miniGallerySlider;
 		this.title = title;
-		this.logoPath = logoPath;
-		this.favPath = favPath;
+		this.setSiteLogo(siteLogo);
+		this.setFavIcon(favIcon);
 		this.languageId = languageId;
 		this.translations = translations;
 	}
@@ -238,22 +238,22 @@ public class HomePageData {
 		this.title = title;
 	}
 
-	@Column(name = "logo_path")
-	public String getLogoPath() {
-		return logoPath;
+	@Column(name = "site_logo")
+	public String getSiteLogo() {
+		return siteLogo;
 	}
 
-	public void setLogoPath(String logoPath) {
-		this.logoPath = logoPath;
+	public void setSiteLogo(String siteLogo) {
+		this.siteLogo = siteLogo;
 	}
 
-	@Column(name = "fav_path")
-	public String getFavPath() {
-		return favPath;
+	@Column(name = "fav_icon")
+	public String getFavIcon() {
+		return favIcon;
 	}
 
-	public void setFavPath(String favPath) {
-		this.favPath = favPath;
+	public void setFavIcon(String favIcon) {
+		this.favIcon = favIcon;
 	}
 
 	@Column(name = "language_id")
