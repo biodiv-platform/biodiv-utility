@@ -87,8 +87,8 @@ public class HomePageData {
 		this.description = description;
 		this.miniGallerySlider = miniGallerySlider;
 		this.title = title;
-		this.setSiteLogo(siteLogo);
-		this.setFavIcon(favIcon);
+		this.siteLogo = siteLogo;
+		this.favIcon = favIcon;
 		this.languageId = languageId;
 		this.translations = translations;
 	}
