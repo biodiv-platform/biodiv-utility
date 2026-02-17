@@ -1044,8 +1044,8 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setTitle(editData.getTitle());
 				homePageDataEntity.setLanguageId(defaultLanguageId);
 				homePageDataEntity.setDescription(editData.getDescription());
-				homePageDataEntity.setLogoPath(editData.getLogoPath());
-				homePageDataEntity.setFavPath(editData.getFavPath());
+				homePageDataEntity.setSiteLogo(editData.getSiteLogo());
+				homePageDataEntity.setFavIcon(editData.getFavIcon());
 				homePageDataEntity = homePageDao.update(homePageDataEntity);
 
 				if (editData.getTranslations() != null) {
@@ -1059,8 +1059,8 @@ public class UtilityServiceImpl implements UtilityService {
 							translationEntity.setLanguageId(translation.getLanguageId());
 							translationEntity.setDescription(translation.getDescription());
 
-							translationEntity.setLogoPath(homePageDataEntity.getLogoPath());
-							translationEntity.setFavPath(homePageDataEntity.getFavPath());
+							translationEntity.setSiteLogo(homePageDataEntity.getSiteLogo());
+							translationEntity.setFavIcon(homePageDataEntity.getFavIcon());
 
 							homePageDao.update(translationEntity);
 						}
@@ -1073,8 +1073,8 @@ public class UtilityServiceImpl implements UtilityService {
 							translationEntity.setLanguageId(translation.getLanguageId());
 							translationEntity.setDescription(translation.getDescription());
 
-							translationEntity.setLogoPath(homePageDataEntity.getLogoPath());
-							translationEntity.setFavPath(homePageDataEntity.getFavPath());
+							translationEntity.setSiteLogo(homePageDataEntity.getSiteLogo());
+							translationEntity.setFavIcon(homePageDataEntity.getFavIcon());
 
 							homePageDao.save(translationEntity);
 
