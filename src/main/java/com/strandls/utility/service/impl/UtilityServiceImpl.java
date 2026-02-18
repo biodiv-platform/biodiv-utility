@@ -558,20 +558,19 @@ public class UtilityServiceImpl implements UtilityService {
 
 			List<HomePageData> homePageTranslations = homePageDao.findAll();
 
+			result = homePageDao.findById(1L);
+
 			List<Translation> translationList = new ArrayList<>();
 
 			for (HomePageData homePageData : homePageTranslations) {
 
-				if (homePageData.getId() == 1 && result == null) {
-					result = homePageData;
-				}
-
-				Translation translation = new Translation(homePageData.getId(), homePageData.getTitle(), homePageData.getLanguageId(),
-						homePageData.getDescription(), null);
+				Translation translation = new Translation(homePageData.getId(), homePageData.getTitle(),
+						homePageData.getLanguageId(), homePageData.getDescription(), null);
 
 				translationList.add(translation);
 
-				if (languageId != defaultLanguageId && homePageData.getLanguageId().equals(languageId) && result != null) {
+				if (languageId != defaultLanguageId && homePageData.getLanguageId().equals(languageId)
+						&& result != null) {
 					result.setTitle(homePageData.getTitle());
 					result.setDescription(homePageData.getDescription());
 				}
