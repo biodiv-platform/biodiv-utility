@@ -589,6 +589,12 @@ public class UtilityServiceImpl implements UtilityService {
 
 	}
 
+	@Override
+	public HomePageData getSiteData(Long languageId) {
+		return homePageDao.findByLanguageId(
+				languageId != null && languageId != -1L ? languageId : defaultLanguageId);
+	}
+
 	private List<GallerySlider> groupGallerySliders(List<GallerySlider> galleryData, Long languageId, Boolean admin) {
 		List<GallerySlider> gallerySlider = new ArrayList<>();
 		List<Long> uniqueAuthorIds = galleryData.stream().map(GallerySlider::getAuthorId).filter(Objects::nonNull)

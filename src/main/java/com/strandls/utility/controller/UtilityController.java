@@ -374,6 +374,21 @@ public class UtilityController {
 		}
 	}
 
+	@GET
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.SITE)
+	@Produces(MediaType.APPLICATION_JSON)
+
+	@ApiOperation(value = "Get site	data", notes = "Return site data", response = HomePageData.class)
+	@ApiResponses(value = { @ApiResponse(code = 400, message = "unable to fetch the data", response = String.class) })
+	public Response getSiteData(@DefaultValue("-1") @QueryParam("languageId") Long languageId) {
+		try {
+			HomePageData result = utilityService.getSiteData(languageId);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 	@POST
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.CREATE)
 	@Consumes(MediaType.APPLICATION_JSON)
