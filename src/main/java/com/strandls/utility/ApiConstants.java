@@ -16,7 +16,7 @@ public class ApiConstants {
 
 	// <---------------VERSIONING-------------->
 	public static final String V1 = "/v1";
-//	<----------CONTROLLER PATHS------------->
+	// <----------CONTROLLER PATHS------------->
 	public static final String SERVICES = "/services";
 	public static final String FLAG = "/flag";
 	public static final String UNFLAG = "/unflag";
@@ -47,5 +47,6 @@ public class ApiConstants {
 	public static final String ANNOUNCEMENT = "/announcement";
 	public static final String ACTIVE = "/active";
 	public static final String DOWNLOAD = "/download";
+	public static final String SITE = "/site";
 
 }

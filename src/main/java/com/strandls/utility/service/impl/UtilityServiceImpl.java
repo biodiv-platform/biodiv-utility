@@ -139,6 +139,9 @@ public class UtilityServiceImpl implements UtilityService {
 	private String TRAITS_IMAGE = PropertyFileUtil.fetchProperty("config.properties", "traits_image");
 	private String SITENAME = PropertyFileUtil.fetchProperty("config.properties", "siteName");
 
+	private Long defaultLanguageId = Long
+			.parseLong(PropertyFileUtil.fetchProperty("config.properties", "defaultLanguageId"));
+
 	private final CloseableHttpClient httpClient = HttpClients.createDefault();
 
 	private static final String ROLE_ADMIN = "ROLE_ADMIN";
@@ -414,14 +417,14 @@ public class UtilityServiceImpl implements UtilityService {
 			Long objectId = tagsMapping.getObjectId();
 			List<TagLinks> previousTags = tagLinkDao.findObjectTags(objectType, objectId);
 			List<Tags> newTags = tagsMapping.getTags();
-//			DELETE THE TAGS THAT ARE REMOVED
+			// DELETE THE TAGS THAT ARE REMOVED
 			for (TagLinks tagLinks : previousTags) {
 				Tags tag = tagsDao.findById(tagLinks.getTagId());
 				if (!(newTags.contains(tag))) {
 					tagLinkDao.delete(tagLinks);
 				}
 			}
-//			ADD OR CREATE THE NEW TAGS ADDED
+			// ADD OR CREATE THE NEW TAGS ADDED
 			for (Tags tag : newTags) {
 
 				if (tag.getId() != null) {
@@ -550,13 +553,33 @@ public class UtilityServiceImpl implements UtilityService {
 			}
 
 			HomePageStats homePageStats;
-//				IBP home page DATA
+			// IBP home page DATA
 			homePageStats = portalStatusDao.fetchPortalStats();
 
+			List<HomePageData> homePageTranslations = homePageDao.findAll();
+
 			result = homePageDao.findById(1L);
+
+			List<Translation> translationList = new ArrayList<>();
+
+			for (HomePageData homePageData : homePageTranslations) {
+
+				Translation translation = new Translation(homePageData.getId(), homePageData.getTitle(),
+						homePageData.getLanguageId(), homePageData.getDescription(), null);
+
+				translationList.add(translation);
+
+				if (languageId != defaultLanguageId && homePageData.getLanguageId().equals(languageId)
+						&& result != null) {
+					result.setTitle(homePageData.getTitle());
+					result.setDescription(homePageData.getDescription());
+				}
+			}
+
 			result.setGallerySlider(groupedBySliderId);
 			result.setMiniGallery(miniGalleryConfig);
 			result.setStats(homePageStats);
+			result.setTranslations(translationList);
 
 			return result;
 		} catch (Exception e) {
@@ -564,6 +587,12 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 		return null;
 
+	}
+
+	@Override
+	public HomePageData getSiteData(Long languageId) {
+		return homePageDao.findByLanguageId(
+				languageId != null && languageId != -1L ? languageId : defaultLanguageId);
 	}
 
 	private List<GallerySlider> groupGallerySliders(List<GallerySlider> galleryData, Long languageId, Boolean admin) {
@@ -1016,8 +1045,48 @@ public class UtilityServiceImpl implements UtilityService {
 				homePageDataEntity.setShowGridMap(editData.getShowGridMap());
 				homePageDataEntity.setShowGallery(editData.getShowGallery());
 				homePageDataEntity.setShowDesc(editData.getShowDesc());
+
+				homePageDataEntity.setTitle(editData.getTitle());
+				homePageDataEntity.setLanguageId(defaultLanguageId);
 				homePageDataEntity.setDescription(editData.getDescription());
-				homePageDao.update(homePageDataEntity);
+				homePageDataEntity.setSiteLogo(editData.getSiteLogo());
+				homePageDataEntity.setFavIcon(editData.getFavIcon());
+				homePageDataEntity = homePageDao.update(homePageDataEntity);
+
+				if (editData.getTranslations() != null) {
+
+					for (Translation translation : editData.getTranslations()) {
+
+						if (translation.getId() != null) {
+							HomePageData translationEntity = homePageDao.findById(translation.getId());
+
+							translationEntity.setTitle(translation.getTitle());
+							translationEntity.setLanguageId(translation.getLanguageId());
+							translationEntity.setDescription(translation.getDescription());
+
+							translationEntity.setSiteLogo(homePageDataEntity.getSiteLogo());
+							translationEntity.setFavIcon(homePageDataEntity.getFavIcon());
+
+							homePageDao.update(translationEntity);
+						}
+
+						else {
+							HomePageData translationEntity = new HomePageData();
+
+							translationEntity.setId(null);
+							translationEntity.setTitle(translation.getTitle());
+							translationEntity.setLanguageId(translation.getLanguageId());
+							translationEntity.setDescription(translation.getDescription());
+
+							translationEntity.setSiteLogo(homePageDataEntity.getSiteLogo());
+							translationEntity.setFavIcon(homePageDataEntity.getFavIcon());
+
+							homePageDao.save(translationEntity);
+
+						}
+					}
+				}
+
 				return getHomePageData(request, true, (long) -1);
 			}
 		} catch (Exception e) {
@@ -3866,7 +3935,7 @@ public class UtilityServiceImpl implements UtilityService {
 		}
 	}
 
-//Helper method to create circular clipping path
+	// Helper method to create circular clipping path
 	private static void createCircularClip(PDPageContentStream contentStream, float centerX, float centerY,
 			float radius) throws IOException {
 		final float k = 0.552284749831f;

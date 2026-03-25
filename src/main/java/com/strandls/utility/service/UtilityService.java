@@ -108,4 +108,6 @@ public interface UtilityService {
 	public List<Announcement> getActiveAnnouncement(HttpServletRequest request);
 
 	public byte[] download(HttpServletRequest request, SpeciesDownload speciesData);
+
+	public HomePageData getSiteData(Long languageId);
 }
