@@ -326,7 +326,21 @@ public class UtilityController {
 		}
 	}
 
-// CREATE
+	@GET
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.SITE)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get site data", description = "Return site data", responses = {
+			@ApiResponse(responseCode = "200", description = "Site data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getSiteData(@DefaultValue("-1") @QueryParam("languageId") Long languageId) {
+		try {
+			HomePageData result = utilityService.getSiteData(languageId);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 	@POST
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.CREATE)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -444,6 +458,27 @@ public class UtilityController {
 
 // PUT: edit homepage mini gallery
 	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Create homepage gallery data", description = "Return home page data", requestBody = @RequestBody(required = true, content = @Content(schema = @Schema(implementation = GallerySlider.class))), responses = {
+			@ApiResponse(responseCode = "200", description = "Home page data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response insertHomePage(@Context HttpServletRequest request, GallerySlider editData) {
+		try {
+			HomePageData result = utilityService.insertGallerySlider(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER + "/{galleryId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -467,7 +502,27 @@ public class UtilityController {
 		}
 	}
 
-// DELETE: delete homepage mini gallery
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT + ApiConstants.MINI_SLIDER)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Create homepage mini gallery data", description = "Return home page data", requestBody = @RequestBody(required = true, content = @Content(schema = @Schema(implementation = MiniGallerySlider.class))), responses = {
+			@ApiResponse(responseCode = "200", description = "Home page data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response insertMiniHomePage(@Context HttpServletRequest request, MiniGallerySlider editData) {
+		try {
+			HomePageData result = utilityService.insertMiniHomePage(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 	@DELETE
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + ApiConstants.MINI_SLIDER + "/{galleryId}")
 	@Consumes(MediaType.TEXT_PLAIN)
