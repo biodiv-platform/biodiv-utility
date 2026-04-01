@@ -45,13 +45,13 @@ public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
 	public List<Announcement> getActiveAnnouncemntInfo() {
 		List<Announcement> result = null;
-		String qry = "from Announcement where enabled is true";
+		String qry = "from Announcement where enabled = :enabled";
 		Session session = sessionFactory.openSession();
 		try {
-			Query<Announcement> query = session.createQuery(qry);
+			Query<Announcement> query = session.createQuery(qry, Announcement.class);
+			query.setParameter("enabled", true);
 			result = query.getResultList();
 		} catch (Exception e) {
 			logger.error(e.getMessage());
@@ -60,7 +60,7 @@ public class AnnouncementDao extends AbstractDAO<Announcement, Long> {
 		}
 		return result;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<Announcement> findByAnnouncemntId(Long aId) {
 		String qry = "from Announcement where announcementId = :aId";
