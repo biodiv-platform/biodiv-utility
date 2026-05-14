@@ -2,10 +2,12 @@
 package com.strandls.utility.service;
 
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.pac4j.core.profile.CommonProfile;
 
 import com.strandls.activity.pojo.MailData;
+import com.strandls.utility.pojo.Announcement;
 import com.strandls.utility.pojo.Flag;
 import com.strandls.utility.pojo.FlagCreateData;
 import com.strandls.utility.pojo.FlagIbp;
@@ -18,10 +20,9 @@ import com.strandls.utility.pojo.Language;
 import com.strandls.utility.pojo.MiniGallerySlider;
 import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
+import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
 import com.strandls.utility.pojo.TagsMappingData;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Abhishek Rudra
@@ -69,6 +70,8 @@ public interface UtilityService {
 
 	public HomePageData editHomePage(HttpServletRequest request, Long galleryId, GallerySlider editData);
 
+	public HomePageData insertGallerySlider(HttpServletRequest request, GallerySlider editData);
+
 	public HomePageData editHomePageData(HttpServletRequest request, HomePageData editData);
 
 	public HomePageData insertHomePage(HttpServletRequest request, HomePageData editData);
@@ -85,7 +88,23 @@ public interface UtilityService {
 
 	public HomePageData editMiniHomePage(HttpServletRequest request, Long gId, MiniGallerySlider editData);
 
+	public HomePageData insertMiniHomePage(HttpServletRequest request, MiniGallerySlider editData);
+
 	public HomePageData removeMiniHomePage(HttpServletRequest request, Long gId);
 
 	public HomePageData reorderMiniHomePageSlider(HttpServletRequest request, List<ReorderHomePage> reorderingHomePage);
+
+	public Announcement createAnnouncement(HttpServletRequest request, Announcement announcementData);
+
+	public List<Announcement> getAnnouncementData(HttpServletRequest request);
+
+	public Boolean removeAnnouncement(HttpServletRequest request, Long aId);
+
+	public Announcement editAnnouncement(HttpServletRequest request, Long aId, Announcement editData);
+
+	public List<Announcement> getActiveAnnouncement(HttpServletRequest request);
+
+	public byte[] download(HttpServletRequest request, SpeciesDownload speciesData);
+
+	public HomePageData getSiteData(Long languageId);
 }

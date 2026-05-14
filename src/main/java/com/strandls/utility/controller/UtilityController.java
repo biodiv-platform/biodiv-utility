@@ -1,38 +1,8 @@
 package com.strandls.utility.controller;
 
 import java.util.List;
+import java.util.Map;
 
-import org.pac4j.core.profile.CommonProfile;
-
-import com.strandls.activity.pojo.MailData;
-import com.strandls.authentication_utility.filter.ValidateUser;
-import com.strandls.authentication_utility.util.AuthUtil;
-import com.strandls.utility.ApiConstants;
-import com.strandls.utility.pojo.Flag;
-import com.strandls.utility.pojo.FlagCreateData;
-import com.strandls.utility.pojo.FlagIbp;
-import com.strandls.utility.pojo.FlagShow;
-import com.strandls.utility.pojo.GalleryConfig;
-import com.strandls.utility.pojo.GallerySlider;
-import com.strandls.utility.pojo.Habitat;
-import com.strandls.utility.pojo.HomePageData;
-import com.strandls.utility.pojo.Language;
-import com.strandls.utility.pojo.MiniGallerySlider;
-import com.strandls.utility.pojo.ParsedName;
-import com.strandls.utility.pojo.ReorderHomePage;
-import com.strandls.utility.pojo.Tags;
-import com.strandls.utility.pojo.TagsMappingData;
-import com.strandls.utility.service.UtilityService;
-
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
@@ -49,6 +19,39 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
+import org.pac4j.core.profile.CommonProfile;
+
+import com.strandls.activity.pojo.MailData;
+import com.strandls.authentication_utility.filter.ValidateUser;
+import com.strandls.authentication_utility.util.AuthUtil;
+import com.strandls.utility.ApiConstants;
+import com.strandls.utility.pojo.Announcement;
+import com.strandls.utility.pojo.Flag;
+import com.strandls.utility.pojo.FlagCreateData;
+import com.strandls.utility.pojo.FlagIbp;
+import com.strandls.utility.pojo.FlagShow;
+import com.strandls.utility.pojo.GalleryConfig;
+import com.strandls.utility.pojo.GallerySlider;
+import com.strandls.utility.pojo.Habitat;
+import com.strandls.utility.pojo.HomePageData;
+import com.strandls.utility.pojo.Language;
+import com.strandls.utility.pojo.MiniGallerySlider;
+import com.strandls.utility.pojo.ParsedName;
+import com.strandls.utility.pojo.ReorderHomePage;
+import com.strandls.utility.pojo.SpeciesDownload;
+import com.strandls.utility.pojo.Tags;
+import com.strandls.utility.pojo.TagsMappingData;
+import com.strandls.utility.service.UtilityService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Utility Service", description = "APIs for utility microservice")
 @Path(ApiConstants.V1 + ApiConstants.SERVICES)
@@ -323,7 +326,21 @@ public class UtilityController {
 		}
 	}
 
-// CREATE
+	@GET
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.SITE)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get site data", description = "Return site data", responses = {
+			@ApiResponse(responseCode = "200", description = "Site data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getSiteData(@DefaultValue("-1") @QueryParam("languageId") Long languageId) {
+		try {
+			HomePageData result = utilityService.getSiteData(languageId);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 	@POST
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.MINI_GALLERY + ApiConstants.CREATE)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -441,6 +458,27 @@ public class UtilityController {
 
 // PUT: edit homepage mini gallery
 	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Create homepage gallery data", description = "Return home page data", requestBody = @RequestBody(required = true, content = @Content(schema = @Schema(implementation = GallerySlider.class))), responses = {
+			@ApiResponse(responseCode = "200", description = "Home page data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response insertHomePage(@Context HttpServletRequest request, GallerySlider editData) {
+		try {
+			HomePageData result = utilityService.insertGallerySlider(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.EDIT + ApiConstants.MINI_SLIDER + "/{galleryId}")
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
@@ -464,7 +502,27 @@ public class UtilityController {
 		}
 	}
 
-// DELETE: delete homepage mini gallery
+	@PUT
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.INSERT + ApiConstants.MINI_SLIDER)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Create homepage mini gallery data", description = "Return home page data", requestBody = @RequestBody(required = true, content = @Content(schema = @Schema(implementation = MiniGallerySlider.class))), responses = {
+			@ApiResponse(responseCode = "200", description = "Home page data", content = @Content(schema = @Schema(implementation = HomePageData.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response insertMiniHomePage(@Context HttpServletRequest request, MiniGallerySlider editData) {
+		try {
+			HomePageData result = utilityService.insertMiniHomePage(request, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 	@DELETE
 	@Path(ApiConstants.HOMEPAGE + ApiConstants.REMOVE + ApiConstants.MINI_SLIDER + "/{galleryId}")
 	@Consumes(MediaType.TEXT_PLAIN)
@@ -600,4 +658,123 @@ public class UtilityController {
 			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
 		}
 	}
+
+	@POST
+	@Path(ApiConstants.HOMEPAGE + ApiConstants.ANNOUNCEMENT + ApiConstants.CREATE)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Creates an announcement", description = "Return created announcement", responses = {
+			@ApiResponse(responseCode = "200", description = "Created", content = @Content(schema = @Schema(implementation = Announcement.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to create announcement", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response createAnnouncement(@Context HttpServletRequest request,
+			@RequestBody(description = "Announcement data", required = true, content = @Content(schema = @Schema(implementation = Announcement.class))) Announcement announcementData) {
+		try {
+			Announcement result = utilityService.createAnnouncement(request, announcementData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@GET
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.ALL)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get announcements data", description = "Return announcements data", responses = {
+			@ApiResponse(responseCode = "200", description = "Announcements data", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Announcement.class)))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getAnnouncementData(@Context HttpServletRequest request) {
+		try {
+			List<Announcement> result = utilityService.getAnnouncementData(request);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@DELETE
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.REMOVE + "/{announcementId}")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Delete announcement data", description = "Return if success", responses = {
+			@ApiResponse(responseCode = "200", description = "Deleted", content = @Content(schema = @Schema(implementation = Boolean.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to delete the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response removeAnnouncementData(@Context HttpServletRequest request,
+			@Parameter(description = "Announcement ID") @PathParam("announcementId") String announcementId) {
+		try {
+			Long aId = Long.parseLong(announcementId);
+			Boolean result = utilityService.removeAnnouncement(request, aId);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@PUT
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.EDIT + "/{announcementId}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@ValidateUser
+	@Operation(summary = "Edit announcement data", description = "Return announcement data", responses = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = Announcement.class))),
+			@ApiResponse(responseCode = "404", description = "Not found"),
+			@ApiResponse(responseCode = "400", description = "Unable to retrieve the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response editAnnouncement(@Context HttpServletRequest request,
+			@Parameter(description = "Announcement ID") @PathParam("announcementId") String announcementId,
+			@RequestBody(description = "Edit payload", required = true, content = @Content(schema = @Schema(implementation = Announcement.class))) Announcement editData) {
+		try {
+			if (announcementId == null) {
+				return Response.status(Status.BAD_REQUEST).entity("announcemnt Id cannot be null").build();
+			}
+			Long aId = Long.parseLong(announcementId);
+			Announcement result = utilityService.editAnnouncement(request, aId, editData);
+			if (result != null)
+				return Response.status(Status.OK).entity(result).build();
+			return Response.status(Status.NOT_FOUND).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@GET
+	@Path(ApiConstants.ANNOUNCEMENT + ApiConstants.ACTIVE)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Get active announcement", description = "Return announcement data", responses = {
+			@ApiResponse(responseCode = "200", description = "Active announcement", content = @Content(array = @ArraySchema(schema = @Schema(implementation = Announcement.class)))),
+			@ApiResponse(responseCode = "400", description = "Unable to fetch the data", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getActiveAnnouncement(@Context HttpServletRequest request) {
+		try {
+			List<Announcement> result = utilityService.getActiveAnnouncement(request);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
+	@POST
+	@Path(ApiConstants.DOWNLOAD)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces("application/pdf")
+	@ValidateUser
+	@Operation(summary = "Download species data as PDF", description = "Return PDF file", responses = {
+			@ApiResponse(responseCode = "200", description = "PDF generated successfully"),
+			@ApiResponse(responseCode = "500", description = "Error generating PDF", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response download(@Context HttpServletRequest request,
+			@RequestBody(description = "Species data", required = true, content = @Content(schema = @Schema(implementation = SpeciesDownload.class))) SpeciesDownload speciesData) {
+		try {
+			byte[] pdfBytes = utilityService.download(request, speciesData);
+			return Response.ok(pdfBytes).type("application/pdf")
+					.header("Content-Disposition", "attachment; filename=\"simple.pdf\"").build();
+		} catch (Exception e) {
+			return Response.status(500).entity("Error: " + e.getMessage()).build();
+		}
+	}
+
 }
