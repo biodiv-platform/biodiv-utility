@@ -55,6 +55,7 @@ import com.strandls.authentication_utility.util.AuthUtil;
 import com.strandls.utility.util.PropertyFileUtil;
 import com.strandls.user.controller.UserServiceApi;
 import com.strandls.user.pojo.User;
+import com.strandls.user.pojo.UserIbp;
 import com.strandls.utility.dao.AnnouncementDao;
 import com.strandls.utility.dao.FlagDao;
 import com.strandls.utility.dao.GalleryConfigDao;
@@ -206,9 +207,18 @@ public class UtilityServiceImpl implements UtilityService {
 			if (objectType.equalsIgnoreCase("observation"))
 				objectType = "species.participation.Observation";
 			List<Flag> flagList = flagDao.findByObjectId(objectType, objectId);
+
+			List<Integer> authorIds = flagList.stream().map(flag -> flag.getAuthorId().intValue()).distinct()
+					.collect(Collectors.toList());
+			Map<Long, UserIbp> userById = new HashMap<Long, UserIbp>();
+			if (!authorIds.isEmpty()) {
+				List<UserIbp> users = userService.getUserIbpInBulk(authorIds);
+				userById = users.stream().collect(Collectors.toMap(UserIbp::getId, user -> user));
+			}
+
 			List<FlagShow> flagShow = new ArrayList<FlagShow>();
 			for (Flag flag : flagList) {
-				flagShow.add(new FlagShow(flag, userService.getUserIbp(flag.getAuthorId().toString())));
+				flagShow.add(new FlagShow(flag, userById.get(flag.getAuthorId())));
 			}
 			return flagShow;
 		} catch (Exception e) {
@@ -291,9 +301,14 @@ public class UtilityServiceImpl implements UtilityService {
 	@Override
 	public List<Tags> fetchTags(String objectType, Long id) {
 		List<TagLinks> tagList = tagLinkDao.findObjectTags(objectType, id);
+
+		List<Long> tagIds = tagList.stream().map(TagLinks::getTagId).distinct().collect(Collectors.toList());
+		Map<Long, Tags> tagsById = tagsDao.findByIds(tagIds).stream()
+				.collect(Collectors.toMap(Tags::getId, tag -> tag));
+
 		List<Tags> tags = new ArrayList<Tags>();
 		for (TagLinks tag : tagList) {
-			tags.add(tagsDao.findById(tag.getTagId()));
+			tags.add(tagsById.get(tag.getTagId()));
 		}
 		return tags;
 	}
