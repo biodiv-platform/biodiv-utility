@@ -40,6 +40,7 @@ import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
+import com.strandls.utility.pojo.TagsBulkData;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.service.UtilityService;
 
@@ -199,6 +200,21 @@ public class UtilityController {
 		try {
 			Long id = Long.parseLong(objectId);
 			List<Tags> tags = utilityService.fetchTags(objectType, id);
+			return Response.status(Status.OK).entity(tags).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+	}
+
+	@POST
+	@Path(ApiConstants.TAGS + ApiConstants.BULK + "/{objectType}")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Find tags for a list of object ids of the same object type", requestBody = @RequestBody(required = true, content = @Content(array = @ArraySchema(schema = @Schema(implementation = Long.class)))), responses = {
+			@ApiResponse(responseCode = "200", description = "List of tags per object id", content = @Content(array = @ArraySchema(schema = @Schema(implementation = TagsBulkData.class)))),
+			@ApiResponse(responseCode = "400", description = "Tags not Found", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getTagsBulk(@PathParam("objectType") String objectType, List<Long> objectIds) {
+		try {
+			List<TagsBulkData> tags = utilityService.fetchTagsBulk(objectType, objectIds);
 			return Response.status(Status.OK).entity(tags).build();
 		} catch (Exception e) {
 			return Response.status(Status.BAD_REQUEST).build();

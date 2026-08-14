@@ -64,6 +64,28 @@ public class TagLinksDao extends AbstractDAO<TagLinks, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
+	public List<TagLinks> findObjectTagsBulk(String objectType, List<Long> ids) {
+		if (ids == null || ids.isEmpty())
+			return new ArrayList<TagLinks>();
+
+		List<TagLinks> result = new ArrayList<>();
+		Session session = sessionFactory.openSession();
+		String qry = "from TagLinks where type = :type and tagRefer IN (:ids)";
+		try {
+			Query<TagLinks> query = session.createQuery(qry);
+			query.setParameter("type", objectType);
+			query.setParameter("ids", ids);
+			result = query.getResultList();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
 	public TagLinks checkIfTagsLinked(String objectType, Long objectId, Long tagId) {
 		String qry = "from TagLinks where type = :type and tagRefer = :objectId and tagId = :tagId";
 		Session session = sessionFactory.openSession();

@@ -22,6 +22,7 @@ import com.strandls.utility.pojo.ParsedName;
 import com.strandls.utility.pojo.ReorderHomePage;
 import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.Tags;
+import com.strandls.utility.pojo.TagsBulkData;
 import com.strandls.utility.pojo.TagsMappingData;
 
 /**
@@ -44,6 +45,8 @@ public interface UtilityService {
 			Long flagId, MailData mailData);
 
 	public List<Tags> fetchTags(String objectType, Long id);
+
+	public List<TagsBulkData> fetchTagsBulk(String objectType, List<Long> objectIds);
 
 	public List<String> createTagsMapping(HttpServletRequest request, String objectType,
 			TagsMappingData tagsMappingData);

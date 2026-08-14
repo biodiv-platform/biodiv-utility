@@ -87,6 +87,7 @@ import com.strandls.utility.pojo.SpeciesDownload;
 import com.strandls.utility.pojo.SpeciesField;
 import com.strandls.utility.pojo.TagLinks;
 import com.strandls.utility.pojo.Tags;
+import com.strandls.utility.pojo.TagsBulkData;
 import com.strandls.utility.pojo.TagsMapping;
 import com.strandls.utility.pojo.TagsMappingData;
 import com.strandls.utility.pojo.Trait;
@@ -311,6 +312,30 @@ public class UtilityServiceImpl implements UtilityService {
 			tags.add(tagsById.get(tag.getTagId()));
 		}
 		return tags;
+	}
+
+	@Override
+	public List<TagsBulkData> fetchTagsBulk(String objectType, List<Long> objectIds) {
+		List<TagsBulkData> result = new ArrayList<TagsBulkData>();
+		if (objectIds == null || objectIds.isEmpty())
+			return result;
+
+		List<TagLinks> tagLinkList = tagLinkDao.findObjectTagsBulk(objectType, objectIds);
+
+		List<Long> tagIds = tagLinkList.stream().map(TagLinks::getTagId).distinct().collect(Collectors.toList());
+		Map<Long, Tags> tagsById = tagsDao.findByIds(tagIds).stream()
+				.collect(Collectors.toMap(Tags::getId, tag -> tag));
+
+		Map<Long, List<TagLinks>> tagLinksByObjectId = tagLinkList.stream()
+				.collect(Collectors.groupingBy(TagLinks::getTagRefer));
+
+		for (Long objectId : objectIds) {
+			List<TagLinks> objectTagLinks = tagLinksByObjectId.getOrDefault(objectId, new ArrayList<TagLinks>());
+			List<Tags> objectTags = objectTagLinks.stream().map(tagLink -> tagsById.get(tagLink.getTagId()))
+					.collect(Collectors.toList());
+			result.add(new TagsBulkData(objectId, objectTags));
+		}
+		return result;
 	}
 
 	@Override
