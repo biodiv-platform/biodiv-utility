@@ -45,6 +45,26 @@ public class TagsDao extends AbstractDAO<Tags, Long> {
 	}
 
 	@SuppressWarnings("unchecked")
+	public List<Tags> findByIds(List<Long> ids) {
+		if (ids == null || ids.isEmpty())
+			return new ArrayList<Tags>();
+
+		Session session = sessionFactory.openSession();
+		List<Tags> result = new ArrayList<Tags>();
+		String qry = "from Tags where id IN (:ids)";
+		try {
+			Query<Tags> query = session.createQuery(qry);
+			query.setParameter("ids", ids);
+			result = query.getResultList();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		} finally {
+			session.close();
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
 	public Tags fetchByName(String phrase) {
 		Session session = sessionFactory.openSession();
 		Tags tags = null;
