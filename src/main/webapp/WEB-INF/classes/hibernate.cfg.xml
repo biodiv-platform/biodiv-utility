@@ -24,6 +24,10 @@
 		<!-- Maximum time that a connection is allowed to sit ideal in the pool -->
 		<property name="hibernate.hikari.idleTimeout">10000</property>
 		<property name="hibernate.id.db_structure_naming_strategy">legacy</property>
+		
+		<!-- Live pool metrics via JMX -->
+		<property name="hibernate.hikari.registerMbeans">true</property>
+		<property name="hibernate.hikari.poolName">utility-pool</property>
 
 		<mapping class="com.strandls.utility.pojo.Flag"/>
 		<mapping class="com.strandls.utility.pojo.Tags"/>
