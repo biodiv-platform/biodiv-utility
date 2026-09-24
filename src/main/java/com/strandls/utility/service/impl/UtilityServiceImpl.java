@@ -2107,8 +2107,8 @@ public class UtilityServiceImpl implements UtilityService {
 			PDPage currentPage, String text, PDFont font, float fontSize, float x, float y, float maxWidth,
 			float lineHeight, Color color, String leftText, float paddingBottom, boolean speciesField,
 			boolean contributor, Color traitColor, float level, String url) throws IOException {
-		List<String> lines = List.of("");
-		List<String> leftLines = List.of("");
+		List<String> lines = Collections.singletonList("");
+		List<String> leftLines = Collections.singletonList("");
 		if (text != null && !text.isEmpty()) {
 			// Split text into lines
 			lines = splitTextIntoLines(text, font, fontSize, maxWidth);
@@ -2117,7 +2117,7 @@ public class UtilityServiceImpl implements UtilityService {
 						speciesField ? x - MARGIN - 35 : x - MARGIN - 25);
 			}
 			if (lines == null) {
-				lines = List.of("");
+				lines = Collections.singletonList("");
 			}
 		}
 
@@ -3050,7 +3050,7 @@ public class UtilityServiceImpl implements UtilityService {
 								}
 							}
 
-							List<String> lines = List.of("");
+							List<String> lines = Collections.singletonList("");
 							if (!text.isEmpty()) {
 								lines = splitTextIntoLines(text.split("\\|").length > 1 ? text.split("\\|")[0] : text,
 										primaryFont, 11, boxWidth - 10 - (text.split("\\|").length > 1 ? 45 : 0));
