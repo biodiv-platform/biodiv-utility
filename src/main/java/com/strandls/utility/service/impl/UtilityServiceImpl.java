@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,10 @@ import java.util.stream.Collectors;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -4030,6 +4034,46 @@ public class UtilityServiceImpl implements UtilityService {
 				centerX - radius, centerY);
 
 		contentStream.closePath();
+	}
+	
+	@Override
+	public List<ParsedName> findParsedNames(List<String> scientificNames) {
+		List<ParsedName> out = new ArrayList<>(Collections.nCopies(scientificNames.size(), (ParsedName) null));
+		if (scientificNames.isEmpty()) {
+			return out;
+		}
+ 
+		try {
+			Map<String, Object> body = new LinkedHashMap<>();
+			body.put("names", scientificNames);
+			body.put("withDetails", true);
+ 
+			HttpPost request = new HttpPost("http://localhost:9091/api/v1/");
+			request.setHeader("Accept", "application/json");
+			request.setEntity(new StringEntity(objectMapper.writeValueAsString(body), ContentType.APPLICATION_JSON));
+ 
+			try (CloseableHttpResponse response = httpClient.execute(request)) {
+				int status = response.getStatusLine().getStatusCode();
+				HttpEntity entity = response.getEntity();
+				String result = entity != null ? EntityUtils.toString(entity) : null;
+ 
+				if (status != 200 || result == null) {
+					logger.error("gnparser returned HTTP {} for {} names", status, scientificNames.size());
+					return out;
+				}
+ 
+				ParsedName[] parsed = objectMapper.readValue(result, ParsedName[].class);
+				if (parsed.length != scientificNames.size()) {
+					logger.warn("gnparser returned {} results for {} names", parsed.length, scientificNames.size());
+				}
+				for (int i = 0; i < Math.min(parsed.length, out.size()); i++) {
+					out.set(i, parsed[i]);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Bulk parse failed for {} names", scientificNames.size(), e);
+		}
+		return out;
 	}
 
 }

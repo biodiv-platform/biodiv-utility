@@ -110,4 +110,6 @@ public interface UtilityService {
 	public byte[] download(HttpServletRequest request, SpeciesDownload speciesData);
 
 	public HomePageData getSiteData(Long languageId);
+	
+	public List<ParsedName> findParsedNames(List<String> scientificNames);
 }

@@ -793,4 +793,20 @@ public class UtilityController {
 		}
 	}
 
+	@POST
+	@Path("/bulk" + ApiConstants.NAMEPARSER)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(summary = "Find the Canonical Forms of many Scientific Names", responses = {
+			@ApiResponse(responseCode = "200", description = "Result i is the parsed form of name i (null if unparseable)", content = @Content(array = @ArraySchema(schema = @Schema(implementation = ParsedName.class)))),
+			@ApiResponse(responseCode = "400", description = "Parsing failed", content = @Content(schema = @Schema(implementation = String.class))) })
+	public Response getBulkNameParsed(List<String> scientificNames) {
+		try {
+			List<ParsedName> result = utilityService.findParsedNames(scientificNames);
+			return Response.status(Status.OK).entity(result).build();
+		} catch (Exception e) {
+			return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+		}
+	}
+
 }
